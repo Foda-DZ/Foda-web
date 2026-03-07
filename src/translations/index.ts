@@ -167,8 +167,8 @@ export interface Translations {
       heading: string;
       sub: string;
       tab: string;
-      firstNamePlaceholder: string;
-      lastNamePlaceholder: string;
+      fullNamePlaceholder: string;
+      shopNamePlaceholder: string;
       emailPlaceholder: string;
       passwordPlaceholder: string;
       confirmPlaceholder: string;
@@ -286,8 +286,7 @@ export interface Translations {
     signOut: string;
     account: string;
     myAccount: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
     email: string;
     phone: string;
     address: string;
@@ -313,6 +312,17 @@ export interface Translations {
     memberSince: string;
     edit: string;
     cancel: string;
+    loadingOrders: string;
+    ordersError: string;
+    retry: string;
+    orderPlaced: string;
+    statusPending: string;
+    statusConfirmed: string;
+    statusShipped: string;
+    statusDelivered: string;
+    statusCancelled: string;
+    homeDelivery: string;
+    deskPickup: string;
   };
   common: {
     dzd: string;
@@ -492,8 +502,8 @@ export const ar: Translations = {
       heading: "انضم إلى فودة",
       sub: "أنشئ حسابك — مجاناً تماماً",
       tab: "إنشاء حساب",
-      firstNamePlaceholder: "الاسم الأول",
-      lastNamePlaceholder: "اللقب",
+      fullNamePlaceholder: "الاسم الكامل",
+      shopNamePlaceholder: "اسم المتجر",
       emailPlaceholder: "example@email.com",
       passwordPlaceholder: "8 أحرف على الأقل",
       confirmPlaceholder: "أعد كلمة المرور",
@@ -611,8 +621,7 @@ export const ar: Translations = {
     signOut: "تسجيل الخروج",
     account: "الحساب",
     myAccount: "حسابي",
-    firstName: "الاسم الأول",
-    lastName: "اللقب",
+    fullName: "الاسم الكامل",
     email: "البريد الإلكتروني",
     phone: "الهاتف",
     address: "العنوان",
@@ -638,6 +647,17 @@ export const ar: Translations = {
     memberSince: "عضو منذ",
     edit: "تعديل",
     cancel: "إلغاء",
+    loadingOrders: "جارٍ تحميل الطلبات...",
+    ordersError: "تعذر تحميل الطلبات. حاول مجدداً.",
+    retry: "إعادة المحاولة",
+    orderPlaced: "بتاريخ",
+    statusPending: "قيد الانتظار",
+    statusConfirmed: "تم التأكيد",
+    statusShipped: "تم الشحن",
+    statusDelivered: "تم التوصيل",
+    statusCancelled: "ملغى",
+    homeDelivery: "توصيل للمنزل",
+    deskPickup: "استلام من المكتب",
   },
   common: {
     dzd: "دج",
@@ -817,8 +837,8 @@ export const en: Translations = {
       heading: "Join Foda",
       sub: "Create your account — it's free",
       tab: "Register",
-      firstNamePlaceholder: "First name",
-      lastNamePlaceholder: "Last name",
+      fullNamePlaceholder: "Full name",
+      shopNamePlaceholder: "Shop name",
       emailPlaceholder: "you@example.com",
       passwordPlaceholder: "Min. 8 characters",
       confirmPlaceholder: "Repeat password",
@@ -936,8 +956,7 @@ export const en: Translations = {
     signOut: "Sign Out",
     account: "Account",
     myAccount: "My Account",
-    firstName: "First Name",
-    lastName: "Last Name",
+    fullName: "Full Name",
     email: "Email",
     phone: "Phone",
     address: "Address",
@@ -963,6 +982,17 @@ export const en: Translations = {
     memberSince: "Member since",
     edit: "Edit",
     cancel: "Cancel",
+    loadingOrders: "Loading orders…",
+    ordersError: "Failed to load orders. Please try again.",
+    retry: "Retry",
+    orderPlaced: "Placed on",
+    statusPending: "Pending",
+    statusConfirmed: "Confirmed",
+    statusShipped: "Shipped",
+    statusDelivered: "Delivered",
+    statusCancelled: "Cancelled",
+    homeDelivery: "Home Delivery",
+    deskPickup: "Desk Pickup",
   },
   common: {
     dzd: "DZD",

@@ -1,4 +1,3 @@
-import { AlertCircle } from "lucide-react";
 import type { ReactNode } from "react";
 
 interface FieldProps {
@@ -15,9 +14,7 @@ export default function Field({ label, error, children }: FieldProps) {
       </label>
       {children}
       {error && (
-        <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
-          <AlertCircle size={11} /> {error}
-        </p>
+        <p className="mt-1.5 text-xs text-red-500">{error}</p>
       )}
     </div>
   );

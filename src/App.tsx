@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { LangProvider } from "./context/LangContext";
@@ -13,6 +14,17 @@ import PendingPage from "./pages/seller/PendingPage";
 import Dashboard from "./pages/seller/Dashboard";
 import ProductsPage from "./pages/seller/ProductsPage";
 import ProductFormPage from "./pages/seller/ProductFormPage";
+import OrdersPage from "./pages/seller/OrdersPage";
+
+// ─── Scroll Restoration ────────────────────────────────────────────────────────
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [pathname]);
+  return null;
+}
 
 // ─── Route Guards ─────────────────────────────────────────────────────────────
 
@@ -52,6 +64,7 @@ export default function App() {
   return (
     <LangProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <AuthProvider>
           <SellerProvider>
             <CartProvider>
@@ -107,10 +120,10 @@ export default function App() {
                     }
                   />
                   <Route
-                    path="products/:id/edit"
+                    path="orders"
                     element={
                       <RequireActiveSeller>
-                        <ProductFormPage />
+                        <OrdersPage />
                       </RequireActiveSeller>
                     }
                   />

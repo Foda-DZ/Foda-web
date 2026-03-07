@@ -3,12 +3,16 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   useMemo,
 } from "react";
 import type { ReactNode } from "react";
-import { products as platformProducts } from "../data/products";
-import type { Product, StoredOrder } from "../types";
+import type { Product } from "../types";
+import type { ApiOrder, ApiOrderStatus } from "../types/api";
 import { useAuth } from "./AuthContext";
+import { sellerService } from "../services/sellerService";
+import type { AddProductPayload } from "../services/sellerService";
+import { apiProductToProduct } from "../lib/mappers";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface SellerStats {
@@ -19,43 +23,20 @@ export interface SellerStats {
 }
 
 interface SellerContextValue {
-  allProducts: Product[];
+  /** Products belonging to the current seller */
   sellerProducts: Product[];
-  allOrders: StoredOrder[];
-  getSellerOrders: (sellerId: number) => StoredOrder[];
-  getSellerStats: (sellerId: number) => SellerStats;
-  createProduct: (
-    data: Omit<Product, "id" | "sellerId" | "rating" | "reviews" | "isNew">,
-  ) => { success: true; product: Product } | { error: string };
-  updateProduct: (
-    id: number,
-    data: Partial<Omit<Product, "id" | "sellerId">>,
-  ) => { success: true } | { error: string };
-  deleteProduct: (id: number) => { success: true } | { error: string };
-}
-
-// ─── localStorage helpers ─────────────────────────────────────────────────────
-const SELLER_PRODUCTS_KEY = "foda_seller_products";
-const ORDERS_KEY = "foda_orders";
-
-function loadSellerProducts(): Product[] {
-  try {
-    return JSON.parse(localStorage.getItem(SELLER_PRODUCTS_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function persistSellerProducts(products: Product[]): void {
-  localStorage.setItem(SELLER_PRODUCTS_KEY, JSON.stringify(products));
-}
-
-function loadOrders(): StoredOrder[] {
-  try {
-    return JSON.parse(localStorage.getItem(ORDERS_KEY) || "[]");
-  } catch {
-    return [];
-  }
+  /** Alias of sellerProducts — for backward-compatibility with ShopPage */
+  allProducts: Product[];
+  /** Orders for the current seller */
+  allOrders: ApiOrder[];
+  loading: boolean;
+  error: string | null;
+  getSellerOrders: (sellerId: string) => ApiOrder[];
+  getSellerStats: (sellerId: string) => SellerStats;
+  createProduct: (payload: AddProductPayload) => Promise<Product>;
+  deleteProduct: (id: string) => Promise<void>;
+  updateOrderStatus: (id: string, status: ApiOrderStatus) => Promise<void>;
+  reload: () => void;
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -63,121 +44,117 @@ const SellerContext = createContext<SellerContextValue | null>(null);
 
 export function SellerProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [sellerProducts, setSellerProducts] =
-    useState<Product[]>(loadSellerProducts);
-  const [orders] = useState<StoredOrder[]>(loadOrders);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<ApiOrder[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
 
-  // Merge platform (static) products with all seller-created products
-  const allProducts = useMemo(
-    () => [...platformProducts, ...sellerProducts],
-    [sellerProducts],
-  );
+  const reload = useCallback(() => setTick((t) => t + 1), []);
 
-  // Only the current logged-in seller's products
-  const currentSellerProducts = useMemo(
-    () =>
-      user?.role === "seller"
-        ? sellerProducts.filter((p) => p.sellerId === user.id)
-        : [],
-    [sellerProducts, user],
-  );
+  useEffect(() => {
+    if (user?.role !== "seller") {
+      setProducts([]);
+      setOrders([]);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    Promise.all([sellerService.getProducts(), sellerService.getOrders()])
+      .then(([apiProducts, apiOrders]) => {
+        if (cancelled) return;
+        setProducts(apiProducts.map(apiProductToProduct));
+        setOrders(apiOrders);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to load data");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user, tick]);
 
   const getSellerOrders = useCallback(
-    (sellerId: number): StoredOrder[] =>
-      orders.filter((o) =>
-        o.items.some((item) => item.product.sellerId === sellerId),
-      ),
+    (sellerId: string): ApiOrder[] =>
+      orders.filter((o) => o.sellerId === sellerId),
     [orders],
   );
 
   const getSellerStats = useCallback(
-    (sellerId: number): SellerStats => {
-      const sellerOrders = getSellerOrders(sellerId);
-      const revenue = sellerOrders.reduce((sum, order) => {
-        const sellerRevenue = order.items
-          .filter((item) => item.product.sellerId === sellerId)
-          .reduce((s, item) => s + item.product.price * item.quantity, 0);
-        return sum + sellerRevenue;
-      }, 0);
-      const myProducts = sellerProducts.filter((p) => p.sellerId === sellerId);
+    (sellerId: string): SellerStats => {
+      const sellerOrders = orders.filter((o) => o.sellerId === sellerId);
+      const revenue = sellerOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+      const lowStock = products.filter((p) => p.stock <= 5);
       return {
         totalOrders: sellerOrders.length,
         revenue,
-        productCount: myProducts.length,
-        lowStock: myProducts.filter((p) => p.stock <= 5),
+        productCount: products.length,
+        lowStock,
       };
     },
-    [getSellerOrders, sellerProducts],
+    [orders, products],
   );
 
   const createProduct = useCallback(
-    (
-      data: Omit<Product, "id" | "sellerId" | "rating" | "reviews" | "isNew">,
-    ): { success: true; product: Product } | { error: string } => {
-      if (!user || user.role !== "seller") return { error: "Unauthorized." };
-      if (!user.isActive) return { error: "Account pending approval." };
-      const product: Product = {
-        ...data,
-        id: Date.now(),
-        sellerId: user.id,
-        rating: 0,
-        reviews: 0,
-        isNew: true,
-      };
-      const updated = [...sellerProducts, product];
-      persistSellerProducts(updated);
-      setSellerProducts(updated);
-      return { success: true, product };
+    async (payload: AddProductPayload): Promise<Product> => {
+      const apiProduct = await sellerService.addProduct(payload);
+      const product = apiProductToProduct(apiProduct);
+      setProducts((prev) => [...prev, product]);
+      return product;
     },
-    [user, sellerProducts],
+    [],
   );
 
-  const updateProduct = useCallback(
-    (
-      id: number,
-      data: Partial<Omit<Product, "id" | "sellerId">>,
-    ): { success: true } | { error: string } => {
-      const idx = sellerProducts.findIndex((p) => p.id === id);
-      if (idx === -1) return { error: "Product not found." };
-      if (sellerProducts[idx].sellerId !== user?.id)
-        return { error: "Unauthorized." };
-      const updated = [...sellerProducts];
-      updated[idx] = { ...updated[idx], ...data };
-      persistSellerProducts(updated);
-      setSellerProducts(updated);
-      return { success: true };
+  const deleteProduct = useCallback(async (id: string): Promise<void> => {
+    await sellerService.deleteProduct(id);
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+  }, []);
+
+  const updateOrderStatus = useCallback(
+    async (id: string, status: ApiOrderStatus): Promise<void> => {
+      await sellerService.updateOrderStatus(id, status);
+      setOrders((prev) =>
+        prev.map((o) => (o._id === id ? { ...o, status } : o)),
+      );
     },
-    [sellerProducts, user],
+    [],
   );
 
-  const deleteProduct = useCallback(
-    (id: number): { success: true } | { error: string } => {
-      const product = sellerProducts.find((p) => p.id === id);
-      if (!product) return { error: "Product not found." };
-      if (product.sellerId !== user?.id) return { error: "Unauthorized." };
-      const updated = sellerProducts.filter((p) => p.id !== id);
-      persistSellerProducts(updated);
-      setSellerProducts(updated);
-      return { success: true };
-    },
-    [sellerProducts, user],
+  const value = useMemo(
+    () => ({
+      sellerProducts: products,
+      allProducts: products,
+      allOrders: orders,
+      loading,
+      error,
+      getSellerOrders,
+      getSellerStats,
+      createProduct,
+      deleteProduct,
+      updateOrderStatus,
+      reload,
+    }),
+    [
+      products,
+      orders,
+      loading,
+      error,
+      getSellerOrders,
+      getSellerStats,
+      createProduct,
+      deleteProduct,
+      updateOrderStatus,
+      reload,
+    ],
   );
 
   return (
-    <SellerContext.Provider
-      value={{
-        allProducts,
-        sellerProducts: currentSellerProducts,
-        allOrders: orders,
-        getSellerOrders,
-        getSellerStats,
-        createProduct,
-        updateProduct,
-        deleteProduct,
-      }}
-    >
-      {children}
-    </SellerContext.Provider>
+    <SellerContext.Provider value={value}>{children}</SellerContext.Provider>
   );
 }
 

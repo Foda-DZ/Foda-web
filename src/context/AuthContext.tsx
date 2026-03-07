@@ -1,78 +1,81 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import type { ReactNode } from "react";
-import type { SessionUser, StoredUser, AuthModalView, UserRole } from "../types";
+import type { SessionUser, AuthModalView, UserRole } from "../types";
+import { authService } from "../services/authService";
+import { cartService } from "../services/cartService";
+import { setStoredToken, removeStoredToken, getStoredToken } from "../lib/api";
+import type { ApiAuthResponse } from "../types/api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-interface PendingVerification {
-  userId: number;
-  email: string;
-  code: string;
-}
-
 interface AuthContextValue {
   user: SessionUser | null;
   authModal: AuthModalView;
-  pendingVerification: PendingVerification | null;
+  pendingEmail: string | null;
   openLogin: () => void;
   openRegister: () => void;
   openReset: () => void;
   closeAuth: () => void;
-  register: (params: {
-    firstName: string;
-    lastName: string;
+  registerCustomer: (params: {
+    fullName: string;
     email: string;
     password: string;
-    role?: UserRole;
-  }) => { success: true } | { error: string };
+  }) => Promise<void>;
+  registerSeller: (params: {
+    shopName: string;
+    email: string;
+    password: string;
+  }) => Promise<void>;
   login: (params: {
     email: string;
     password: string;
-  }) => { success: true; session: SessionUser } | { error: string };
-  verifyEmail: (code: string) => { success: true; session: SessionUser } | { error: string };
-  resendCode: () => void;
-  logout: () => void;
-  updateProfile: (params: {
-    firstName: string;
-    lastName: string;
-  }) => { success: true } | { error: string };
-  changePassword: (params: {
-    currentPassword: string;
-    newPassword: string;
-  }) => { success: true } | { error: string };
-  sendReset: (params: { email: string }) => { success: true; exists: boolean };
+    role: UserRole;
+  }) => Promise<SessionUser>;
+  verifyEmail: (params: {
+    email: string;
+    verificationCode: number;
+  }) => Promise<SessionUser>;
+  logout: () => Promise<void>;
+  updateProfile: (params: { fullName: string }) => void;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const USERS_KEY = "foda_users";
+// ─── Session storage helpers ──────────────────────────────────────────────────
 const SESSION_KEY = "foda_session";
-
-function getUsers(): StoredUser[] {
-  try {
-    const raw = JSON.parse(localStorage.getItem(USERS_KEY) || "[]") as StoredUser[];
-    // Backward-compat: existing users without role/isActive default to buyer/true
-    return raw.map((u) => ({ role: "buyer" as UserRole, isActive: true, ...u }));
-  } catch {
-    return [];
-  }
-}
-
-function saveUsers(users: StoredUser[]): void {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
 
 function getSession(): SessionUser | null {
   try {
     const raw = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
-    if (!raw) return null;
-    // Backward-compat: existing sessions without role/isActive default to buyer/true
-    return { role: "buyer" as UserRole, isActive: true, ...raw } as SessionUser;
+    if (!raw || !getStoredToken()) return null;
+    return raw as SessionUser;
   } catch {
     return null;
   }
 }
 
-function makeCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+function saveSession(session: SessionUser): void {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+}
+
+function clearSession(): void {
+  localStorage.removeItem(SESSION_KEY);
+}
+
+function sessionFromResponse(data: ApiAuthResponse): SessionUser {
+  if (data.customer) {
+    return {
+      id: data.customer.id,
+      fullName: data.customer.fullName,
+      email: data.customer.email,
+      role: "customer",
+      isActive: true,
+    };
+  }
+  return {
+    id: data.seller!.id,
+    fullName: data.seller!.shopName,
+    email: data.seller!.email,
+    role: "seller",
+    isActive: data.seller!.isActive,
+  };
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -81,166 +84,128 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(getSession);
   const [authModal, setAuthModal] = useState<AuthModalView>(null);
-  const [pendingVerification, setPendingVerification] = useState<PendingVerification | null>(null);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
   const openLogin = useCallback(() => setAuthModal("login"), []);
   const openRegister = useCallback(() => setAuthModal("register"), []);
   const openReset = useCallback(() => setAuthModal("reset"), []);
   const closeAuth = useCallback(() => {
     setAuthModal(null);
-    setPendingVerification(null);
+    setPendingEmail(null);
   }, []);
 
-  // ── Register ──────────────────────────────────────────────────────────────
-  const register = useCallback(
-    ({ firstName, lastName, email, password, role = "buyer" }: {
-      firstName: string; lastName: string; email: string; password: string; role?: UserRole;
-    }) => {
-      const users = getUsers();
-      if (users.find((u) => u.email.toLowerCase() === email.toLowerCase())) {
-        return { error: "An account with this email already exists." };
-      }
-      const newUser: StoredUser = {
-        id: Date.now(),
-        firstName,
-        lastName,
-        email,
-        password, // demo only — never store plain-text passwords in production
-        emailVerified: false,
-        createdAt: new Date().toISOString(),
-        role,
-        isActive: role === "seller" ? false : true,
-      };
-      saveUsers([...users, newUser]);
-      const code = makeCode();
-      setPendingVerification({ userId: newUser.id, email, code });
+  // ── Register Customer ──────────────────────────────────────────────────────
+  const registerCustomer = useCallback(
+    async (params: {
+      fullName: string;
+      email: string;
+      password: string;
+    }): Promise<void> => {
+      await authService.registerCustomer(params);
+      setPendingEmail(params.email);
       setAuthModal("verify");
-      return { success: true as const };
     },
     [],
   );
 
-  // ── Login ─────────────────────────────────────────────────────────────────
+  // ── Register Seller ────────────────────────────────────────────────────────
+  const registerSeller = useCallback(
+    async (params: {
+      shopName: string;
+      email: string;
+      password: string;
+    }): Promise<void> => {
+      await authService.registerSeller(params);
+      setPendingEmail(params.email);
+      setAuthModal("verify");
+    },
+    [],
+  );
+
+  // ── Login ──────────────────────────────────────────────────────────────────
   const login = useCallback(
-    ({ email, password }: { email: string; password: string }) => {
-      const users = getUsers();
-      const found = users.find(
-        (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password,
-      );
-      if (!found) return { error: "Incorrect email or password." };
-
-      const session: SessionUser = {
-        id: found.id,
-        firstName: found.firstName,
-        lastName: found.lastName,
-        email: found.email,
-        role: found.role,
-        isActive: found.isActive,
-      };
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    async (params: {
+      email: string;
+      password: string;
+      role: UserRole;
+    }): Promise<SessionUser> => {
+      const data = await authService.login({
+        email: params.email,
+        password: params.password,
+        role: params.role,
+      });
+      setStoredToken(data.accessToken);
+      const session = sessionFromResponse(data);
+      saveSession(session);
       setUser(session);
       setAuthModal(null);
-      return { success: true as const, session };
+      return session;
     },
     [],
   );
 
-  // ── Verify email with the 6-digit code ────────────────────────────────────
+  // ── Verify Email ───────────────────────────────────────────────────────────
   const verifyEmail = useCallback(
-    (inputCode: string) => {
-      if (!pendingVerification) return { error: "No pending verification." };
-      if (inputCode.trim() !== pendingVerification.code) {
-        return { error: "invalid" };
-      }
-      const users = getUsers();
-      const idx = users.findIndex((u) => u.id === pendingVerification.userId);
-      if (idx === -1) return { error: "User not found." };
-
-      users[idx] = { ...users[idx], emailVerified: true };
-      saveUsers(users);
-
-      const u = users[idx];
-      const session: SessionUser = {
-        id: u.id,
-        firstName: u.firstName,
-        lastName: u.lastName,
-        email: u.email,
-        role: u.role,
-        isActive: u.isActive,
-      };
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    async (params: {
+      email: string;
+      verificationCode: number;
+    }): Promise<SessionUser> => {
+      const data = await authService.verifyEmail(params);
+      setStoredToken(data.accessToken);
+      const session = sessionFromResponse(data);
+      saveSession(session);
       setUser(session);
-      setPendingVerification(null);
+      setPendingEmail(null);
       setAuthModal(null);
-      return { success: true as const, session };
+      // Create the cart for the customer right after successful registration
+      if (session.role === "customer") {
+        cartService.createCart().catch(() => {});
+      }
+      return session;
     },
-    [pendingVerification],
+    [],
   );
 
-  // ── Resend: generate a fresh code ─────────────────────────────────────────
-  const resendCode = useCallback(() => {
-    if (!pendingVerification) return;
-    setPendingVerification({ ...pendingVerification, code: makeCode() });
-  }, [pendingVerification]);
-
-  const logout = useCallback(() => {
-    localStorage.removeItem(SESSION_KEY);
-    setUser(null);
+  // ── Logout ─────────────────────────────────────────────────────────────────
+  const logout = useCallback(async (): Promise<void> => {
+    try {
+      await authService.logout();
+    } catch {
+      // ignore — still clear local state regardless
+    } finally {
+      removeStoredToken();
+      clearSession();
+      setUser(null);
+    }
   }, []);
 
+  // ── Update Profile (local only — no API endpoint currently) ───────────────
   const updateProfile = useCallback(
-    ({ firstName, lastName }: { firstName: string; lastName: string }) => {
-      const users = getUsers();
-      const idx = users.findIndex((u) => u.id === user?.id);
-      if (idx === -1) return { error: "User not found." };
-      users[idx] = { ...users[idx], firstName, lastName };
-      saveUsers(users);
-      const session: SessionUser = { ...user!, firstName, lastName };
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-      setUser(session);
-      return { success: true as const };
+    ({ fullName }: { fullName: string }): void => {
+      if (!user) return;
+      const updated: SessionUser = { ...user, fullName };
+      saveSession(updated);
+      setUser(updated);
     },
     [user],
   );
-
-  const changePassword = useCallback(
-    ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) => {
-      const users = getUsers();
-      const idx = users.findIndex((u) => u.id === user?.id);
-      if (idx === -1) return { error: "User not found." };
-      if (users[idx].password !== currentPassword)
-        return { error: "Current password is incorrect." };
-      users[idx] = { ...users[idx], password: newPassword };
-      saveUsers(users);
-      return { success: true as const };
-    },
-    [user],
-  );
-
-  const sendReset = useCallback(({ email }: { email: string }) => {
-    const users = getUsers();
-    const exists = users.some((u) => u.email.toLowerCase() === email.toLowerCase());
-    return { success: true as const, exists };
-  }, []);
 
   return (
     <AuthContext.Provider
       value={{
         user,
         authModal,
-        pendingVerification,
+        pendingEmail,
         openLogin,
         openRegister,
         openReset,
         closeAuth,
-        register,
+        registerCustomer,
+        registerSeller,
         login,
         verifyEmail,
-        resendCode,
         logout,
         updateProfile,
-        changePassword,
-        sendReset,
       }}
     >
       {children}

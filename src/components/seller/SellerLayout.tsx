@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
+  ShoppingBag,
   LogOut,
   ExternalLink,
   Store,
@@ -17,6 +18,7 @@ interface Props {
 const navItems = [
   { to: "/seller/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { to: "/seller/products", label: "My Products", Icon: Package },
+  { to: "/seller/orders", label: "Orders", Icon: ShoppingBag },
 ];
 
 export default function SellerLayout({ children }: Props) {
@@ -29,7 +31,12 @@ export default function SellerLayout({ children }: Props) {
   };
 
   const initials = user
-    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+    ? user.fullName
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
     : "";
 
   return (
@@ -105,7 +112,7 @@ export default function SellerLayout({ children }: Props) {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-white text-xs font-semibold truncate">
-                {user?.firstName} {user?.lastName}
+                {user?.fullName}
               </p>
               <div className="flex items-center gap-1 mt-0.5">
                 <Store size={9} className="text-[#C9A84C]" />

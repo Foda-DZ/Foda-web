@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Pencil, Trash2, Package, AlertTriangle } from "lucide-react";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
+import WarningIcon from "@mui/icons-material/Warning";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import IconButton from "@mui/material/IconButton";
+import Chip from "@mui/material/Chip";
+import CircularProgress from "@mui/material/CircularProgress";
+import Alert from "@mui/material/Alert";
 import { useSellerContext } from "../../context/SellerContext";
 import SellerLayout from "../../components/seller/SellerLayout";
 import type { Product } from "../../types";
@@ -10,15 +19,30 @@ export default function ProductsPage() {
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!confirmDelete) return;
     setDeleting(true);
-    setTimeout(() => {
-      deleteProduct(confirmDelete.id);
+    setDeleteError("");
+    try {
+      await deleteProduct(confirmDelete.id);
       setConfirmDelete(null);
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : "Failed to delete product.",
+      );
+    } finally {
       setDeleting(false);
-    }, 400);
+    }
+  };
+
+  const stockChip = (stock: number) => {
+    if (stock === 0)
+      return <Chip label="Out of Stock" size="small" color="error" sx={{ borderRadius: 0, fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }} />;
+    if (stock <= 5)
+      return <Chip label="Low Stock" size="small" color="warning" sx={{ borderRadius: 0, fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }} />;
+    return <Chip label="In Stock" size="small" color="success" sx={{ borderRadius: 0, fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }} />;
   };
 
   return (
@@ -27,52 +51,46 @@ export default function ProductsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold text-[#1A1A2E]">
-              My Products
-            </h1>
+            <h1 className="font-display text-2xl font-bold text-[#1A1A2E]">My Products</h1>
             <p className="text-[#1A1A2E]/50 text-sm mt-0.5">
-              {sellerProducts.length} product
-              {sellerProducts.length !== 1 ? "s" : ""} listed
+              {sellerProducts.length} product{sellerProducts.length !== 1 ? "s" : ""} listed
             </p>
           </div>
-          <button
+          <Button
+            variant="contained"
+            color="primary"
             onClick={() => navigate("/seller/products/new")}
-            className="btn-gold flex items-center gap-2"
+            startIcon={<AddIcon sx={{ fontSize: 15 }} />}
+            sx={{ borderRadius: 0 }}
           >
-            <Plus size={15} /> Add Product
-          </button>
+            Add Product
+          </Button>
         </div>
 
         {/* Product list */}
         {sellerProducts.length === 0 ? (
           <div className="bg-white border border-[#1A1A2E]/8 p-16 text-center">
-            <Package size={40} className="text-[#1A1A2E]/15 mx-auto mb-4" />
-            <h3 className="font-display font-bold text-[#1A1A2E] text-lg mb-2">
-              No products yet
-            </h3>
+            <Inventory2Icon sx={{ fontSize: 40, color: "rgba(26,26,46,0.15)", display: "block", mx: "auto", mb: 2 }} />
+            <h3 className="font-display font-bold text-[#1A1A2E] text-lg mb-2">No products yet</h3>
             <p className="text-[#1A1A2E]/40 text-sm mb-6">
               Add your first product to start selling on Foda.
             </p>
-            <button
+            <Button
+              variant="contained"
+              color="primary"
               onClick={() => navigate("/seller/products/new")}
-              className="btn-gold inline-flex items-center gap-2"
+              startIcon={<AddIcon sx={{ fontSize: 14 }} />}
+              sx={{ borderRadius: 0 }}
             >
-              <Plus size={14} /> Add First Product
-            </button>
+              Add First Product
+            </Button>
           </div>
         ) : (
           <div className="bg-white border border-[#1A1A2E]/8 overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#1A1A2E]/8">
-                  {[
-                    "Product",
-                    "Category",
-                    "Price",
-                    "Stock",
-                    "Badge",
-                    "Actions",
-                  ].map((h) => (
+                  {["Product", "Category", "Price", "Stock", "Status", "Actions"].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-start text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/40"
@@ -96,87 +114,54 @@ export default function ProductsPage() {
                             src={product.images[0]}
                             alt={product.name}
                             className="w-full h-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display =
-                                "none";
-                            }}
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                           />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-semibold text-[#1A1A2E] truncate max-w-[180px]">
-                            {product.name}
-                          </p>
-                          <p className="text-[#1A1A2E]/40 text-xs">
-                            {product.brand}
-                          </p>
+                          <p className="font-semibold text-[#1A1A2E] truncate max-w-[180px]">{product.name}</p>
+                          <p className="text-[#1A1A2E]/40 text-xs">{product.category}</p>
                         </div>
                       </div>
                     </td>
 
                     {/* Category */}
-                    <td className="px-4 py-3 text-[#1A1A2E]/60">
-                      {product.category}
-                    </td>
+                    <td className="px-4 py-3 text-[#1A1A2E]/60">{product.category}</td>
 
                     {/* Price */}
                     <td className="px-4 py-3">
                       <span className="font-semibold text-[#1A1A2E]">
                         {product.price.toLocaleString()} DZD
                       </span>
-                      {product.originalPrice && (
-                        <span className="ms-2 text-[#1A1A2E]/30 line-through text-xs">
-                          {product.originalPrice.toLocaleString()}
-                        </span>
-                      )}
                     </td>
 
                     {/* Stock */}
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center gap-1 text-xs font-semibold ${
-                          product.stock <= 5
-                            ? "text-red-500"
-                            : "text-[#1A1A2E]/60"
-                        }`}
-                      >
-                        {product.stock <= 5 && <AlertTriangle size={11} />}
-                        {product.stock}
+                      <span className={`inline-flex items-center gap-1 text-xs font-semibold ${product.stock <= 5 ? "text-red-500" : "text-[#1A1A2E]/60"}`}>
+                        {product.stock <= 5 && product.stock > 0 && <WarningIcon sx={{ fontSize: 11 }} />}
+                        {product.stock} units
                       </span>
                     </td>
 
-                    {/* Badge */}
-                    <td className="px-4 py-3">
-                      {product.badge ? (
-                        <span
-                          className={`inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${product.badgeColor}`}
-                        >
-                          {product.badge}
-                        </span>
-                      ) : (
-                        <span className="text-[#1A1A2E]/20 text-xs">—</span>
-                      )}
-                    </td>
+                    {/* Status */}
+                    <td className="px-4 py-3">{stockChip(product.stock)}</td>
 
                     {/* Actions */}
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() =>
-                            navigate(`/seller/products/${product.id}/edit`)
-                          }
-                          className="w-7 h-7 border border-[#1A1A2E]/15 flex items-center justify-center text-[#1A1A2E]/50 hover:border-[#C9A84C]/50 hover:text-[#C9A84C] transition-all duration-200"
-                          title="Edit"
-                        >
-                          <Pencil size={12} />
-                        </button>
-                        <button
-                          onClick={() => setConfirmDelete(product)}
-                          className="w-7 h-7 border border-[#1A1A2E]/15 flex items-center justify-center text-[#1A1A2E]/50 hover:border-red-300 hover:text-red-500 transition-all duration-200"
-                          title="Delete"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
+                      <IconButton
+                        onClick={() => setConfirmDelete(product)}
+                        size="small"
+                        title="Delete"
+                        sx={{
+                          borderRadius: 0,
+                          width: 28,
+                          height: 28,
+                          border: "1px solid rgba(26,26,46,0.15)",
+                          color: "rgba(26,26,46,0.5)",
+                          "&:hover": { borderColor: "#fca5a5", color: "#ef4444" },
+                        }}
+                      >
+                        <DeleteIcon sx={{ fontSize: 13 }} />
+                      </IconButton>
                     </td>
                   </tr>
                 ))}
@@ -186,50 +171,55 @@ export default function ProductsPage() {
         )}
       </div>
 
-      {/* Delete confirmation modal */}
-      {confirmDelete && (
-        <>
-          <div
-            className="fixed inset-0 z-[50] bg-black/50 backdrop-blur-sm"
-            onClick={() => setConfirmDelete(null)}
-          />
-          <div className="fixed inset-0 z-[51] flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-sm shadow-2xl p-6 space-y-4">
-              <div className="w-12 h-12 bg-red-50 flex items-center justify-center mx-auto">
-                <Trash2 size={20} className="text-red-500" />
-              </div>
-              <div className="text-center">
-                <h3 className="font-display font-bold text-[#1A1A2E] text-lg">
-                  Delete Product
-                </h3>
-                <p className="text-[#1A1A2E]/50 text-sm mt-1">
-                  Are you sure you want to delete{" "}
-                  <span className="font-semibold text-[#1A1A2E]">
-                    {confirmDelete.name}
-                  </span>
-                  ? This action cannot be undone.
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setConfirmDelete(null)}
-                  className="flex-1 btn-outline-gold"
-                  disabled={deleting}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="flex-1 h-10 bg-red-500 text-white font-semibold text-sm hover:bg-red-600 transition-colors duration-200 disabled:opacity-60"
-                >
-                  {deleting ? "Deleting…" : "Delete"}
-                </button>
-              </div>
-            </div>
+      {/* Delete confirmation dialog */}
+      <Dialog
+        open={!!confirmDelete}
+        onClose={() => !deleting && setConfirmDelete(null)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 0, p: 3 } }}
+      >
+        <div className="space-y-4">
+          <div className="w-12 h-12 bg-red-50 flex items-center justify-center mx-auto">
+            <DeleteIcon sx={{ fontSize: 20, color: "#ef4444" }} />
           </div>
-        </>
-      )}
+          <div className="text-center">
+            <h3 className="font-display font-bold text-[#1A1A2E] text-lg">Delete Product</h3>
+            <p className="text-[#1A1A2E]/50 text-sm mt-1">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-[#1A1A2E]">{confirmDelete?.name}</span>?
+              This action cannot be undone.
+            </p>
+          </div>
+          {deleteError && (
+            <Alert severity="error" sx={{ borderRadius: 0, fontSize: "0.75rem", py: 0.5 }}>
+              {deleteError}
+            </Alert>
+          )}
+          <div className="flex gap-3">
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => { setConfirmDelete(null); setDeleteError(""); }}
+              disabled={deleting}
+              fullWidth
+              sx={{ borderRadius: 0 }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleDelete}
+              disabled={deleting}
+              fullWidth
+              startIcon={deleting ? <CircularProgress size={13} thickness={4} sx={{ color: "inherit" }} /> : undefined}
+              sx={{ borderRadius: 0, bgcolor: "#ef4444", "&:hover": { bgcolor: "#dc2626" }, color: "#fff" }}
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
     </SellerLayout>
   );
 }

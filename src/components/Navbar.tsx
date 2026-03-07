@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  ShoppingBag,
-  Menu,
-  X,
-  ChevronDown,
-  User,
-  LogOut,
-  Package,
-  Store,
-} from "lucide-react";
+import IconButton from "@mui/material/IconButton";
+import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
+import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import PersonIcon from "@mui/icons-material/Person";
+import LogoutIcon from "@mui/icons-material/Logout";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
+import StoreIcon from "@mui/icons-material/Store";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -43,7 +42,6 @@ export default function Navbar() {
     { label: tr.nav.sale,        href: "/shop", hot: true },
   ];
 
-  // Scroll to anchor if on home, otherwise navigate to home first then scroll
   const handleNavLink = (href: string) => {
     if (href.startsWith("#")) {
       if (location.pathname === "/") {
@@ -76,7 +74,7 @@ export default function Navbar() {
   }, []);
 
   const initials = user
-    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+    ? user.fullName.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
     : "";
 
   return (
@@ -128,8 +126,8 @@ export default function Navbar() {
                     </span>
                   )}
                   {"sub" in link && (
-                    <ChevronDown
-                      size={14}
+                    <KeyboardArrowDownIcon
+                      sx={{ fontSize: 16 }}
                       className="mt-0.5 transition-transform duration-200 group-hover:rotate-180"
                     />
                   )}
@@ -153,7 +151,7 @@ export default function Navbar() {
           </div>
 
           {/* Right-side actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Language switch */}
             <div className="hidden lg:block">
               <LanguageSwitch scrolled={scrolled} />
@@ -169,8 +167,8 @@ export default function Navbar() {
                   <div className="w-8 h-8 gold-gradient flex items-center justify-center rounded-full text-[#1A1A2E] text-xs font-black">
                     {initials}
                   </div>
-                  <ChevronDown
-                    size={13}
+                  <KeyboardArrowDownIcon
+                    sx={{ fontSize: 16 }}
                     className={`transition-transform duration-200 ${accountOpen ? "rotate-180" : ""} ${
                       scrolled ? "text-[#1A1A2E]/60" : "text-white/60"
                     }`}
@@ -179,49 +177,32 @@ export default function Navbar() {
                 {accountOpen && (
                   <div className="absolute top-full end-0 mt-3 w-52 bg-white border border-[#1A1A2E]/10 shadow-xl z-50">
                     <div className="px-4 py-3 border-b border-[#1A1A2E]/8">
-                      <p className="text-[#1A1A2E] font-semibold text-sm">
-                        {user.firstName} {user.lastName}
-                      </p>
-                      <p className="text-[#1A1A2E]/40 text-xs truncate">
-                        {user.email}
-                      </p>
+                      <p className="text-[#1A1A2E] font-semibold text-sm">{user.fullName}</p>
+                      <p className="text-[#1A1A2E]/40 text-xs truncate">{user.email}</p>
                     </div>
                     {[
-                      { Icon: User, label: tr.nav.myProfile, path: "/profile" },
-                      {
-                        Icon: Package,
-                        label: tr.nav.myOrders,
-                        path: "/profile",
-                      },
+                      { Icon: PersonIcon, label: tr.nav.myProfile, path: "/profile" },
+                      { Icon: Inventory2Icon, label: tr.nav.myOrders, path: "/profile" },
                     ].map(({ Icon, label, path }) => (
                       <button
                         key={label}
-                        onClick={() => {
-                          navigate(path);
-                          setAccountOpen(false);
-                        }}
+                        onClick={() => { navigate(path); setAccountOpen(false); }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1A1A2E]/70 hover:bg-[#FAF7F2] hover:text-[#C9A84C] transition-colors duration-150"
                       >
-                        <Icon size={14} /> {label}
+                        <Icon sx={{ fontSize: 15 }} /> {label}
                       </button>
                     ))}
                     <div className="border-t border-[#1A1A2E]/8">
                       {user.role === "seller" && (
                         <button
                           onClick={() => {
-                            navigate(
-                              user.isActive
-                                ? "/seller/dashboard"
-                                : "/seller/pending",
-                            );
+                            navigate(user.isActive ? "/seller/dashboard" : "/seller/pending");
                             setAccountOpen(false);
                           }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1A1A2E]/70 hover:bg-[#FAF7F2] hover:text-[#C9A84C] transition-colors duration-150"
                         >
-                          <Store size={14} />
-                          {user.isActive
-                            ? "Seller Dashboard"
-                            : "Pending Approval"}
+                          <StoreIcon sx={{ fontSize: 15 }} />
+                          {user.isActive ? "Seller Dashboard" : "Pending Approval"}
                           {!user.isActive && (
                             <span className="ms-auto text-[10px] font-semibold text-amber-500 bg-amber-50 px-1.5 py-0.5">
                               Under Review
@@ -230,13 +211,10 @@ export default function Navbar() {
                         </button>
                       )}
                       <button
-                        onClick={() => {
-                          logout();
-                          setAccountOpen(false);
-                        }}
+                        onClick={() => { logout(); setAccountOpen(false); }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors duration-150"
                       >
-                        <LogOut size={14} /> {tr.nav.signOut}
+                        <LogoutIcon sx={{ fontSize: 15 }} /> {tr.nav.signOut}
                       </button>
                     </div>
                   </div>
@@ -251,38 +229,42 @@ export default function Navbar() {
                     : "text-white/80 hover:text-[#E8C96B]"
                 }`}
               >
-                <User size={16} /> {tr.nav.signIn}
+                <PersonIcon sx={{ fontSize: 16 }} /> {tr.nav.signIn}
               </button>
             )}
 
-            {/* Cart — only visible to authenticated users */}
+            {/* Cart — only for authenticated users */}
             {user && (
-              <button onClick={openCart} className="relative group">
-                <ShoppingBag
-                  size={20}
-                  className={`transition-colors duration-300 ${
-                    scrolled
-                      ? "text-[#1A1A2E] group-hover:text-[#C9A84C]"
-                      : "text-white/90 group-hover:text-[#E8C96B]"
-                  }`}
-                />
+              <IconButton
+                onClick={openCart}
+                sx={{
+                  borderRadius: 0,
+                  color: scrolled ? "#1A1A2E" : "rgba(255,255,255,0.9)",
+                  "&:hover": { color: "#C9A84C", bgcolor: "transparent" },
+                  position: "relative",
+                }}
+              >
+                <ShoppingBagIcon sx={{ fontSize: 22 }} />
                 {totalItems > 0 && (
-                  <span className="absolute -top-2 -end-2 w-4 h-4 gold-gradient text-[#1A1A2E] text-[10px] font-black flex items-center justify-center rounded-full">
+                  <span className="absolute -top-1 -end-1 w-4 h-4 gold-gradient text-[#1A1A2E] text-[10px] font-black flex items-center justify-center rounded-full">
                     {totalItems > 9 ? "9+" : totalItems}
                   </span>
                 )}
-              </button>
+              </IconButton>
             )}
 
             {/* Mobile menu toggle */}
-            <button
-              className={`lg:hidden transition-colors duration-300 ${
-                scrolled ? "text-[#1A1A2E]" : "text-white"
-              }`}
+            <IconButton
+              className="lg:hidden"
               onClick={() => setMenuOpen(!menuOpen)}
+              sx={{
+                borderRadius: 0,
+                color: scrolled ? "#1A1A2E" : "#fff",
+                display: { lg: "none" },
+              }}
             >
-              {menuOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
+              {menuOpen ? <CloseIcon sx={{ fontSize: 22 }} /> : <MenuIcon sx={{ fontSize: 22 }} />}
+            </IconButton>
           </div>
         </div>
 
@@ -296,10 +278,7 @@ export default function Navbar() {
             {navLinks.map((link) => (
               <button
                 key={link.label}
-                onClick={() => {
-                  handleNavLink(link.href);
-                  setMenuOpen(false);
-                }}
+                onClick={() => { handleNavLink(link.href); setMenuOpen(false); }}
                 className="block w-full text-start text-[#1A1A2E] font-medium text-base hover:text-[#C9A84C] transition-colors duration-200"
               >
                 {link.label}
@@ -318,56 +297,53 @@ export default function Navbar() {
                       {initials}
                     </div>
                     <div>
-                      <p className="text-[#1A1A2E] font-semibold text-sm">
-                        {user.firstName} {user.lastName}
-                      </p>
-                      <p className="text-[#1A1A2E]/40 text-[10px]">
-                        {user.email}
-                      </p>
+                      <p className="text-[#1A1A2E] font-semibold text-sm">{user.fullName}</p>
+                      <p className="text-[#1A1A2E]/40 text-[10px]">{user.email}</p>
                     </div>
                   </div>
+                  <button
+                    onClick={() => { navigate("/profile"); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-2 text-sm text-[#1A1A2E]/70 hover:text-[#C9A84C] py-2 transition-colors duration-200"
+                  >
+                    <PersonIcon sx={{ fontSize: 15 }} /> {tr.nav.myProfile}
+                  </button>
+                  <button
+                    onClick={() => { navigate("/profile"); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-2 text-sm text-[#1A1A2E]/70 hover:text-[#C9A84C] py-2 transition-colors duration-200"
+                  >
+                    <Inventory2Icon sx={{ fontSize: 15 }} /> {tr.nav.myOrders}
+                  </button>
                   {user.role === "seller" && (
                     <button
                       onClick={() => {
-                        navigate(
-                          user.isActive
-                            ? "/seller/dashboard"
-                            : "/seller/pending",
-                        );
+                        navigate(user.isActive ? "/seller/dashboard" : "/seller/pending");
                         setMenuOpen(false);
                       }}
-                      className="w-full flex items-center gap-2 text-sm text-[#1A1A2E]/70 py-2"
+                      className="w-full flex items-center gap-2 text-sm text-[#1A1A2E]/70 hover:text-[#C9A84C] py-2 transition-colors duration-200"
                     >
-                      <Store size={14} />
+                      <StoreIcon sx={{ fontSize: 15 }} />
                       {user.isActive ? "Seller Dashboard" : "Pending Approval"}
                     </button>
                   )}
-                  <button
-                    onClick={() => {
-                      logout();
-                      setMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 text-sm text-red-500 py-2"
-                  >
-                    <LogOut size={14} /> {tr.nav.signOut}
-                  </button>
+                  <div className="border-t border-[#C9A84C]/20 pt-2 mt-1">
+                    <button
+                      onClick={() => { logout(); setMenuOpen(false); }}
+                      className="w-full flex items-center gap-2 text-sm text-red-500 py-2"
+                    >
+                      <LogoutIcon sx={{ fontSize: 15 }} /> {tr.nav.signOut}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="flex gap-2">
                   <button
-                    onClick={() => {
-                      openLogin();
-                      setMenuOpen(false);
-                    }}
+                    onClick={() => { openLogin(); setMenuOpen(false); }}
                     className="flex-1 btn-dark text-center text-sm py-2"
                   >
                     {tr.nav.signIn}
                   </button>
                   <button
-                    onClick={() => {
-                      openRegister();
-                      setMenuOpen(false);
-                    }}
+                    onClick={() => { openRegister(); setMenuOpen(false); }}
                     className="flex-1 btn-outline-gold text-center text-sm py-2"
                   >
                     {tr.nav.register}

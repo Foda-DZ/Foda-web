@@ -33,7 +33,7 @@ export default function PendingPage() {
           <p className="text-[#1A1A2E]/60 leading-relaxed">
             Hello,{" "}
             <span className="font-semibold text-[#1A1A2E]">
-              {user?.firstName}
+              {user?.fullName}
             </span>
             . Your seller account is pending admin approval. You'll be notified
             once your application is reviewed.

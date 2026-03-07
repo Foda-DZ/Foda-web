@@ -23,7 +23,7 @@ export default function Layout() {
       <AuthModal />
       <CartDrawer />
       {selectedProduct && (
-        <ProductDetailModal product={selectedProduct} onClose={closeProduct} />
+        <ProductDetailModal product={selectedProduct} onClose={closeProduct} onViewProduct={openProduct} />
       )}
 
       {/* Navbar always visible */}
