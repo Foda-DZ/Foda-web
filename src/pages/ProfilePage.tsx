@@ -13,7 +13,7 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PhoneIcon from "@mui/icons-material/Phone";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import type { SessionUser } from "../types";
@@ -386,9 +386,13 @@ type TabId = "info" | "security" | "orders";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, logout } = useAuth();
   const { tr } = useLang();
-  const [tab, setTab] = useState<TabId>("info");
+  const [tab, setTab] = useState<TabId>(() => {
+    const t = searchParams.get("tab");
+    return (t === "orders" || t === "security" || t === "info") ? t : "info";
+  });
   const [loggingOut, setLoggingOut] = useState(false);
 
   if (!user) return null;

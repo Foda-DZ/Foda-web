@@ -451,14 +451,11 @@ export default function AuthModal() {
   const showTabs = view === "login" || view === "register";
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={closeAuth}>
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={closeAuth}
-      />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm pointer-events-none" />
       {/* Panel */}
-      <div className="relative z-10 w-full max-w-md bg-[#FAF7F2] shadow-[0_25px_50px_rgba(0,0,0,0.4)] overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="relative z-10 w-full max-w-md bg-[#FAF7F2] shadow-[0_25px_50px_rgba(0,0,0,0.4)] overflow-hidden max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="relative dark-gradient px-8 py-7 flex-shrink-0">
           <div className="absolute top-0 end-0 w-32 h-32 bg-[#C9A84C]/10 rounded-full blur-2xl" />

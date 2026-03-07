@@ -32,7 +32,7 @@ export default function Products({ onViewDetail }: ProductsProps) {
     { key: "All",         label: tr.products.all },
     { key: "Women",       label: tr.products.women },
     { key: "Men",         label: tr.products.men },
-    { key: "Traditional", label: tr.products.traditional },
+    { key: "Kids",        label: tr.products.kids },
   ];
 
   const [activeFilter, setActiveFilter] = useState("All");
@@ -85,7 +85,7 @@ export default function Products({ onViewDetail }: ProductsProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-8">
           {loading
             ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
             : (displayed.length > 0 ? displayed : featured).map((p, i) => (

@@ -38,7 +38,6 @@ export default function Navbar() {
       ],
     },
     { label: tr.nav.newArrivals, href: "#arrivals" },
-    { label: tr.nav.designers,   href: "/shop" },
     { label: tr.nav.sale,        href: "/shop", hot: true },
   ];
 
@@ -182,7 +181,7 @@ export default function Navbar() {
                     </div>
                     {[
                       { Icon: PersonIcon, label: tr.nav.myProfile, path: "/profile" },
-                      { Icon: Inventory2Icon, label: tr.nav.myOrders, path: "/profile" },
+                      { Icon: Inventory2Icon, label: tr.nav.myOrders, path: "/profile?tab=orders" },
                     ].map(({ Icon, label, path }) => (
                       <button
                         key={label}
@@ -233,24 +232,24 @@ export default function Navbar() {
               </button>
             )}
 
-            {/* Cart — only for authenticated users */}
+            {/* Cart — authenticated users only */}
             {user && (
-              <IconButton
-                onClick={openCart}
-                sx={{
-                  borderRadius: 0,
-                  color: scrolled ? "#1A1A2E" : "rgba(255,255,255,0.9)",
-                  "&:hover": { color: "#C9A84C", bgcolor: "transparent" },
-                  position: "relative",
-                }}
-              >
-                <ShoppingBagIcon sx={{ fontSize: 22 }} />
-                {totalItems > 0 && (
-                  <span className="absolute -top-1 -end-1 w-4 h-4 gold-gradient text-[#1A1A2E] text-[10px] font-black flex items-center justify-center rounded-full">
-                    {totalItems > 9 ? "9+" : totalItems}
-                  </span>
-                )}
-              </IconButton>
+            <IconButton
+              onClick={openCart}
+              sx={{
+                borderRadius: 0,
+                color: scrolled ? "#1A1A2E" : "rgba(255,255,255,0.9)",
+                "&:hover": { color: "#C9A84C", bgcolor: "transparent" },
+                position: "relative",
+              }}
+            >
+              <ShoppingBagIcon sx={{ fontSize: 22 }} />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -end-1 w-4 h-4 gold-gradient text-[#1A1A2E] text-[10px] font-black flex items-center justify-center rounded-full">
+                  {totalItems > 9 ? "9+" : totalItems}
+                </span>
+              )}
+            </IconButton>
             )}
 
             {/* Mobile menu toggle */}
@@ -308,7 +307,7 @@ export default function Navbar() {
                     <PersonIcon sx={{ fontSize: 15 }} /> {tr.nav.myProfile}
                   </button>
                   <button
-                    onClick={() => { navigate("/profile"); setMenuOpen(false); }}
+                    onClick={() => { navigate("/profile?tab=orders"); setMenuOpen(false); }}
                     className="w-full flex items-center gap-2 text-sm text-[#1A1A2E]/70 hover:text-[#C9A84C] py-2 transition-colors duration-200"
                   >
                     <Inventory2Icon sx={{ fontSize: 15 }} /> {tr.nav.myOrders}

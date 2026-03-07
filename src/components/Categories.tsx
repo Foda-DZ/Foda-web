@@ -6,12 +6,12 @@ import { useLang } from "../context/LangContext";
 const CATEGORY_ROUTES: Record<string, string> = {
   women: "/shop?category=Women",
   men: "/shop?category=Men",
-  traditional: "/shop",
+  kids: "/shop?category=Kids",
   accessories: "/shop?category=Accessories",
 };
 
 interface CategoryData {
-  key: "women" | "men" | "traditional" | "accessories";
+  key: "women" | "men" | "kids" | "accessories";
   image: string;
   color: string;
   span: string;
@@ -31,8 +31,8 @@ const CATEGORY_DATA: CategoryData[] = [
     span: "",
   },
   {
-    key: "traditional",
-    image: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=600&q=80",
+    key: "kids",
+    image: "https://images.unsplash.com/photo-1471286174890-9c112ffca5b4?w=600&q=80",
     color: "from-[#C9A84C]/80",
     span: "",
   },

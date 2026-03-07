@@ -119,6 +119,7 @@ export default function ProductDetailModal({
       maxWidth="lg"
       fullWidth
       scroll="body"
+      disableEnforceFocus
       slotProps={{
         backdrop: { sx: { bgcolor: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" } },
       }}

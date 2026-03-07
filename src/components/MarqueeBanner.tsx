@@ -1,7 +1,7 @@
 const items = [
   "New Arrivals",
   "★",
-  "Algerian Designers",
+  "Algerian Brands",
   "★",
   "Summer 2024",
   "★",
@@ -13,7 +13,7 @@ const items = [
   "★",
   "New Arrivals",
   "★",
-  "Algerian Designers",
+  "Algerian Brands",
   "★",
   "Summer 2024",
   "★",

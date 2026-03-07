@@ -28,12 +28,12 @@ export default function Footer() {
       title: tr.footer.shopTitle,
       links: tr.footer.shopLinks,
       // Routes match the order of tr.footer.shopLinks:
-      // New Arrivals, Women's, Men's, Traditional, Accessories, Sale
+      // New Arrivals, Women's, Men's, Kids, Accessories, Sale
       routes: [
         "/shop?sort=newest",
         "/shop?category=Women",
         "/shop?category=Men",
-        "/shop",
+        "/shop?category=Kids",
         "/shop?category=Accessories",
         "/shop",
       ],

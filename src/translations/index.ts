@@ -11,7 +11,6 @@ export interface Translations {
     kids: string;
     accessories: string;
     newArrivals: string;
-    designers: string;
     sale: string;
     hot: string;
     shop: string;
@@ -65,7 +64,7 @@ export interface Translations {
     items: {
       women: { name: string; ar: string; count: string };
       men: { name: string; ar: string; count: string };
-      traditional: { name: string; ar: string; count: string };
+      kids: { name: string; ar: string; count: string };
       accessories: { name: string; ar: string; count: string };
     };
   };
@@ -76,7 +75,7 @@ export interface Translations {
     all: string;
     women: string;
     men: string;
-    traditional: string;
+    kids: string;
     quickView: string;
     viewAndAdd: string;
     viewAll: string;
@@ -346,7 +345,6 @@ export const ar: Translations = {
     kids: "أطفال",
     accessories: "إكسسوارات",
     newArrivals: "وصل حديثاً",
-    designers: "المصممون",
     sale: "تخفيضات",
     hot: "رائج",
     shop: "المتجر",
@@ -400,7 +398,7 @@ export const ar: Translations = {
     items: {
       women: { name: "نساء", ar: "نساء", count: "أكثر من 1,240 تصميم" },
       men: { name: "رجال", ar: "رجال", count: "أكثر من 820 تصميم" },
-      traditional: { name: "تقليدي", ar: "تقليدي", count: "أكثر من 560 تصميم" },
+      kids: { name: "أطفال", ar: "أطفال", count: "أكثر من 320 تصميم" },
       accessories: { name: "إكسسوارات", ar: "إكسسوارات", count: "أكثر من 340 قطعة" },
     },
   },
@@ -411,7 +409,7 @@ export const ar: Translations = {
     all: "الكل",
     women: "نساء",
     men: "رجال",
-    traditional: "تقليدي",
+    kids: "أطفال",
     quickView: "معاينة سريعة",
     viewAndAdd: "عرض وإضافة للسلة",
     viewAll: "عرض كل {count} منتج",
@@ -459,8 +457,8 @@ export const ar: Translations = {
     shopTitle: "المتجر",
     companyTitle: "الشركة",
     helpTitle: "المساعدة",
-    shopLinks: ["وصل حديثاً", "مجموعة النساء", "مجموعة الرجال", "الأزياء التقليدية", "إكسسوارات", "تخفيضات"],
-    companyLinks: ["عن فودة", "مصمموننا", "الاستدامة", "الصحافة", "وظائف", "المدونة"],
+    shopLinks: ["وصل حديثاً", "مجموعة النساء", "مجموعة الرجال", "أطفال", "إكسسوارات", "تخفيضات"],
+    companyLinks: ["عن فودة", "الاستدامة", "الصحافة", "وظائف", "المدونة"],
     helpLinks: ["الأسئلة الشائعة", "الشحن والإرجاع", "دليل المقاسات", "تتبع الطلب", "تواصل معنا", "بطاقات الهدايا"],
     address: "15 شارع ديدوش مراد، وسط الجزائر، الجزائر",
     phone: "+213 (0) 21 XX XX XX",
@@ -681,7 +679,6 @@ export const en: Translations = {
     kids: "Kids",
     accessories: "Accessories",
     newArrivals: "New Arrivals",
-    designers: "Designers",
     sale: "Sale",
     hot: "HOT",
     shop: "Shop",
@@ -735,7 +732,7 @@ export const en: Translations = {
     items: {
       women: { name: "Women", ar: "نساء", count: "1,240+ styles" },
       men: { name: "Men", ar: "رجال", count: "820+ styles" },
-      traditional: { name: "Traditional", ar: "تقليدي", count: "560+ styles" },
+      kids: { name: "Kids", ar: "أطفال", count: "320+ styles" },
       accessories: { name: "Accessories", ar: "إكسسوارات", count: "340+ items" },
     },
   },
@@ -746,7 +743,7 @@ export const en: Translations = {
     all: "All",
     women: "Women",
     men: "Men",
-    traditional: "Traditional",
+    kids: "Kids",
     quickView: "Quick View",
     viewAndAdd: "View & Add to Cart",
     viewAll: "View All {count} Products",
@@ -794,8 +791,8 @@ export const en: Translations = {
     shopTitle: "Shop",
     companyTitle: "Company",
     helpTitle: "Help",
-    shopLinks: ["New Arrivals", "Women's Collection", "Men's Collection", "Traditional Wear", "Accessories", "Sale"],
-    companyLinks: ["About Foda", "Our Designers", "Sustainability", "Press", "Careers", "Blog"],
+    shopLinks: ["New Arrivals", "Women's Collection", "Men's Collection", "Kids", "Accessories", "Sale"],
+    companyLinks: ["About Foda", "Sustainability", "Press", "Careers", "Blog"],
     helpLinks: ["FAQ", "Shipping & Returns", "Size Guide", "Track Order", "Contact Us", "Gift Cards"],
     address: "15 Rue Didouche Mourad, Alger Centre, Algeria",
     phone: "+213 (0) 21 XX XX XX",
