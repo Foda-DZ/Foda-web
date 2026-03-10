@@ -50,9 +50,9 @@ export interface Translations {
       subtitle: string;
       cta1: string;
       cta2: string;
-      statLocal: string;
-      statRated: string;
-      statReturns: string;
+      statSellers: string;
+      statWilayas: string;
+      statPayout: string;
     };
   };
   categories: {
@@ -117,6 +117,26 @@ export interface Translations {
     successTitle: string;
     successSub: string;
     privacy: string;
+  };
+  sellWithUs: {
+    tag: string;
+    title1: string;
+    title2: string;
+    subtitle: string;
+    step1Title: string;
+    step1Sub: string;
+    step2Title: string;
+    step2Sub: string;
+    step3Title: string;
+    step3Sub: string;
+    stat1Value: string;
+    stat1Label: string;
+    stat2Value: string;
+    stat2Label: string;
+    stat3Value: string;
+    stat3Label: string;
+    cta: string;
+    ctaSub: string;
   };
   footer: {
     tagline: string;
@@ -366,9 +386,9 @@ export const ar: Translations = {
       subtitle: "اكتشف أين تلتقي التقاليد بالأناقة العصرية. مصممون جزائريون حصريون، مختارون بعناية لك.",
       cta1: "استكشف المجموعة",
       cta2: "شاهد الفيلم",
-      statDesigners: "مصمم",
-      statClients: "عميل سعيد",
-      statDelivery: "توصيل",
+      statDesigners: "بائع نشط",
+      statClients: "متسوق سعيد",
+      statDelivery: "متوسط التوصيل",
       featuredLabel: "إطلالة مميزة",
       featuredName: "أناقة الصيف",
       featuredPrice: "12,500 دج",
@@ -377,16 +397,16 @@ export const ar: Translations = {
       newSub: "+120 قطعة جديدة",
     },
     slide2: {
-      badge: "إصدارات حصرية",
-      line1: "ارتدِ",
-      line2: "تراثك",
-      line3: "بفخر واعتزاز",
-      subtitle: "الحرفية الجزائرية الأصيلة ممزوجة بالأساليب المعاصرة للمرأة والرجل العصري.",
-      cta1: "تسوق الآن",
+      badge: "انضم كبائع",
+      line1: "بيع",
+      line2: "تصاميمك،",
+      line3: "لكل الجزائر",
+      subtitle: "انضم إلى أسرع سوق أزياء متنامٍ في الجزائر. أدرج منتجاتك وابدأ البيع لآلاف العملاء اليوم.",
+      cta1: "ابدأ البيع",
       cta2: "اعرف المزيد",
-      statLocal: "علامة محلية",
-      statRated: "تطبيق مُقيَّم",
-      statReturns: "إرجاع",
+      statSellers: "بائع نشط",
+      statWilayas: "ولاية تُغطى",
+      statPayout: "متوسط الدفع",
     },
   },
   categories: {
@@ -415,33 +435,33 @@ export const ar: Translations = {
     viewAll: "عرض كل {count} منتج",
   },
   brandStory: {
-    ourStory: "قصتنا",
-    bornFrom: "وُلدنا من",
-    algerianPride: "الفخر الجزائري",
-    para1: "وُلدت فودة من اعتقاد بسيط: الأزياء الجزائرية تستحق منصة عالمية المستوى. نحن نربط التراث الغني لمصممينا المحليين بالمستهلك العصري الذي يُقدّر الأصالة.",
-    para2: "من الكثبان الذهبية للصحراء إلى شوارع الجزائر النابضة بالحياة، تحكي مجموعاتنا قصص الهوية والحرفة والابتكار.",
-    val1Title: "علامات محلية أصيلة",
-    val1Sub: "كل قطعة مصدرها مباشرة من مصممين وحرفيين جزائريين.",
-    val2Title: "الجودة مضمونة",
-    val2Sub: "فحوصات جودة صارمة قبل وصول كل قطعة إلى بابك.",
-    val3Title: "توصيل سريع لكل الجزائر",
-    val3Sub: "الشحن إلى أي مكان في الجزائر خلال 24-48 ساعة.",
-    val4Title: "دعم الاقتصاد المحلي",
-    val4Sub: "كل عملية شراء تدعم الإبداع الجزائري والحرفة المحلية.",
-    badgeYears: "+07",
-    badgeLine1: "سنوات من الأزياء",
-    badgeLine2: "الجزائرية المتميزة",
-    discoverBtn: "اكتشف قصتنا",
+    ourStory: "منصتنا",
+    bornFrom: "نربط البائعين",
+    algerianPride: "بالمتسوقين",
+    para1: "فودة هي السوق الإلكتروني الأول للأزياء في الجزائر، صُمّم ليكون جسراً بين المصممين المحليين الموهوبين ومحبّي الموضة في أنحاء البلاد.",
+    para2: "سواء كنت مشترياً يكتشف روعة الأزياء الجزائرية، أو بائعاً يرغب في تنمية علامته التجارية، توفر لك فودة الأدوات والانتشار والمجتمع للنجاح.",
+    val1Title: "بائعون موثّقون",
+    val1Sub: "كل بائع يخضع للتحقق لضمان الجودة والأصالة.",
+    val2Title: "حماية المشتري",
+    val2Sub: "تسوّق بثقة. مدفوعات آمنة وإرجاع سهل.",
+    val3Title: "وصول لكل الجزائر",
+    val3Sub: "التوصيل للعملاء في جميع الولايات الـ58.",
+    val4Title: "أدوات نمو البائع",
+    val4Sub: "لوحة تحكم متكاملة وتحليلات وإدارة الطلبات.",
+    badgeYears: "+500",
+    badgeLine1: "بائع نشط",
+    badgeLine2: "على المنصة",
+    discoverBtn: "استكشف المنصة",
   },
   newsletter: {
     statCustomers: "+50 ألف",
-    statBrands: "+2 ألف",
-    statDelivery: "48 ساعة",
-    statRating: "4.9★",
-    labelCustomers: "عميل سعيد",
-    labelBrands: "علامة جزائرية",
-    labelDelivery: "متوسط التوصيل",
-    labelRating: "تقييم التطبيق",
+    statBrands: "+500",
+    statDelivery: "58",
+    statRating: "4.8★",
+    labelCustomers: "متسوق سعيد",
+    labelBrands: "بائع موثّق",
+    labelDelivery: "ولاية مُغطّاة",
+    labelRating: "تقييم المنصة",
     stayIn: "ابقَ على",
     fashionLoop: "موجة الموضة",
     subtitle: "اشترك للحصول على أحدث الإصدارات الحصرية وأبرز المصممين والعروض المميزة لعشاق الأزياء في الجزائر.",
@@ -451,6 +471,26 @@ export const ar: Translations = {
     successTitle: "أنت الآن معنا!",
     successSub: "مرحباً بك في الدائرة الداخلية لفودة.",
     privacy: "لا رسائل مزعجة. يمكنك إلغاء الاشتراك في أي وقت. نحن نحترم خصوصيتك.",
+  },
+  sellWithUs: {
+    tag: "انضم كبائع",
+    title1: "ابدأ البيع على",
+    title2: "فودة اليوم",
+    subtitle: "انضم إلى أكثر من 500 بائع يُنمّون أعمالهم على أول سوق أزياء في الجزائر.",
+    step1Title: "إعداد سهل وسريع",
+    step1Sub: "أنشئ متجرك في دقائق. أدرج منتجاتك وابدأ البيع فوراً.",
+    step2Title: "وصول لكل الجزائر",
+    step2Sub: "تواصل مع عشاق الموضة في 58 ولاية.",
+    step3Title: "إدارة كل شيء",
+    step3Sub: "لوحة تحكم قوية لمتابعة الطلبات والمخزون والأرباح.",
+    stat1Value: "+500",
+    stat1Label: "بائع نشط",
+    stat2Value: "+20 ألف",
+    stat2Label: "منتج مدرج",
+    stat3Value: "58",
+    stat3Label: "ولاية مُغطّاة",
+    cta: "إنشاء حساب بائع",
+    ctaSub: "مجاني تماماً — ابدأ اليوم",
   },
   footer: {
     tagline: "وجهة الأزياء الجزائرية الأولى. نربطك بأفضل المصممين المحليين، من القصبة التاريخية إلى شوارع الجزائر الحديثة.",
@@ -700,9 +740,9 @@ export const en: Translations = {
       subtitle: "Discover where tradition meets modern elegance. Exclusive Algerian designers, curated for you.",
       cta1: "Explore Collection",
       cta2: "Watch Film",
-      statDesigners: "Designers",
-      statClients: "Happy Clients",
-      statDelivery: "Delivery",
+      statDesigners: "Active Sellers",
+      statClients: "Happy Shoppers",
+      statDelivery: "Avg. Delivery",
       featuredLabel: "Featured Look",
       featuredName: "Summer Elegance",
       featuredPrice: "12,500 DZD",
@@ -711,16 +751,16 @@ export const en: Translations = {
       newSub: "+120 new items",
     },
     slide2: {
-      badge: "Exclusive Drops",
-      line1: "Wear Your",
-      line2: "Heritage",
-      line3: "With Pride",
-      subtitle: "Authentic Algerian craftsmanship fused with contemporary styles for the modern woman and man.",
-      cta1: "Shop Now",
+      badge: "Join as a Seller",
+      line1: "Sell Your",
+      line2: "Designs,",
+      line3: "Nationwide",
+      subtitle: "Join Algeria's fastest-growing fashion marketplace. List your products and reach thousands of customers today.",
+      cta1: "Start Selling",
       cta2: "Learn More",
-      statLocal: "Local Brands",
-      statRated: "Rated App",
-      statReturns: "Returns",
+      statSellers: "Active Sellers",
+      statWilayas: "Wilayas Covered",
+      statPayout: "Avg. Payout",
     },
   },
   categories: {
@@ -749,33 +789,33 @@ export const en: Translations = {
     viewAll: "View All {count} Products",
   },
   brandStory: {
-    ourStory: "Our Story",
-    bornFrom: "Born From",
-    algerianPride: "Algerian Pride",
-    para1: "Foda was born from a simple belief: Algerian fashion deserves a world-class platform. We connect the rich heritage of our local designers with the modern consumer who values authenticity.",
-    para2: "From the golden dunes of the Sahara to the vibrant streets of Alger, our collections tell stories of identity, craft, and innovation.",
-    val1Title: "Authentic Local Brands",
-    val1Sub: "Every item is sourced directly from Algerian designers and artisans.",
-    val2Title: "Quality Guaranteed",
-    val2Sub: "Rigorous quality checks before every item reaches your door.",
-    val3Title: "Fast Nationwide Delivery",
-    val3Sub: "Ships anywhere in Algeria within 24-48 hours.",
-    val4Title: "Support Local Economy",
-    val4Sub: "Every purchase supports Algerian creativity and craftsmanship.",
-    badgeYears: "07+",
-    badgeLine1: "Years of Algerian",
-    badgeLine2: "Fashion Excellence",
-    discoverBtn: "Discover Our Story",
+    ourStory: "Our Platform",
+    bornFrom: "Connecting",
+    algerianPride: "Algerian Fashion",
+    para1: "Foda is Algeria's premier multi-seller fashion marketplace, built to bridge the gap between talented local designers and style-conscious shoppers across the country.",
+    para2: "Whether you're a buyer discovering Algeria's finest fashion or a seller growing your brand, Foda gives you the tools, the reach, and the community to thrive.",
+    val1Title: "Verified Sellers",
+    val1Sub: "Every seller is vetted to ensure quality and authenticity for buyers.",
+    val2Title: "Buyer Protection",
+    val2Sub: "Shop with confidence. Secure payments, easy returns, and buyer guarantees.",
+    val3Title: "Nationwide Reach",
+    val3Sub: "Sellers deliver to customers across all 58 wilayas of Algeria.",
+    val4Title: "Seller Growth Tools",
+    val4Sub: "Dedicated dashboard, analytics, product management, and order tracking.",
+    badgeYears: "500+",
+    badgeLine1: "Active Sellers",
+    badgeLine2: "on the Platform",
+    discoverBtn: "Explore the Platform",
   },
   newsletter: {
     statCustomers: "50K+",
-    statBrands: "2K+",
-    statDelivery: "48hrs",
-    statRating: "4.9★",
-    labelCustomers: "Happy Customers",
-    labelBrands: "Algerian Brands",
-    labelDelivery: "Avg. Delivery",
-    labelRating: "App Rating",
+    statBrands: "500+",
+    statDelivery: "58",
+    statRating: "4.8★",
+    labelCustomers: "Happy Shoppers",
+    labelBrands: "Verified Sellers",
+    labelDelivery: "Wilayas Covered",
+    labelRating: "Platform Rating",
     stayIn: "Stay in the",
     fashionLoop: "Fashion Loop",
     subtitle: "Subscribe for exclusive drops, designer spotlights, and special offers tailored for Algeria's fashion lovers.",
@@ -785,6 +825,26 @@ export const en: Translations = {
     successTitle: "You're in!",
     successSub: "Welcome to Foda's inner circle.",
     privacy: "No spam. Unsubscribe anytime. We respect your privacy.",
+  },
+  sellWithUs: {
+    tag: "Sell on Foda",
+    title1: "Start Selling on",
+    title2: "Foda Today",
+    subtitle: "Join 500+ sellers already growing their business on Algeria's premier fashion marketplace.",
+    step1Title: "Simple Setup",
+    step1Sub: "Create your store in minutes. List products and start selling today.",
+    step2Title: "Reach Customers Nationwide",
+    step2Sub: "Connect with fashion lovers across all 58 wilayas of Algeria.",
+    step3Title: "Manage Everything",
+    step3Sub: "Powerful dashboard to track orders, stock, and earnings in real time.",
+    stat1Value: "500+",
+    stat1Label: "Active Sellers",
+    stat2Value: "20K+",
+    stat2Label: "Products Listed",
+    stat3Value: "58",
+    stat3Label: "Wilayas Covered",
+    cta: "Create Seller Account",
+    ctaSub: "100% Free — Start today",
   },
   footer: {
     tagline: "Algeria's premier fashion marketplace. Connecting you with the finest local designers, from the historic Casbah to the modern streets of Alger.",

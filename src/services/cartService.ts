@@ -18,9 +18,9 @@ export const cartService = {
       .get<{ message: string; cart: ApiCart }>("/cart")
       .then((r) => r.data.cart),
 
-  addItem: (productId: string) =>
+  addItem: (productId: string, size: string, color: string) =>
     api
-      .post<{ message: string }>(`/cart/items/${productId}`)
+      .post<{ message: string }>(`/cart/items/${productId}`, { size, color })
       .then((r) => r.data),
 
   removeItem: (productId: string) =>

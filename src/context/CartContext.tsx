@@ -4,7 +4,7 @@ import type { Product, CartItem, CartState, CartAction } from "../types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface CartContextValue extends CartState {
-  addItem: (product: Product, size: string, quantity?: number) => void;
+  addItem: (product: Product, size: string, color: string, quantity?: number) => void;
   removeItem: (key: string) => void;
   updateQty: (key: string, quantity: number) => void;
   clearCart: () => void;
@@ -18,8 +18,8 @@ interface CartContextValue extends CartState {
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "ADD_ITEM": {
-      const { product, size, quantity } = action.payload;
-      const key = `${product.id}-${size}`;
+      const { product, size, color, quantity } = action.payload;
+      const key = `${product.id}-${size}-${color}`;
       const existing = state.items.find((i) => i.key === key);
       if (existing) {
         return {
@@ -33,7 +33,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       }
       return {
         ...state,
-        items: [...state.items, { key, product, size, quantity }],
+        items: [...state.items, { key, product, size, color, quantity }],
       };
     }
     case "REMOVE_ITEM":
@@ -78,8 +78,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("foda_cart", JSON.stringify(state.items));
   }, [state.items]);
 
-  const addItem = (product: Product, size: string, quantity = 1) => {
-    dispatch({ type: "ADD_ITEM", payload: { product, size, quantity } });
+  const addItem = (product: Product, size: string, color: string, quantity = 1) => {
+    dispatch({ type: "ADD_ITEM", payload: { product, size, color, quantity } });
     dispatch({ type: "OPEN_CART" });
   };
 

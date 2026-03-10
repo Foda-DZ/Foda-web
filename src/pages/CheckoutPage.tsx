@@ -798,7 +798,7 @@ export default function CheckoutPage() {
       };
       await cartService.clearCart();
       for (const item of items) {
-        await cartService.addItem(item.product.id);
+        await cartService.addItem(item.product.id, item.size, item.color);
       }
       const result = await cartService.checkout(shippingDetails);
       clearCart();

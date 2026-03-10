@@ -16,6 +16,26 @@ import SellerLayout from "../../components/seller/SellerLayout";
 // ─── Constants ────────────────────────────────────────────────────────────────
 const CATEGORIES = ["Men", "Women", "Kids", "Accessories", "Other"];
 const SIZES_OPTIONS = ["XS", "S", "M", "L", "XL", "XXL", "One Size"];
+const COLORS_OPTIONS = [
+  { name: "Black",    hex: "#1a1a1a" },
+  { name: "White",    hex: "#f9f9f9" },
+  { name: "Beige",    hex: "#f5f0e1" },
+  { name: "Gray",     hex: "#9ca3af" },
+  { name: "Brown",    hex: "#7c3f1a" },
+  { name: "Navy",     hex: "#1e3a5f" },
+  { name: "Red",      hex: "#dc2626" },
+  { name: "Burgundy", hex: "#7f1d1d" },
+  { name: "Pink",     hex: "#f9a8d4" },
+  { name: "Orange",   hex: "#f97316" },
+  { name: "Yellow",   hex: "#fde047" },
+  { name: "Green",    hex: "#16a34a" },
+  { name: "Olive",    hex: "#6b7c2d" },
+  { name: "Blue",     hex: "#2563eb" },
+  { name: "Teal",     hex: "#0d9488" },
+  { name: "Purple",   hex: "#7c3aed" },
+  { name: "Gold",     hex: "#C9A84C" },
+  { name: "Khaki",    hex: "#c3b091" },
+];
 
 const inputSx = {
   "& .MuiOutlinedInput-root": { borderRadius: 0, bgcolor: "#fff" },
@@ -106,6 +126,7 @@ interface FormState {
   stock: string;
   description: string;
   sizes: string[];
+  colors: string[];
   imagePreviews: [string, string, string];
   imageFiles: [File | null, File | null, File | null];
 }
@@ -117,6 +138,7 @@ const defaultForm: FormState = {
   stock: "",
   description: "",
   sizes: ["M", "L"],
+  colors: ["Black", "White"],
   imagePreviews: ["", "", ""],
   imageFiles: [null, null, null],
 };
@@ -156,6 +178,14 @@ export default function ProductFormPage() {
         : [...form.sizes, size],
     );
 
+  const toggleColor = (color: string) =>
+    set(
+      "colors",
+      form.colors.includes(color)
+        ? form.colors.filter((c) => c !== color)
+        : [...form.colors, color],
+    );
+
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = "Required.";
@@ -163,6 +193,8 @@ export default function ProductFormPage() {
       e.price = "Enter a valid price.";
     if (!form.stock || isNaN(Number(form.stock)) || Number(form.stock) < 0)
       e.stock = "Enter a valid stock quantity.";
+    if (!form.sizes.length) e.sizes = "Select at least one size.";
+    if (!form.colors.length) e.colors = "Select at least one color.";
     if (!form.imageFiles[0])
       e.images = "At least one product image is required.";
     return e;
@@ -186,7 +218,8 @@ export default function ProductFormPage() {
         stock: Number(form.stock),
         category: form.category,
         description: form.description.trim() || undefined,
-        size: form.sizes.length > 0 ? form.sizes : undefined,
+        sizes: form.sizes,
+        colors: form.colors,
         images: form.imageFiles.filter((f): f is File => f !== null),
       });
 
@@ -340,9 +373,21 @@ export default function ProductFormPage() {
 
           {/* Sizes */}
           <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4">
-            <h2 className="font-semibold text-[#1A1A2E] text-sm uppercase tracking-widest">
-              Available Sizes
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-[#1A1A2E] text-sm uppercase tracking-widest">
+                Available Sizes <span className="text-red-400">*</span>
+              </h2>
+              {form.sizes.length > 0 && (
+                <span className="text-xs text-[#C9A84C] font-semibold">
+                  {form.sizes.join(" · ")}
+                </span>
+              )}
+            </div>
+            {errors.sizes && (
+              <Alert severity="error" sx={{ borderRadius: 0, py: 0.5, fontSize: "0.75rem" }}>
+                {errors.sizes}
+              </Alert>
+            )}
             <div className="flex flex-wrap gap-2">
               {SIZES_OPTIONS.map((size) => (
                 <button
@@ -358,6 +403,58 @@ export default function ProductFormPage() {
                   {size}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Colors */}
+          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-[#1A1A2E] text-sm uppercase tracking-widest">
+                Available Colors <span className="text-red-400">*</span>
+              </h2>
+              {form.colors.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  {form.colors.map((c) => {
+                    const opt = COLORS_OPTIONS.find((o) => o.name === c);
+                    return (
+                      <span
+                        key={c}
+                        title={c}
+                        className="w-4 h-4 rounded-full border border-black/15 flex-shrink-0"
+                        style={{ backgroundColor: opt?.hex ?? c.toLowerCase() }}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            {errors.colors && (
+              <Alert severity="error" sx={{ borderRadius: 0, py: 0.5, fontSize: "0.75rem" }}>
+                {errors.colors}
+              </Alert>
+            )}
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {COLORS_OPTIONS.map(({ name, hex }) => {
+                const selected = form.colors.includes(name);
+                return (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => toggleColor(name)}
+                    className={`flex items-center gap-2 px-3 h-9 text-xs font-semibold border transition-all duration-200 ${
+                      selected
+                        ? "border-[#1A1A2E] bg-[#1A1A2E] text-white"
+                        : "border-[#1A1A2E]/15 text-[#1A1A2E]/60 hover:border-[#1A1A2E]/40 hover:text-[#1A1A2E]"
+                    }`}
+                  >
+                    <span
+                      className="w-3.5 h-3.5 rounded-full border border-black/10 flex-shrink-0"
+                      style={{ backgroundColor: hex }}
+                    />
+                    <span className="truncate">{name}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowRight, Mail } from "lucide-react";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import MailIcon from "@mui/icons-material/Mail";
 import { useLang } from "../context/LangContext";
 
 export default function Newsletter() {
@@ -80,7 +81,7 @@ export default function Newsletter() {
           <div className="absolute inset-0 bg-gradient-to-br from-[#C9A84C]/5 to-transparent pointer-events-none" />
           <div className="relative z-10 text-center">
             <div className="inline-flex items-center justify-center w-14 h-14 gold-gradient rounded-2xl mb-6">
-              <Mail size={22} className="text-[#1A1A2E]" />
+              <MailIcon sx={{ fontSize: 22, color: "#1A1A2E" }} />
             </div>
             <h2 className="font-display text-4xl lg:text-5xl font-bold text-white mb-4">
               {tr.newsletter.stayIn}
@@ -93,7 +94,7 @@ export default function Newsletter() {
             {submitted ? (
               <div className="flex items-center justify-center gap-3 py-6">
                 <div className="w-12 h-12 gold-gradient rounded-full flex items-center justify-center">
-                  <ArrowRight size={20} className="text-[#1A1A2E]" />
+                  <ArrowForwardIcon sx={{ fontSize: 20, color: "#1A1A2E" }} />
                 </div>
                 <div className="text-start">
                   <p className="text-white font-semibold">{tr.newsletter.successTitle}</p>
@@ -120,8 +121,8 @@ export default function Newsletter() {
                   className="btn-gold flex items-center gap-2 group whitespace-nowrap"
                 >
                   {tr.newsletter.subscribe}{" "}
-                  <ArrowRight
-                    size={14}
+                  <ArrowForwardIcon
+                    sx={{ fontSize: 14 }}
                     className="transition-transform duration-300 group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1"
                   />
                 </button>

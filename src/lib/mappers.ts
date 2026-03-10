@@ -11,9 +11,8 @@ export function apiProductToProduct(p: ApiProduct): Product {
     category: p.category,
     price: p.price,
     images: apiImages.map((img) => img.url),
-    sizes: typeof p.size === "string" && p.size
-      ? p.size.split(",").map((s) => s.trim()).filter(Boolean)
-      : [],
+    sizes: Array.isArray(p.sizes) ? p.sizes : [],
+    colors: Array.isArray(p.colors) ? p.colors : [],
     description: p.description ?? "",
     stock: p.stock ?? 0,
     isNew: new Date(p.createdAt).getTime() > sevenDaysAgo,

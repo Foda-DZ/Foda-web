@@ -206,7 +206,7 @@ function CartItemRow({
   onUpdateQty,
   removeLabel,
 }: CartItemRowProps) {
-  const { product, size, quantity } = item;
+  const { product, size, color, quantity } = item;
 
   return (
     <div className="flex gap-4">
@@ -226,7 +226,23 @@ function CartItemRow({
             <p className="text-white font-semibold text-sm leading-tight truncate">
               {product.name}
             </p>
-            <span className="text-white/40 text-xs">{size}</span>
+            <div className="flex items-center gap-2 mt-0.5">
+              {size && (
+                <span className="text-white/40 text-xs">{size}</span>
+              )}
+              {color && (
+                <>
+                  {size && <span className="text-white/20 text-xs">·</span>}
+                  <span className="flex items-center gap-1 text-white/40 text-xs">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full border border-white/20 inline-block flex-shrink-0"
+                      style={{ backgroundColor: color.toLowerCase() }}
+                    />
+                    {color}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
           <IconButton
             onClick={onRemove}

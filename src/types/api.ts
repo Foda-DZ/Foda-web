@@ -45,7 +45,8 @@ export interface ApiProduct {
   inStock: boolean;
   description: string;
   stock: number;
-  size?: string;
+  sizes: string[];
+  colors: string[];
   category: ApiCategory;
   createdAt: string;
   updatedAt: string;
@@ -59,6 +60,7 @@ export interface ApiCartItem {
   quantity: number;
   price: number;
   image: string;
+  selectedChoices: { size: string; color: string };
 }
 
 export interface ApiCart {

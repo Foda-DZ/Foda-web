@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from "react";
-import { CheckCircle, ArrowRight } from "lucide-react";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { useLang } from "../context/LangContext";
 
 export default function BrandStory() {
@@ -102,9 +103,9 @@ export default function BrandStory() {
             <div className="space-y-4 mb-10">
               {values.map((v, i) => (
                 <div key={i} className="flex gap-4 items-start group">
-                  <CheckCircle
-                    size={18}
-                    className="text-[#C9A84C] mt-0.5 flex-shrink-0 transition-transform duration-300 group-hover:scale-110"
+                  <CheckCircleIcon
+                    sx={{ fontSize: 18, color: "#C9A84C", mt: "2px", flexShrink: 0 }}
+                    className="transition-transform duration-300 group-hover:scale-110"
                   />
                   <div>
                     <p className="text-white font-semibold text-sm">{v.title}</p>
@@ -115,8 +116,8 @@ export default function BrandStory() {
             </div>
             <button className="btn-gold flex items-center gap-2 group">
               {tr.brandStory.discoverBtn}{" "}
-              <ArrowRight
-                size={15}
+              <ArrowForwardIcon
+                sx={{ fontSize: 15 }}
                 className="transition-transform duration-300 group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1"
               />
             </button>

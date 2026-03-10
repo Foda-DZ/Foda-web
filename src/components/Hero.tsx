@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Play, Star } from "lucide-react";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import NewReleasesIcon from "@mui/icons-material/NewReleases";
 import { useNavigate } from "react-router-dom";
 import { useLang } from "../context/LangContext";
+import { useAuth } from "../context/AuthContext";
 
 interface HeroSlide {
   id: number;
@@ -21,6 +24,7 @@ interface HeroSlide {
 export default function Hero() {
   const navigate = useNavigate();
   const { tr } = useLang();
+  const { openRegister } = useAuth();
   const [current, setCurrent] = useState(0);
   const [animClass, setAnimClass] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -37,9 +41,9 @@ export default function Hero() {
       bg: "from-[#1A1A2E] via-[#16213E] to-[#0F3460]",
       image:
         "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&q=80",
-      stat1: { value: "2K+", label: tr.hero.slide1.statDesigners },
+      stat1: { value: "500+", label: tr.hero.slide1.statDesigners },
       stat2: { value: "50K+", label: tr.hero.slide1.statClients },
-      stat3: { value: "48Hrs", label: tr.hero.slide1.statDelivery },
+      stat3: { value: "48hrs", label: tr.hero.slide1.statDelivery },
     },
     {
       id: 2,
@@ -49,12 +53,12 @@ export default function Hero() {
       cta: tr.hero.slide2.cta1,
       ctaSecondary: tr.hero.slide2.cta2,
       accent: "#C9A84C",
-      bg: "from-[#2D1B1B] via-[#3D1E1E] to-[#1A1A2E]",
+      bg: "from-[#0F3460] via-[#16213E] to-[#1A1A2E]",
       image:
-        "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80",
-      stat1: { value: "100%", label: tr.hero.slide2.statLocal },
-      stat2: { value: "5★", label: tr.hero.slide2.statRated },
-      stat3: { value: "30D", label: tr.hero.slide2.statReturns },
+        "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80",
+      stat1: { value: "500+", label: tr.hero.slide2.statSellers },
+      stat2: { value: "58", label: tr.hero.slide2.statWilayas },
+      stat3: { value: "48hrs", label: tr.hero.slide2.statPayout },
     },
   ];
 
@@ -134,17 +138,24 @@ export default function Hero() {
           </p>
           <div className="flex flex-wrap gap-4 mb-16">
             <button
-              onClick={() => navigate("/shop")}
+              onClick={() => current === 1 ? openRegister() : navigate("/shop")}
               className="btn-gold flex items-center gap-2 group"
             >
               {slide.cta}{" "}
-              <ArrowRight
-                size={16}
+              <ArrowForwardIcon
+                sx={{ fontSize: 16 }}
                 className="transition-transform duration-300 group-hover:translate-x-1"
               />
             </button>
-            <button className="btn-outline-gold flex items-center gap-2">
-              <Play size={14} className="fill-current" /> {slide.ctaSecondary}
+            <button
+              onClick={() => current === 1 ? navigate("/shop") : navigate("/shop")}
+              className="btn-outline-gold flex items-center gap-2"
+            >
+              {current === 1
+                ? <StorefrontIcon sx={{ fontSize: 14 }} />
+                : <NewReleasesIcon sx={{ fontSize: 14 }} />
+              }
+              {slide.ctaSecondary}
             </button>
           </div>
           <div className="flex gap-10">
@@ -170,33 +181,69 @@ export default function Hero() {
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A2E]/80 via-transparent to-transparent" />
-              <div className="absolute top-4 left-4 glass rounded-full px-3 py-1.5 flex items-center gap-1">
-                <Star size={12} className="fill-[#C9A84C] text-[#C9A84C]" />
-                <span className="text-white text-xs font-semibold">4.9</span>
-              </div>
+              {current === 0 && (
+                <div className="absolute top-4 left-4 glass rounded-full px-3 py-1.5 flex items-center gap-1.5">
+                  <NewReleasesIcon sx={{ fontSize: 12, color: "#C9A84C" }} />
+                  <span className="text-white text-xs font-semibold">New Drop</span>
+                </div>
+              )}
+              {current === 1 && (
+                <div className="absolute top-4 left-4 glass rounded-full px-3 py-1.5 flex items-center gap-1.5">
+                  <StorefrontIcon sx={{ fontSize: 12, color: "#C9A84C" }} />
+                  <span className="text-white text-xs font-semibold">500+ Sellers</span>
+                </div>
+              )}
               <div className="absolute bottom-0 left-0 right-0 p-5">
-                <p className="text-white/60 text-xs uppercase tracking-widest mb-1">
-                  {tr.hero.slide1.featuredLabel}
-                </p>
-                <p className="text-white font-display font-bold text-lg">
-                  {tr.hero.slide1.featuredName}
-                </p>
-                <p className="gold-text font-bold text-xl mt-1">
-                  {tr.hero.slide1.featuredPrice}
-                </p>
+                {current === 0 ? (
+                  <>
+                    <p className="text-white/60 text-xs uppercase tracking-widest mb-1">
+                      {tr.hero.slide1.featuredLabel}
+                    </p>
+                    <p className="text-white font-display font-bold text-lg">
+                      {tr.hero.slide1.featuredName}
+                    </p>
+                    <p className="gold-text font-bold text-xl mt-1">
+                      {tr.hero.slide1.featuredPrice}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-white/60 text-xs uppercase tracking-widest mb-1">
+                      Seller Spotlight
+                    </p>
+                    <p className="text-white font-display font-bold text-lg">
+                      Grow Your Brand
+                    </p>
+                    <p className="gold-text font-bold text-sm mt-1">
+                      Join Algeria's #1 Fashion Market
+                    </p>
+                  </>
+                )}
               </div>
             </div>
-            <div className="absolute -bottom-6 -left-10 glass rounded-xl p-4 flex items-center gap-3 shadow-xl border border-white/10 animate-float">
-              <div className="w-10 h-10 gold-gradient rounded-lg flex items-center justify-center text-[#1A1A2E] font-bold text-xs">
-                {tr.hero.slide1.featuredBadge}
+            {current === 0 ? (
+              <div className="absolute -bottom-6 -left-10 glass rounded-xl p-4 flex items-center gap-3 shadow-xl border border-white/10 animate-float">
+                <div className="w-10 h-10 gold-gradient rounded-lg flex items-center justify-center text-[#1A1A2E] font-bold text-xs">
+                  {tr.hero.slide1.featuredBadge}
+                </div>
+                <div>
+                  <p className="text-white text-xs font-semibold">
+                    {tr.hero.slide1.newBadge}
+                  </p>
+                  <p className="text-white/50 text-xs">{tr.hero.slide1.newSub}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-white text-xs font-semibold">
-                  {tr.hero.slide1.newBadge}
-                </p>
-                <p className="text-white/50 text-xs">{tr.hero.slide1.newSub}</p>
+            ) : (
+              <div className="absolute -bottom-6 -left-10 glass rounded-xl p-4 flex items-center gap-3 shadow-xl border border-white/10 animate-float">
+                <div className="w-10 h-10 gold-gradient rounded-lg flex items-center justify-center text-[#1A1A2E]">
+                  <StorefrontIcon sx={{ fontSize: 18 }} />
+                </div>
+                <div>
+                  <p className="text-white text-xs font-semibold">Free to Join</p>
+                  <p className="text-white/50 text-xs">Start selling in minutes</p>
+                </div>
               </div>
-            </div>
+            )}
             <div className="absolute -top-4 -right-4 w-24 h-24 border-t-2 border-r-2 border-[#C9A84C]/50 rounded-tr-2xl" />
           </div>
         </div>

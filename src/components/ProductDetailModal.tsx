@@ -37,19 +37,23 @@ export default function ProductDetailModal({
   const { user, openLogin } = useAuth();
   const [activeImg, setActiveImg] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [liked, setLiked] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
   const [sizeError, setSizeError] = useState(false);
+  const [colorError, setColorError] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     if (product) {
       setActiveImg(0);
       setSelectedSize(null);
+      setSelectedColor(null);
       setQty(1);
       setAddedToCart(false);
       setSizeError(false);
+      setColorError(false);
     }
   }, [product]);
 
@@ -63,6 +67,7 @@ export default function ProductDetailModal({
   if (!product) return null;
 
   const hasSizes = product.sizes.length > 0;
+  const hasColors = product.colors.length > 0;
   const isOutOfStock = product.stock === 0;
   const related = relatedProducts.filter((p) => p.id !== product.id).slice(0, 8);
 
@@ -73,8 +78,14 @@ export default function ProductDetailModal({
       setTimeout(() => setSizeError(false), 2500);
       return;
     }
+    if (hasColors && !selectedColor) {
+      setColorError(true);
+      setTimeout(() => setColorError(false), 2500);
+      return;
+    }
     const sizeToAdd = selectedSize ?? "One Size";
-    addItem(product, sizeToAdd, qty);
+    const colorToAdd = selectedColor ?? "Default";
+    addItem(product, sizeToAdd, colorToAdd, qty);
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2000);
   };
@@ -98,10 +109,10 @@ export default function ProductDetailModal({
       sx={{
         height: compact ? 44 : 48,
         fontSize: compact ? "0.7rem" : "0.75rem",
-        bgcolor: addedToCart ? "#16a34a" : sizeError ? "#ef4444" : "#C9A84C",
+        bgcolor: addedToCart ? "#16a34a" : (sizeError || colorError) ? "#ef4444" : "#C9A84C",
         color: "#1A1A2E",
         "&:hover": {
-          bgcolor: addedToCart ? "#15803d" : sizeError ? "#dc2626" : "#D4B060",
+          bgcolor: addedToCart ? "#15803d" : (sizeError || colorError) ? "#dc2626" : "#D4B060",
         },
         "&:disabled": { bgcolor: "rgba(26,26,46,0.08)", color: "rgba(26,26,46,0.3)" },
       }}
@@ -345,6 +356,61 @@ export default function ProductDetailModal({
                   <p className="text-red-500 text-[11px] mt-2 font-medium flex items-center gap-1">
                     <span className="w-1 h-1 bg-red-500 rounded-full inline-block" />
                     Please select a size before adding to cart.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Color selector */}
+            {hasColors && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className={`text-[10px] font-bold tracking-widest uppercase ${colorError ? "text-red-500" : "text-[#1A1A2E]"}`}>
+                    Color
+                  </p>
+                  {selectedColor ? (
+                    <span className="text-[10px] font-bold px-2 py-0.5 bg-[#1A1A2E] text-[#C9A84C] tracking-widest uppercase">
+                      {selectedColor} selected
+                    </span>
+                  ) : (
+                    <span className={`text-[10px] font-medium ${colorError ? "text-red-500" : "text-[#1A1A2E]/40"}`}>
+                      {colorError ? "Required — pick one" : "Choose a color"}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.colors.map((color) => {
+                    const isSelected = selectedColor === color;
+                    return (
+                      <button
+                        key={color}
+                        onClick={() => { setSelectedColor(isSelected ? null : color); setColorError(false); }}
+                        className={`relative h-9 px-4 text-[11px] font-bold tracking-widest uppercase border-2 transition-all duration-200 select-none flex items-center gap-2 ${
+                          isSelected
+                            ? "border-[#1A1A2E] bg-[#1A1A2E] text-[#C9A84C] shadow-md"
+                            : colorError
+                              ? "border-red-300 text-[#1A1A2E]/50 hover:border-red-400"
+                              : "border-[#1A1A2E]/20 text-[#1A1A2E]/60 hover:border-[#1A1A2E] hover:text-[#1A1A2E] hover:bg-[#1A1A2E]/5"
+                        }`}
+                      >
+                        <span
+                          className="w-3 h-3 rounded-full border border-black/20 flex-shrink-0"
+                          style={{ backgroundColor: color.toLowerCase() }}
+                        />
+                        {color}
+                        {isSelected && (
+                          <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#C9A84C] rounded-full flex items-center justify-center shadow-sm">
+                            <CheckIcon sx={{ fontSize: 9, color: "#1A1A2E" }} />
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                {colorError && (
+                  <p className="text-red-500 text-[11px] mt-2 font-medium flex items-center gap-1">
+                    <span className="w-1 h-1 bg-red-500 rounded-full inline-block" />
+                    Please select a color before adding to cart.
                   </p>
                 )}
               </div>

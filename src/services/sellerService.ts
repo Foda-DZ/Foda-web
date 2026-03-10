@@ -7,7 +7,8 @@ export interface AddProductPayload {
   stock: number;
   category: string;
   description?: string;
-  size?: string[];
+  sizes: string[];
+  colors: string[];
   images?: File[];
 }
 
@@ -17,7 +18,8 @@ export interface UpdateProductPayload {
   stock: number;
   category: string;
   description?: string;
-  size?: string;
+  sizes: string;
+  colors: string;
 }
 
 export const sellerService = {
@@ -33,7 +35,8 @@ export const sellerService = {
     form.append("stock", String(payload.stock));
     form.append("category", payload.category);
     if (payload.description) form.append("description", payload.description);
-    if (payload.size?.length) form.append("size", payload.size.join(","));
+    payload.sizes.forEach((s) => form.append("sizes", s));
+    payload.colors.forEach((c) => form.append("colors", c));
     payload.images?.forEach((img) => form.append("images", img));
     return api
       .post<{ message: string; product: ApiProduct }>("/seller/products", form, {
