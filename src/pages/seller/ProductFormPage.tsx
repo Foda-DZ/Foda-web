@@ -1,10 +1,11 @@
-import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CheckIcon from "@mui/icons-material/Check";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import ImageIcon from "@mui/icons-material/Image";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Alert from "@mui/material/Alert";
@@ -146,13 +147,38 @@ const defaultForm: FormState = {
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function ProductFormPage() {
   const navigate = useNavigate();
-  const { createProduct } = useSellerContext();
+  const { id } = useParams<{ id: string }>();
+  const { createProduct, updateProduct, sellerProducts } = useSellerContext();
+  const isEdit = !!id;
+  const existingProduct = isEdit ? sellerProducts.find((p) => p.id === id) : null;
 
   const [form, setForm] = useState<FormState>(defaultForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [apiError, setApiError] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+  // Pre-fill form when editing
+  useEffect(() => {
+    if (isEdit && existingProduct) {
+      setForm({
+        name: existingProduct.name,
+        category: existingProduct.category,
+        price: String(existingProduct.price),
+        stock: String(existingProduct.stock),
+        description: existingProduct.description || "",
+        sizes: existingProduct.sizes,
+        colors: existingProduct.colors,
+        imagePreviews: [
+          existingProduct.images[0] || "",
+          existingProduct.images[1] || "",
+          existingProduct.images[2] || "",
+        ] as [string, string, string],
+        imageFiles: [null, null, null],
+      });
+    }
+  }, [isEdit, existingProduct]);
 
   const set = <K extends keyof FormState>(key: K, val: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: val }));
@@ -195,7 +221,7 @@ export default function ProductFormPage() {
       e.stock = "Enter a valid stock quantity.";
     if (!form.sizes.length) e.sizes = "Select at least one size.";
     if (!form.colors.length) e.colors = "Select at least one color.";
-    if (!form.imageFiles[0])
+    if (!form.imageFiles[0] && !(isEdit && form.imagePreviews[0]))
       e.images = "At least one product image is required.";
     return e;
   };
@@ -212,22 +238,34 @@ export default function ProductFormPage() {
     setSaving(true);
 
     try {
-      await createProduct({
-        name: form.name.trim(),
-        price: Number(form.price),
-        stock: Number(form.stock),
-        category: form.category,
-        description: form.description.trim() || undefined,
-        sizes: form.sizes,
-        colors: form.colors,
-        images: form.imageFiles.filter((f): f is File => f !== null),
-      });
+      if (isEdit && id) {
+        await updateProduct(id, {
+          name: form.name.trim(),
+          price: Number(form.price),
+          stock: Number(form.stock),
+          category: form.category,
+          description: form.description.trim() || undefined,
+          sizes: form.sizes.join(","),
+          colors: form.colors.join(","),
+        });
+      } else {
+        await createProduct({
+          name: form.name.trim(),
+          price: Number(form.price),
+          stock: Number(form.stock),
+          category: form.category,
+          description: form.description.trim() || undefined,
+          sizes: form.sizes,
+          colors: form.colors,
+          images: form.imageFiles.filter((f): f is File => f !== null),
+        });
+      }
 
       setSaved(true);
       setTimeout(() => navigate("/seller/products"), 900);
     } catch (err) {
       setApiError(
-        err instanceof Error ? err.message : "Failed to add product.",
+        err instanceof Error ? err.message : isEdit ? "Failed to update product." : "Failed to add product.",
       );
     } finally {
       setSaving(false);
@@ -257,10 +295,10 @@ export default function ProductFormPage() {
           </IconButton>
           <div>
             <h1 className="font-display text-2xl font-bold text-[#1A1A2E]">
-              Add New Product
+              {isEdit ? "Edit Product" : "Add New Product"}
             </h1>
             <p className="text-[#1A1A2E]/50 text-sm">
-              Fill in the details to list a new product.
+              {isEdit ? "Update the product details below." : "Fill in the details to list a new product."}
             </p>
           </div>
         </div>
@@ -356,11 +394,33 @@ export default function ProductFormPage() {
             )}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {([0, 1, 2] as const).map((i) => (
-                <div key={i}>
-                  <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/60 mb-1.5">
-                    {i === 0 ? "Main Image" : `Image ${i + 1}`}
-                    {i === 0 && <span className="text-red-400 ms-0.5">*</span>}
-                  </p>
+                <div
+                  key={i}
+                  draggable={!!form.imagePreviews[i]}
+                  onDragStart={() => setDragIdx(i)}
+                  onDragOver={(e) => { e.preventDefault(); }}
+                  onDrop={() => {
+                    if (dragIdx !== null && dragIdx !== i) {
+                      const previews = [...form.imagePreviews] as [string, string, string];
+                      const files = [...form.imageFiles] as [File | null, File | null, File | null];
+                      [previews[dragIdx], previews[i]] = [previews[i], previews[dragIdx]];
+                      [files[dragIdx], files[i]] = [files[i], files[dragIdx]];
+                      setForm((f) => ({ ...f, imagePreviews: previews, imageFiles: files }));
+                    }
+                    setDragIdx(null);
+                  }}
+                  onDragEnd={() => setDragIdx(null)}
+                  className={`transition-opacity duration-200 ${dragIdx === i ? "opacity-50" : ""}`}
+                >
+                  <div className="flex items-center gap-1 mb-1.5">
+                    {form.imagePreviews[i] && (
+                      <DragIndicatorIcon sx={{ fontSize: 12, color: "rgba(26,26,46,0.25)", cursor: "grab" }} />
+                    )}
+                    <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/60">
+                      {i === 0 ? "Main Image" : `Image ${i + 1}`}
+                      {i === 0 && <span className="text-red-400 ms-0.5">*</span>}
+                    </p>
+                  </div>
                   <ImageUpload
                     preview={form.imagePreviews[i]}
                     required={i === 0}
@@ -485,7 +545,7 @@ export default function ProductFormPage() {
               }
               sx={{ borderRadius: 0, minWidth: 160 }}
             >
-              {saved ? "Product Added!" : "Publish Product"}
+              {saved ? (isEdit ? "Product Updated!" : "Product Added!") : (isEdit ? "Save Changes" : "Publish Product")}
             </Button>
             <Button
               type="button"

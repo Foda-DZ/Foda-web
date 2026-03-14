@@ -123,7 +123,7 @@ export default function Hero() {
               {slide.tag}
             </span>
           </div>
-          <h1 className="font-display text-6xl lg:text-8xl font-black text-white leading-none mb-6">
+          <h1 className="font-display text-4xl sm:text-6xl lg:text-8xl font-black text-white leading-none mb-6">
             {slide.title.map((line, i) => (
               <span
                 key={i}
@@ -158,7 +158,7 @@ export default function Hero() {
               {slide.ctaSecondary}
             </button>
           </div>
-          <div className="flex gap-10">
+          <div className="flex gap-6 sm:gap-10">
             {[slide.stat1, slide.stat2, slide.stat3].map((stat, i) => (
               <div key={i} className="text-center">
                 <div className="gold-text font-display text-3xl font-bold">
@@ -172,7 +172,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="flex-1 flex justify-center lg:justify-end">
+        <div className="hidden lg:flex flex-1 justify-end">
           <div className="relative">
             <div className="relative w-72 lg:w-80 h-96 lg:h-[480px] overflow-hidden rounded-2xl shadow-2xl">
               <img

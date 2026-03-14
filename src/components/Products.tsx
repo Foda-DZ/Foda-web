@@ -20,11 +20,7 @@ function SkeletonCard() {
   );
 }
 
-interface ProductsProps {
-  onViewDetail: (product: Product) => void;
-}
-
-export default function Products({ onViewDetail }: ProductsProps) {
+export default function Products() {
   const navigate = useNavigate();
   const { tr } = useLang();
 
@@ -93,7 +89,6 @@ export default function Products({ onViewDetail }: ProductsProps) {
                   key={p.id}
                   product={p}
                   delay={i * 120}
-                  onViewDetail={onViewDetail}
                 />
               ))}
         </div>

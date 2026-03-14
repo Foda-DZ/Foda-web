@@ -46,7 +46,7 @@ function LoginForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
     try {
       const session = await login({ email, password, role });
       if (session.role === "seller") {
-        navigate(session.isActive ? "/seller/dashboard" : "/seller/pending");
+        navigate("/seller/dashboard");
       }
     } catch (err) {
       setApiError(err instanceof Error ? err.message : "Login failed");
@@ -195,12 +195,6 @@ function RegisterForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
         ))}
       </div>
 
-      {role === "seller" && (
-        <div className="bg-[#C9A84C]/8 border border-[#C9A84C]/25 px-3 py-2.5 text-xs text-[#1A1A2E]/60 leading-relaxed">
-          Seller accounts require admin approval before accessing the dashboard.
-        </div>
-      )}
-
       <div>
         <TextInput
           value={fields.fullName}
@@ -291,7 +285,7 @@ function VerifyForm() {
     try {
       const session = await verifyEmail({ email: pendingEmail, verificationCode: parseInt(code, 10) });
       if (session.role === "seller") {
-        navigate(session.isActive ? "/seller/dashboard" : "/seller/pending");
+        navigate("/seller/dashboard");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : tr.auth.verify.invalidCode);

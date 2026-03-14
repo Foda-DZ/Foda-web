@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import WarningIcon from "@mui/icons-material/Warning";
@@ -147,21 +148,38 @@ export default function ProductsPage() {
 
                     {/* Actions */}
                     <td className="px-4 py-3">
-                      <IconButton
-                        onClick={() => setConfirmDelete(product)}
-                        size="small"
-                        title="Delete"
-                        sx={{
-                          borderRadius: 0,
-                          width: 28,
-                          height: 28,
-                          border: "1px solid rgba(26,26,46,0.15)",
-                          color: "rgba(26,26,46,0.5)",
-                          "&:hover": { borderColor: "#fca5a5", color: "#ef4444" },
-                        }}
-                      >
-                        <DeleteIcon sx={{ fontSize: 13 }} />
-                      </IconButton>
+                      <div className="flex items-center gap-1.5">
+                        <IconButton
+                          onClick={() => navigate(`/seller/products/${product.id}/edit`)}
+                          size="small"
+                          title="Edit"
+                          sx={{
+                            borderRadius: 0,
+                            width: 28,
+                            height: 28,
+                            border: "1px solid rgba(26,26,46,0.15)",
+                            color: "rgba(26,26,46,0.5)",
+                            "&:hover": { borderColor: "rgba(201,168,76,0.5)", color: "#C9A84C" },
+                          }}
+                        >
+                          <EditIcon sx={{ fontSize: 13 }} />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => setConfirmDelete(product)}
+                          size="small"
+                          title="Delete"
+                          sx={{
+                            borderRadius: 0,
+                            width: 28,
+                            height: 28,
+                            border: "1px solid rgba(26,26,46,0.15)",
+                            color: "rgba(26,26,46,0.5)",
+                            "&:hover": { borderColor: "#fca5a5", color: "#ef4444" },
+                          }}
+                        >
+                          <DeleteIcon sx={{ fontSize: 13 }} />
+                        </IconButton>
+                      </div>
                     </td>
                   </tr>
                 ))}

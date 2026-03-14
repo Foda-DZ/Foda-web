@@ -42,7 +42,7 @@ const WILAYAS = [
 ];
 
 const SHIPPING_THRESHOLD = 5000;
-const STEPS = ["Delivery", "Payment", "Review"] as const;
+const STEPS = ["Shipping", "Payment", "Review"] as const;
 type Step = (typeof STEPS)[number] | "Success";
 type PaymentMethod = "cod" | "cib" | "baridimob";
 
@@ -282,9 +282,9 @@ function PaymentForm({
     setPayment((f) => ({ ...f, [key]: val }));
 
   const paymentMethods = [
-    { id: "cod" as const, label: tr.checkout.cod, sub: tr.checkout.codSub, Icon: LocalShippingIcon },
-    { id: "cib" as const, label: tr.checkout.cib, sub: tr.checkout.cibSub, Icon: CreditCardIcon },
-    { id: "baridimob" as const, label: tr.checkout.baridimob, sub: tr.checkout.baridimobSub, Icon: SmartphoneIcon },
+    { id: "cod" as const, label: tr.checkout.cod, sub: tr.checkout.codSub, Icon: LocalShippingIcon, disabled: false },
+    { id: "cib" as const, label: tr.checkout.cib, sub: tr.checkout.comingSoon, Icon: CreditCardIcon, disabled: true },
+    { id: "baridimob" as const, label: tr.checkout.baridimob, sub: tr.checkout.comingSoon, Icon: SmartphoneIcon, disabled: true },
   ];
 
   return (
@@ -296,92 +296,45 @@ function PaymentForm({
         <p className="text-[#1A1A2E]/50 text-sm">{tr.checkout.paymentSub}</p>
       </div>
       <div className="space-y-3">
-        {paymentMethods.map(({ id, label, sub, Icon }) => (
+        {paymentMethods.map(({ id, label, sub, Icon, disabled }) => (
           <button
             key={id}
-            onClick={() => set("method")(id)}
+            onClick={() => !disabled && set("method")(id)}
+            disabled={disabled}
             className={`w-full flex items-center gap-4 p-4 border-2 transition-all duration-200 text-start ${
-              payment.method === id
-                ? "border-[#C9A84C] bg-[#C9A84C]/5"
-                : "border-[#1A1A2E]/10 hover:border-[#C9A84C]/40"
+              disabled
+                ? "border-[#1A1A2E]/5 bg-[#F0EBE3]/50 opacity-60 cursor-not-allowed"
+                : payment.method === id
+                  ? "border-[#C9A84C] bg-[#C9A84C]/5"
+                  : "border-[#1A1A2E]/10 hover:border-[#C9A84C]/40"
             }`}
           >
-            <div className={`w-10 h-10 flex items-center justify-center flex-shrink-0 ${payment.method === id ? "gold-gradient" : "bg-[#F0EBE3]"}`}>
-              <Icon sx={{ fontSize: 18, color: payment.method === id ? "#1A1A2E" : "rgba(26,26,46,0.5)" }} />
+            <div className={`w-10 h-10 flex items-center justify-center flex-shrink-0 ${!disabled && payment.method === id ? "gold-gradient" : "bg-[#F0EBE3]"}`}>
+              <Icon sx={{ fontSize: 18, color: !disabled && payment.method === id ? "#1A1A2E" : "rgba(26,26,46,0.5)" }} />
             </div>
             <div className="flex-1">
-              <p className={`font-semibold text-sm ${payment.method === id ? "text-[#1A1A2E]" : "text-[#1A1A2E]/70"}`}>
+              <p className={`font-semibold text-sm ${!disabled && payment.method === id ? "text-[#1A1A2E]" : "text-[#1A1A2E]/70"}`}>
                 {label}
+                {disabled && (
+                  <span className="ms-2 text-[10px] font-bold tracking-widest uppercase text-[#C9A84C] bg-[#C9A84C]/10 px-2 py-0.5">
+                    {tr.checkout.comingSoon}
+                  </span>
+                )}
               </p>
-              <p className="text-[#1A1A2E]/40 text-xs">{sub}</p>
+              {!disabled && <p className="text-[#1A1A2E]/40 text-xs">{sub}</p>}
             </div>
-            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${payment.method === id ? "border-[#C9A84C] bg-[#C9A84C]" : "border-[#1A1A2E]/20"}`}>
-              {payment.method === id && <div className="w-2 h-2 rounded-full bg-[#1A1A2E]" />}
+            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+              disabled
+                ? "border-[#1A1A2E]/10"
+                : payment.method === id
+                  ? "border-[#C9A84C] bg-[#C9A84C]"
+                  : "border-[#1A1A2E]/20"
+            }`}>
+              {!disabled && payment.method === id && <div className="w-2 h-2 rounded-full bg-[#1A1A2E]" />}
             </div>
           </button>
         ))}
       </div>
-
-      {payment.method === "cib" && (
-        <div className="space-y-4 bg-[#F5F0E8] p-5 border border-[#C9A84C]/20">
-          <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/50">
-            Card Details
-          </p>
-          <Field label={tr.checkout.cardNumber} error={errors.cardNumber}>
-            <TextInput
-              value={payment.cardNumber}
-              onChange={(v) => set("cardNumber")(formatCard(v))}
-              placeholder="1234 5678 9012 3456"
-              error={errors.cardNumber}
-            />
-          </Field>
-          <Field label={tr.checkout.cardName} error={errors.cardName}>
-            <TextInput
-              value={payment.cardName}
-              onChange={set("cardName")}
-              placeholder="AMIRA BENMOUSSA"
-              error={errors.cardName}
-              className="uppercase"
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label={tr.checkout.expiry} error={errors.expiry}>
-              <TextInput
-                value={payment.expiry}
-                onChange={(v) => set("expiry")(formatExpiry(v))}
-                placeholder="MM/YY"
-                error={errors.expiry}
-              />
-            </Field>
-            <Field label={tr.checkout.cvv} error={errors.cvv}>
-              <TextInput
-                type="password"
-                value={payment.cvv}
-                onChange={(v) => set("cvv")(v.replace(/\D/g, "").slice(0, 4))}
-                placeholder="•••"
-                error={errors.cvv}
-              />
-            </Field>
-          </div>
-        </div>
-      )}
-
-      {payment.method === "baridimob" && (
-        <div className="space-y-4 bg-[#F5F0E8] p-5 border border-[#C9A84C]/20">
-          <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/50">
-            BaridiMob Details
-          </p>
-          <Field label={tr.checkout.baridimobPhone} error={errors.baridimobPhone}>
-            <TextInput
-              type="tel"
-              value={payment.baridimobPhone}
-              onChange={(v) => set("baridimobPhone")(v.replace(/\D/g, "").slice(0, 10))}
-              placeholder="0796 XX XX XX"
-              error={errors.baridimobPhone}
-            />
-          </Field>
-        </div>
-      )}
 
       {payment.method === "cod" && (
         <div className="bg-[#F5F0E8] p-4 border border-[#C9A84C]/20">
@@ -404,8 +357,8 @@ function PaymentForm({
   );
 }
 
-// ─── Review Step ──────────────────────────────────────────────────────────────
-function ReviewStep({
+// ─── Review & Confirm Step ───────────────────────────────────────────────────
+function ReviewConfirmStep({
   info, payment, items, subtotal, shipping, total, onPlace, onBack, placing, placeError,
 }: {
   info: DeliveryInfo;
@@ -433,6 +386,7 @@ function ReviewStep({
         <p className="text-[#1A1A2E]/50 text-sm">{tr.checkout.reviewSub}</p>
       </div>
 
+      {/* Delivery info */}
       <div className="bg-white border border-[#1A1A2E]/8 p-5 space-y-3">
         <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/50 flex items-center gap-2">
           <LocationOnIcon sx={{ fontSize: 12, color: "#C9A84C" }} /> {tr.checkout.deliveryInfo}
@@ -447,21 +401,15 @@ function ReviewStep({
         </div>
       </div>
 
+      {/* Payment method */}
       <div className="bg-white border border-[#1A1A2E]/8 p-5 space-y-3">
         <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/50 flex items-center gap-2">
           <CreditCardIcon sx={{ fontSize: 12, color: "#C9A84C" }} /> {tr.checkout.paymentMethod}
         </p>
-        <p className="text-sm text-[#1A1A2E]/70">
-          {methodLabels[payment.method]}
-          {payment.method === "cib" && payment.cardNumber && (
-            <span className="ms-2 text-[#1A1A2E]/40">•••• {payment.cardNumber.slice(-4)}</span>
-          )}
-          {payment.method === "baridimob" && payment.baridimobPhone && (
-            <span className="ms-2 text-[#1A1A2E]/40">{payment.baridimobPhone}</span>
-          )}
-        </p>
+        <p className="text-sm text-[#1A1A2E]/70">{methodLabels[payment.method]}</p>
       </div>
 
+      {/* Order items */}
       <div className="bg-white border border-[#1A1A2E]/8 p-5 space-y-3">
         <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/50 flex items-center gap-2">
           <ShoppingBagIcon sx={{ fontSize: 12, color: "#C9A84C" }} />
@@ -472,8 +420,8 @@ function ReviewStep({
             <div key={item.key} className="flex justify-between items-center text-sm">
               <div>
                 <span className="text-[#1A1A2E] font-medium">{item.product.name}</span>
-                <span className="text-[#1A1A2E]/40 ms-2">× {item.quantity}</span>
-                <span className="text-[#1A1A2E]/40 text-xs ms-1">({item.size})</span>
+                <span className="text-[#1A1A2E]/40 ms-2">&times; {item.quantity}</span>
+                {item.size && <span className="text-[#1A1A2E]/40 text-xs ms-1">({item.size})</span>}
               </div>
               <span className="font-semibold text-[#1A1A2E]">
                 {(item.product.price * item.quantity).toLocaleString()} {tr.common.dzd}
@@ -517,7 +465,7 @@ function ReviewStep({
           loading={placing}
           className="h-11 flex-1 gap-2"
         >
-          {tr.checkout.placeOrder} · {total.toLocaleString()} {tr.common.dzd}
+          {tr.checkout.placeOrder} &middot; {total.toLocaleString()} {tr.common.dzd}
           <ArrowForwardIcon sx={{ fontSize: 15 }} />
         </Button>
       </div>
@@ -750,7 +698,7 @@ export default function CheckoutPage() {
   const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : 750;
   const total = subtotal + shipping;
 
-  const [step, setStep] = useState<Step>("Delivery");
+  const [step, setStep] = useState<Step>("Shipping");
   const [info, setInfo] = useState<DeliveryInfo>({
     phone: "", wilaya: "", commune: "", postalCode: "", shippingType: "home_delivery",
   });
@@ -796,10 +744,7 @@ export default function CheckoutPage() {
         shippingType: info.shippingType,
         ...(info.postalCode ? { postalCode: info.postalCode } : {}),
       };
-      await cartService.clearCart();
-      for (const item of items) {
-        await cartService.addItem(item.product.id, item.size, item.color);
-      }
+      // Backend cart is already in sync — just checkout
       const result = await cartService.checkout(shippingDetails);
       clearCart();
       setPlacedOrders(result.orders);
@@ -843,7 +788,7 @@ export default function CheckoutPage() {
       <div className="max-w-7xl mx-auto px-6 lg:px-12 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           <div className="lg:col-span-2">
-            {step === "Delivery" && (
+            {step === "Shipping" && (
               <DeliveryForm info={info} setInfo={setInfo} errors={infoErrors} onNext={handleNextFromDelivery} />
             )}
             {step === "Payment" && (
@@ -852,11 +797,11 @@ export default function CheckoutPage() {
                 setPayment={setPayment}
                 errors={paymentErrors}
                 onNext={handleNextFromPayment}
-                onBack={() => { setStep("Delivery"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                onBack={() => { setStep("Shipping"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
               />
             )}
             {step === "Review" && (
-              <ReviewStep
+              <ReviewConfirmStep
                 info={info}
                 payment={payment}
                 items={items}

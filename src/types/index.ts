@@ -4,6 +4,7 @@ export interface Product {
   name: string;
   category: string;
   price: number;
+  originalPrice?: number;
   images: string[];
   sizes: string[];
   colors: string[];
@@ -11,6 +12,9 @@ export interface Product {
   stock: number;
   isNew: boolean;
   sellerId?: string;
+  sellerName?: string;
+  brand?: string;
+  rating?: number;
 }
 
 // ─── Cart ──────────────────────────────────────────────────────────────────────
@@ -28,6 +32,7 @@ export interface CartState {
 }
 
 export type CartAction =
+  | { type: "SET_ITEMS"; payload: CartItem[] }
   | { type: "ADD_ITEM"; payload: { product: Product; size: string; color: string; quantity: number } }
   | { type: "REMOVE_ITEM"; payload: string }
   | { type: "UPDATE_QTY"; payload: { key: string; quantity: number } }

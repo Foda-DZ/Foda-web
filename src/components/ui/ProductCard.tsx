@@ -1,45 +1,67 @@
 import { useState } from "react";
 import IconButton from "@mui/material/IconButton";
-import Button from "@mui/material/Button";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+import StarIcon from "@mui/icons-material/Star";
+import StarHalfIcon from "@mui/icons-material/StarHalf";
+import StarOutlineIcon from "@mui/icons-material/StarOutline";
+import { useNavigate } from "react-router-dom";
+import { useWishlist } from "../../context/WishlistContext";
+import { useAuth } from "../../context/AuthContext";
 import type { Product } from "../../types";
 
-// Maps stored color names → hex for reliable swatch rendering
-const COLOR_HEX: Record<string, string> = {
-  black: "#1a1a1a", white: "#f9f9f9", beige: "#f5f0e1",
-  gray: "#9ca3af", grey: "#9ca3af", brown: "#7c3f1a",
-  navy: "#1e3a5f", red: "#dc2626", burgundy: "#7f1d1d",
-  pink: "#f9a8d4", orange: "#f97316", yellow: "#fde047",
-  green: "#16a34a", olive: "#6b7c2d", blue: "#2563eb",
-  teal: "#0d9488", purple: "#7c3aed", gold: "#C9A84C",
-  khaki: "#c3b091", ivory: "#fffff0", cream: "#fffdd0",
-  rose: "#fb7185", lavender: "#c4b5fd", sage: "#84a98c",
-  silver: "#c0c0c0",
-};
-
-function colorToHex(name: string): string {
-  const key = name.toLowerCase().replace(/\s+/g, "");
-  return COLOR_HEX[key] ?? name.toLowerCase().replace(/\s+/g, "");
+function RatingStars({ rating }: { rating: number }) {
+  const stars = [];
+  const full = Math.floor(rating);
+  const half = rating - full >= 0.5;
+  for (let i = 0; i < full; i++) {
+    stars.push(
+      <StarIcon key={`f${i}`} sx={{ fontSize: 12, color: "#C9A84C" }} />,
+    );
+  }
+  if (half) {
+    stars.push(
+      <StarHalfIcon key="h" sx={{ fontSize: 12, color: "#C9A84C" }} />,
+    );
+  }
+  const empty = 5 - stars.length;
+  for (let i = 0; i < empty; i++) {
+    stars.push(
+      <StarOutlineIcon
+        key={`e${i}`}
+        sx={{ fontSize: 12, color: "#C9A84C33" }}
+      />,
+    );
+  }
+  return <div className="flex items-center gap-px">{stars}</div>;
 }
 
 interface ProductCardProps {
   product: Product;
-  onViewDetail: (p: Product) => void;
   delay?: number;
 }
 
 export default function ProductCard({
   product,
-  onViewDetail,
   delay = 0,
 }: ProductCardProps) {
+  const navigate = useNavigate();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { user, openLogin } = useAuth();
+  const isCustomer = user?.role === "customer";
   const [hovered, setHovered] = useState(false);
-  const [liked, setLiked] = useState(false);
+  const liked = isCustomer && isInWishlist(product.id);
   const hasSecondImage = product.images.length > 1;
   const isOutOfStock = product.stock === 0;
   const isLowStock = !isOutOfStock && product.stock <= 5;
+  const hasDiscount =
+    product.originalPrice && product.originalPrice > product.price;
+  const discountPercent = hasDiscount
+    ? Math.round(
+        ((product.originalPrice! - product.price) / product.originalPrice!) *
+          100,
+      )
+    : 0;
 
   return (
     <div
@@ -51,19 +73,23 @@ export default function ProductCard({
       {/* ── Image area ── */}
       <div
         className="relative overflow-hidden bg-[#F0EBE3] aspect-[3/4]"
-        onClick={() => onViewDetail(product)}
+        onClick={() => navigate(`/product/${product.id}`)}
       >
         <img
           src={product.images[0]}
           alt={product.name}
+          loading="lazy"
           className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${
-            hovered && hasSecondImage ? "opacity-0 scale-105" : "opacity-100 scale-100"
+            hovered && hasSecondImage
+              ? "opacity-0 scale-105"
+              : "opacity-100 scale-100"
           }`}
         />
         {hasSecondImage && (
           <img
             src={product.images[1]}
             alt={product.name}
+            loading="lazy"
             className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${
               hovered ? "opacity-100 scale-100" : "opacity-0 scale-105"
             }`}
@@ -72,6 +98,11 @@ export default function ProductCard({
 
         {/* Badges — top left */}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
+          {hasDiscount && (
+            <span className="text-white bg-red-500 text-[9px] font-black tracking-[0.08em] px-2 py-0.5 uppercase">
+              -{discountPercent}%
+            </span>
+          )}
           {product.isNew && (
             <span className="text-[#C9A84C] bg-[#1A1A2E] text-[9px] font-black tracking-[0.14em] px-2 py-0.5 uppercase">
               NEW
@@ -93,32 +124,31 @@ export default function ProductCard({
         <div className="absolute top-2 right-2 z-10">
           <IconButton
             size="small"
-            onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isCustomer) {
+                openLogin();
+                return;
+              }
+              if (liked) removeFromWishlist(product.id);
+              else addToWishlist(product);
+            }}
             sx={{
-              bgcolor: "rgba(255,255,255,0.85)", borderRadius: 0,
-              width: 32, height: 32, "&:hover": { bgcolor: "#fff" },
+              bgcolor: "rgba(255,255,255,0.85)",
+              borderRadius: 0,
+              width: 32,
+              height: 32,
+              "&:hover": { bgcolor: "#fff" },
             }}
           >
-            {liked
-              ? <FavoriteIcon sx={{ fontSize: 14, color: "#ef4444" }} />
-              : <FavoriteBorderIcon sx={{ fontSize: 14, color: "rgba(26,26,46,0.5)" }} />
-            }
+            {liked ? (
+              <FavoriteIcon sx={{ fontSize: 14, color: "#ef4444" }} />
+            ) : (
+              <FavoriteBorderIcon
+                sx={{ fontSize: 14, color: "rgba(26,26,46,0.5)" }}
+              />
+            )}
           </IconButton>
-        </div>
-
-        {/* Quick view — bottom overlay */}
-        <div className={`absolute bottom-0 left-0 right-0 p-3 transition-all duration-300 ${hovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
-          <Button
-            variant="contained"
-            color="secondary"
-            size="small"
-            startIcon={<VisibilityIcon sx={{ fontSize: 13 }} />}
-            onClick={() => onViewDetail(product)}
-            fullWidth
-            sx={{ fontSize: "0.68rem", letterSpacing: "0.08em", py: 0.8, borderRadius: 0 }}
-          >
-            Quick View
-          </Button>
         </div>
       </div>
 
@@ -132,68 +162,51 @@ export default function ProductCard({
 
       {/* ── Card body ── */}
       <div
-        className="p-3 flex flex-col gap-2 flex-1"
-        onClick={() => onViewDetail(product)}
+        className="p-3 flex flex-col gap-1.5 flex-1"
+        onClick={() => navigate(`/product/${product.id}`)}
       >
-        {/* Category + name */}
-        <div>
-          <p className="text-[9px] font-bold tracking-[0.14em] uppercase text-[#C9A84C] mb-0.5">
+        {/* Category + seller */}
+        <div className="flex items-center justify-between">
+          <p className="text-[9px] font-bold tracking-[0.14em] uppercase text-[#C9A84C]">
             {product.category}
           </p>
-          <p className="text-sm font-bold text-[#1A1A2E] leading-snug line-clamp-2 group-hover:text-[#C9A84C] transition-colors duration-200">
-            {product.name}
-          </p>
+          {product.sellerName && (
+            <p className="text-[9px] font-medium text-[#1A1A2E]/40 truncate max-w-[50%]">
+              {product.sellerName}
+            </p>
+          )}
         </div>
 
-        {/* Colors */}
-        {product.colors.length > 0 && (
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              {product.colors.slice(0, 6).map((c) => (
-                <span
-                  key={c}
-                  title={c}
-                  className="w-3.5 h-3.5 rounded-full flex-shrink-0 ring-1 ring-inset ring-black/10"
-                  style={{ backgroundColor: colorToHex(c) }}
-                />
-              ))}
-              {product.colors.length > 6 && (
-                <span className="text-[9px] font-bold text-[#1A1A2E]/35">
-                  +{product.colors.length - 6}
-                </span>
-              )}
-            </div>
-            <span className="text-[9px] text-[#1A1A2E]/35 tracking-wide">
-              {product.colors.length} color{product.colors.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-        )}
+        {/* Name */}
+        <p className="text-sm font-bold text-[#1A1A2E] leading-snug line-clamp-2 group-hover:text-[#C9A84C] transition-colors duration-200">
+          {product.name}
+        </p>
 
-        {/* Sizes */}
-        {product.sizes.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1">
-            {product.sizes.slice(0, 5).map((s) => (
-              <span
-                key={s}
-                className="px-1.5 py-px text-[9px] font-bold tracking-wide text-[#1A1A2E]/50 bg-[#1A1A2E]/5 border border-[#1A1A2E]/8"
-              >
-                {s}
-              </span>
-            ))}
-            {product.sizes.length > 5 && (
-              <span className="px-1.5 py-px text-[9px] font-bold text-[#C9A84C] bg-[#C9A84C]/8 border border-[#C9A84C]/20">
-                +{product.sizes.length - 5}
-              </span>
-            )}
+        {/* Rating */}
+        {product.rating != null && product.rating > 0 && (
+          <div className="flex items-center gap-1.5">
+            <RatingStars rating={product.rating} />
+            <span className="text-[10px] font-medium text-[#1A1A2E]/40">
+              {product.rating.toFixed(1)}
+            </span>
           </div>
         )}
 
         {/* Price */}
         <div className="mt-auto pt-1.5 border-t border-[#1A1A2E]/6">
-          <span className="text-base font-bold text-[#1A1A2E]">
-            {product.price.toLocaleString()}
-            <span className="text-[10px] font-normal text-[#1A1A2E]/45 ml-1">DZD</span>
-          </span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-base font-bold text-[#1A1A2E]">
+              {product.price.toLocaleString()}
+              <span className="text-[10px] font-normal text-[#1A1A2E]/45 ml-1">
+                DZD
+              </span>
+            </span>
+            {hasDiscount && (
+              <span className="text-xs font-medium text-[#1A1A2E]/30 line-through">
+                {product.originalPrice!.toLocaleString()}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

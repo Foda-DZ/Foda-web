@@ -10,6 +10,7 @@ export function apiProductToProduct(p: ApiProduct): Product {
     name: p.name,
     category: p.category,
     price: p.price,
+    originalPrice: (p as Record<string, unknown>).originalPrice as number | undefined,
     images: apiImages.map((img) => img.url),
     sizes: Array.isArray(p.sizes) ? p.sizes : [],
     colors: Array.isArray(p.colors) ? p.colors : [],
@@ -17,5 +18,8 @@ export function apiProductToProduct(p: ApiProduct): Product {
     stock: p.stock ?? 0,
     isNew: new Date(p.createdAt).getTime() > sevenDaysAgo,
     sellerId: p.sellerId,
+    sellerName: (p as Record<string, unknown>).sellerName as string | undefined,
+    brand: (p as Record<string, unknown>).brand as string | undefined,
+    rating: (p as Record<string, unknown>).rating as number | undefined,
   };
 }

@@ -1,24 +1,19 @@
-import TranslateIcon from "@mui/icons-material/Translate";
+import LanguageIcon from "@mui/icons-material/Language";
 import { useLang } from "../context/LangContext";
 
-interface Props {
-  scrolled?: boolean;
-}
-
-export default function LanguageSwitch({ scrolled = false }: Props) {
+export default function LanguageSwitch() {
   const { lang, setLang } = useLang();
 
   return (
     <button
       onClick={() => setLang(lang === "ar" ? "en" : "ar")}
       aria-label="Switch language"
-      className={`flex items-center justify-center transition-colors duration-300 ${
-        scrolled
-          ? "text-[#1A1A2E]/60 hover:text-[#C9A84C]"
-          : "text-white/60 hover:text-[#E8C96B]"
-      }`}
+      className="flex items-center gap-1 text-[#1A1A2E]/70 hover:text-[#1A1A2E] transition-colors duration-200"
     >
-      <TranslateIcon sx={{ fontSize: 20 }} />
+      <span className="text-sm font-semibold tracking-wide uppercase">
+        {lang === "ar" ? "EN" : "AR"}
+      </span>
+      <LanguageIcon sx={{ fontSize: 26 }} />
     </button>
   );
 }

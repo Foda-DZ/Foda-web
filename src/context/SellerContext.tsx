@@ -11,7 +11,7 @@ import type { Product } from "../types";
 import type { ApiOrder, ApiOrderStatus } from "../types/api";
 import { useAuth } from "./AuthContext";
 import { sellerService } from "../services/sellerService";
-import type { AddProductPayload } from "../services/sellerService";
+import type { AddProductPayload, UpdateProductPayload } from "../services/sellerService";
 import { apiProductToProduct } from "../lib/mappers";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -34,6 +34,7 @@ interface SellerContextValue {
   getSellerOrders: (sellerId: string) => ApiOrder[];
   getSellerStats: (sellerId: string) => SellerStats;
   createProduct: (payload: AddProductPayload) => Promise<Product>;
+  updateProduct: (id: string, payload: UpdateProductPayload) => Promise<Product>;
   deleteProduct: (id: string) => Promise<void>;
   updateOrderStatus: (id: string, status: ApiOrderStatus) => Promise<void>;
   reload: () => void;
@@ -110,6 +111,16 @@ export function SellerProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const updateProduct = useCallback(
+    async (id: string, payload: UpdateProductPayload): Promise<Product> => {
+      const apiProduct = await sellerService.updateProduct(id, payload);
+      const product = apiProductToProduct(apiProduct);
+      setProducts((prev) => prev.map((p) => (p.id === id ? product : p)));
+      return product;
+    },
+    [],
+  );
+
   const deleteProduct = useCallback(async (id: string): Promise<void> => {
     await sellerService.deleteProduct(id);
     setProducts((prev) => prev.filter((p) => p.id !== id));
@@ -135,6 +146,7 @@ export function SellerProvider({ children }: { children: ReactNode }) {
       getSellerOrders,
       getSellerStats,
       createProduct,
+      updateProduct,
       deleteProduct,
       updateOrderStatus,
       reload,
@@ -147,6 +159,7 @@ export function SellerProvider({ children }: { children: ReactNode }) {
       getSellerOrders,
       getSellerStats,
       createProduct,
+      updateProduct,
       deleteProduct,
       updateOrderStatus,
       reload,

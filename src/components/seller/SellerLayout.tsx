@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Package,
   ShoppingBag,
+  Settings,
   LogOut,
   ExternalLink,
   Store,
@@ -19,6 +20,7 @@ const navItems = [
   { to: "/seller/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { to: "/seller/products", label: "My Products", Icon: Package },
   { to: "/seller/orders", label: "Orders", Icon: ShoppingBag },
+  { to: "/seller/settings", label: "Store Settings", Icon: Settings },
 ];
 
 export default function SellerLayout({ children }: Props) {

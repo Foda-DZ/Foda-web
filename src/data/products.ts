@@ -3,5 +3,4 @@ export const categories: string[] = [
   "Men",
   "Kids",
   "Accessories",
-  "Other",
 ];

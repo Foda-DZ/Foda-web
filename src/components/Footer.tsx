@@ -7,7 +7,11 @@ import {
   Phone,
   Mail,
   ArrowRight,
+  Smartphone,
 } from "lucide-react";
+import AppleIcon from "@mui/icons-material/Apple";
+import ShopTwoOutlinedIcon from "@mui/icons-material/ShopTwoOutlined";
+import QrCode2Icon from "@mui/icons-material/QrCode2";
 import { useNavigate } from "react-router-dom";
 import { useLang } from "../context/LangContext";
 import fodaLogo from "../assets/Foda-Logo (1).png";
@@ -135,6 +139,69 @@ export default function Footer() {
               </ul>
             </div>
           ))}
+        </div>
+
+        {/* ── Download App Section ─────────────────────────────────── */}
+        <div className="py-10 border-t border-white/8">
+          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+            {/* QR Code */}
+            <div className="flex-shrink-0 w-28 h-28 bg-white rounded-2xl flex items-center justify-center p-2">
+              <QrCode2Icon sx={{ fontSize: 88 }} className="text-[#1A1A2E]" />
+            </div>
+
+            {/* Text + badges */}
+            <div className="flex-1 text-center md:text-start">
+              <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+                <Smartphone size={18} className="text-[#C9A84C]" />
+                <h4 className="text-white font-semibold text-base tracking-wide">
+                  {tr.footer.app.title}
+                </h4>
+              </div>
+              <p className="text-white/45 text-sm mb-5">
+                {tr.footer.app.subtitle}
+              </p>
+
+              {/* Store badges */}
+              <div className="flex items-center justify-center md:justify-start gap-3">
+                <a
+                  href="#"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:border-[#C9A84C]/40 hover:bg-white/8 transition-all duration-200 group"
+                >
+                  <AppleIcon sx={{ fontSize: 22 }} className="text-white group-hover:text-[#C9A84C] transition-colors" />
+                  <div className="text-start">
+                    <span className="block text-white/40 text-[9px] leading-none">
+                      Download on the
+                    </span>
+                    <span className="block text-white text-sm font-semibold leading-tight">
+                      App Store
+                    </span>
+                  </div>
+                </a>
+                <a
+                  href="#"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:border-[#C9A84C]/40 hover:bg-white/8 transition-all duration-200 group"
+                >
+                  <ShopTwoOutlinedIcon sx={{ fontSize: 22 }} className="text-white group-hover:text-[#C9A84C] transition-colors" />
+                  <div className="text-start">
+                    <span className="block text-white/40 text-[9px] leading-none">
+                      GET IT ON
+                    </span>
+                    <span className="block text-white text-sm font-semibold leading-tight">
+                      Google Play
+                    </span>
+                  </div>
+                </a>
+              </div>
+            </div>
+
+            {/* Scan label (desktop only) */}
+            <div className="hidden lg:flex flex-col items-center gap-2 text-center flex-shrink-0">
+              <div className="w-px h-8 bg-white/10" />
+              <p className="text-white/30 text-[11px] tracking-wide max-w-[100px] leading-relaxed">
+                {tr.footer.app.scanText}
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="py-6 border-t border-white/8 flex flex-col sm:flex-row items-center justify-between gap-4">

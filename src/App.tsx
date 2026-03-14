@@ -4,17 +4,21 @@ import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { LangProvider } from "./context/LangContext";
 import { SellerProvider } from "./context/SellerContext";
+import { WishlistProvider } from "./context/WishlistContext";
 import { useAuth } from "./context/AuthContext";
 import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
 import ShopPage from "./pages/ShopPage";
+import ProductPage from './pages/ProductPage';
+import WishlistPage from "./pages/WishlistPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import CartPage from "./pages/CartPage";
 import ProfilePage from "./pages/ProfilePage";
-import PendingPage from "./pages/seller/PendingPage";
 import Dashboard from "./pages/seller/Dashboard";
 import ProductsPage from "./pages/seller/ProductsPage";
 import ProductFormPage from "./pages/seller/ProductFormPage";
 import OrdersPage from "./pages/seller/OrdersPage";
+import SettingsPage from "./pages/seller/SettingsPage";
 
 // ─── Scroll Restoration ────────────────────────────────────────────────────────
 
@@ -34,27 +38,18 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-/** Redirect root /seller to the right sub-page based on isActive */
+/** Redirect root /seller to the dashboard */
 function SellerIndexRedirect() {
   const { user } = useAuth();
   if (!user || user.role !== "seller") return <Navigate to="/" replace />;
-  return <Navigate to={user.isActive ? "/seller/dashboard" : "/seller/pending"} replace />;
+  return <Navigate to="/seller/dashboard" replace />;
 }
 
-/** Any seller (active or pending) */
+/** Only sellers can access seller routes */
 function RequireSeller({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/" replace />;
   if (user.role !== "seller") return <Navigate to="/" replace />;
-  return <>{children}</>;
-}
-
-/** Only active (approved) sellers */
-function RequireActiveSeller({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/" replace />;
-  if (user.role !== "seller") return <Navigate to="/" replace />;
-  if (!user.isActive) return <Navigate to="/seller/pending" replace />;
   return <>{children}</>;
 }
 
@@ -68,11 +63,15 @@ export default function App() {
         <AuthProvider>
           <SellerProvider>
             <CartProvider>
+              <WishlistProvider>
               <Routes>
                 {/* ── Buyer routes (with buyer Navbar/Footer layout) ── */}
                 <Route element={<Layout />}>
                   <Route index element={<HomePage />} />
                   <Route path="shop" element={<ShopPage />} />
+                  <Route path="product/:id" element={<ProductPage />} />
+                  <Route path="wishlist" element={<WishlistPage />} />
+                  <Route path="cart" element={<CartPage />} />
                   <Route path="checkout" element={<CheckoutPage />} />
                   <Route
                     path="profile"
@@ -88,49 +87,58 @@ export default function App() {
                 <Route path="seller">
                   <Route index element={<SellerIndexRedirect />} />
                   <Route
-                    path="pending"
-                    element={
-                      <RequireSeller>
-                        <PendingPage />
-                      </RequireSeller>
-                    }
-                  />
-                  <Route
                     path="dashboard"
                     element={
-                      <RequireActiveSeller>
+                      <RequireSeller>
                         <Dashboard />
-                      </RequireActiveSeller>
+                      </RequireSeller>
                     }
                   />
                   <Route
                     path="products"
                     element={
-                      <RequireActiveSeller>
+                      <RequireSeller>
                         <ProductsPage />
-                      </RequireActiveSeller>
+                      </RequireSeller>
                     }
                   />
                   <Route
                     path="products/new"
                     element={
-                      <RequireActiveSeller>
+                      <RequireSeller>
                         <ProductFormPage />
-                      </RequireActiveSeller>
+                      </RequireSeller>
+                    }
+                  />
+                  <Route
+                    path="products/:id/edit"
+                    element={
+                      <RequireSeller>
+                        <ProductFormPage />
+                      </RequireSeller>
                     }
                   />
                   <Route
                     path="orders"
                     element={
-                      <RequireActiveSeller>
+                      <RequireSeller>
                         <OrdersPage />
-                      </RequireActiveSeller>
+                      </RequireSeller>
+                    }
+                  />
+                  <Route
+                    path="settings"
+                    element={
+                      <RequireSeller>
+                        <SettingsPage />
+                      </RequireSeller>
                     }
                   />
                 </Route>
 
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
+              </WishlistProvider>
             </CartProvider>
           </SellerProvider>
         </AuthProvider>

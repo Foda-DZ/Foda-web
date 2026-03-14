@@ -5,6 +5,7 @@ export interface Translations {
   dir: "rtl" | "ltr";
   nav: {
     announcement: string;
+    promoBar: { shipping: string; returns: string; support: string };
     collections: string;
     women: string;
     men: string;
@@ -153,6 +154,7 @@ export interface Translations {
     privacy: string;
     terms: string;
     cookies: string;
+    app: { title: string; subtitle: string; scanText: string };
   };
   cart: {
     title: string;
@@ -169,6 +171,21 @@ export interface Translations {
     checkout: string;
     continueShopping: string;
     remove: string;
+    viewFullCart: string;
+  };
+  cartPage: {
+    title: string;
+    emptyTitle: string;
+    emptySub: string;
+    continueShopping: string;
+    itemCount: string;
+    discountCode: string;
+    enterCode: string;
+    apply: string;
+    invalidCode: string;
+    orderSummary: string;
+    secureCheckout: string;
+    freeShippingOver: string;
   };
   auth: {
     login: {
@@ -239,6 +256,34 @@ export interface Translations {
     noProducts: string;
     noProductsSub: string;
     clearFilters: string;
+    // Phase 1 additions
+    size: string;
+    color: string;
+    seller: string;
+    rating: string;
+    availability: string;
+    allProducts: string;
+    inStockOnly: string;
+    andUp: string;
+    applyFilters: string;
+    clearAll: string;
+    prev: string;
+    nextPage: string;
+    page: string;
+    recentSearches: string;
+    clear: string;
+    categories: string;
+    searchAllFor: string;
+    noResults: string;
+    retry: string;
+    sortFeatured: string;
+    sortNewest: string;
+    sortPriceAsc: string;
+    sortPriceDesc: string;
+    soldOut: string;
+    left: string;
+    quickView: string;
+    colors: string;
   };
   checkout: {
     title: string;
@@ -296,6 +341,7 @@ export interface Translations {
     backHome: string;
     change: string;
     items: string;
+    comingSoon: string;
   };
   profile: {
     title: string;
@@ -352,6 +398,28 @@ export interface Translations {
     required: string;
     invalidEmail: string;
   };
+  productPage: {
+    addToCart: string;
+    buyNow: string;
+    quantity: string;
+    description: string;
+    youMayAlsoLike: string;
+    freeDelivery: string;
+    verifiedSeller: string;
+    easyReturns: string;
+    by: string;
+  };
+  wishlist: {
+    title: string;
+    item: string;
+    items: string;
+    emptyTitle: string;
+    emptySub: string;
+    moveToCart: string;
+    signInTitle: string;
+    signInSub: string;
+    loading: string;
+  };
 }
 
 // ─── Arabic ───────────────────────────────────────────────────────────────────
@@ -359,6 +427,7 @@ export const ar: Translations = {
   dir: "rtl",
   nav: {
     announcement: "توصيل مجاني عبر الجزائر على الطلبات التي تتجاوز 5000 دج  |  مجموعة جديدة: ربيع 2024",
+    promoBar: { shipping: "توصيل مجاني فوق 5000 دج", returns: "إرجاع مجاني خلال 30 يوم", support: "دعم على مدار الساعة" },
     collections: "المجموعات",
     women: "نساء",
     men: "رجال",
@@ -374,7 +443,7 @@ export const ar: Translations = {
     signOut: "تسجيل الخروج",
     shopNow: "تسوق الآن",
     register: "إنشاء حساب",
-    searchPlaceholder: "ابحث عن منتج، ماركة...",
+    searchPlaceholder: "ابحث عن منتجات، ماركات، أو متاجر...",
     search: "بحث",
   },
   hero: {
@@ -507,6 +576,7 @@ export const ar: Translations = {
     privacy: "سياسة الخصوصية",
     terms: "شروط الخدمة",
     cookies: "سياسة ملفات تعريف الارتباط",
+    app: { title: "حمّل تطبيق فودة", subtitle: "تسوّق بسهولة من هاتفك", scanText: "امسح الرمز للتحميل" },
   },
   cart: {
     title: "سلة التسوق",
@@ -523,6 +593,21 @@ export const ar: Translations = {
     checkout: "متابعة الدفع",
     continueShopping: "مواصلة التسوق",
     remove: "إزالة",
+    viewFullCart: "عرض السلة كاملة",
+  },
+  cartPage: {
+    title: "سلة التسوق",
+    emptyTitle: "سلتك فارغة",
+    emptySub: "أضف بعض المنتجات للبدء",
+    continueShopping: "مواصلة التسوق",
+    itemCount: "منتج",
+    discountCode: "كود الخصم",
+    enterCode: "أدخل الكود",
+    apply: "تطبيق",
+    invalidCode: "كود الخصم غير صالح",
+    orderSummary: "ملخص الطلب",
+    secureCheckout: "دفع آمن ومشفر",
+    freeShippingOver: "شحن مجاني للطلبات فوق 5,000 د.ج",
   },
   auth: {
     login: {
@@ -593,13 +678,40 @@ export const ar: Translations = {
     noProducts: "لا توجد منتجات",
     noProductsSub: "حاول تعديل الفلاتر أو مصطلح البحث",
     clearFilters: "مسح الفلاتر",
+    size: "المقاس",
+    color: "اللون",
+    seller: "البائع",
+    rating: "التقييم",
+    availability: "التوفر",
+    allProducts: "كل المنتجات",
+    inStockOnly: "المتوفر فقط",
+    andUp: "وأكثر",
+    applyFilters: "تطبيق الفلاتر",
+    clearAll: "مسح الكل",
+    prev: "السابق",
+    nextPage: "التالي",
+    page: "صفحة",
+    recentSearches: "عمليات البحث الأخيرة",
+    clear: "مسح",
+    categories: "الفئات",
+    searchAllFor: "بحث الكل عن \"{query}\"",
+    noResults: "لا توجد نتائج",
+    retry: "إعادة المحاولة",
+    sortFeatured: "مميز",
+    sortNewest: "الأحدث أولاً",
+    sortPriceAsc: "السعر: من الأقل للأعلى",
+    sortPriceDesc: "السعر: من الأعلى للأقل",
+    soldOut: "نفذ",
+    left: "متبقي",
+    quickView: "معاينة سريعة",
+    colors: "ألوان",
   },
   checkout: {
     title: "الدفع",
     backToCart: "العودة للسلة",
-    delivery: "التوصيل",
+    delivery: "الشحن",
     payment: "الدفع",
-    review: "المراجعة",
+    review: "المراجعة والتأكيد",
     success: "ناجح",
     deliveryTitle: "معلومات التوصيل",
     deliverySub: "أين نوصل طلبك؟",
@@ -627,9 +739,9 @@ export const ar: Translations = {
     expiry: "تاريخ الانتهاء",
     cvv: "رمز الأمان",
     baridimobPhone: "رقم هاتف بريدي موب",
-    nextReview: "التالي: المراجعة",
-    reviewTitle: "راجع طلبك",
-    reviewSub: "تحقق من تفاصيل طلبك قبل التأكيد.",
+    nextReview: "التالي: المراجعة والتأكيد",
+    reviewTitle: "راجع وأكد طلبك",
+    reviewSub: "تحقق من تفاصيل طلبك وقم بتأكيد الشراء.",
     deliveryInfo: "معلومات التوصيل",
     paymentMethod: "طريقة الدفع",
     orderItems: "المنتجات",
@@ -650,6 +762,7 @@ export const ar: Translations = {
     backHome: "العودة للرئيسية",
     change: "تعديل",
     items: "منتجات",
+    comingSoon: "قريباً",
   },
   profile: {
     title: "ملفي الشخصي",
@@ -706,6 +819,28 @@ export const ar: Translations = {
     required: "مطلوب.",
     invalidEmail: "أدخل بريداً إلكترونياً صحيحاً.",
   },
+  productPage: {
+    addToCart: "أضف للسلة",
+    buyNow: "اشترِ الآن",
+    quantity: "الكمية",
+    description: "الوصف",
+    youMayAlsoLike: "قد يعجبك أيضاً",
+    freeDelivery: "توصيل مجاني +5000 دج",
+    verifiedSeller: "بائع موثّق",
+    easyReturns: "إرجاع سهل",
+    by: "من",
+  },
+  wishlist: {
+    title: "قائمة الأمنيات",
+    item: "منتج",
+    items: "منتجات",
+    emptyTitle: "قائمة أمنياتك فارغة",
+    emptySub: "احفظ المنتجات التي تحبها وتسوقها لاحقاً.",
+    moveToCart: "نقل للسلة",
+    signInTitle: "سجل دخولك لعرض قائمة أمنياتك",
+    signInSub: "قم بتسجيل الدخول لحفظ منتجاتك المفضلة والوصول إلى قائمة أمنياتك.",
+    loading: "جاري تحميل قائمة الأمنيات…",
+  },
 };
 
 // ─── English ──────────────────────────────────────────────────────────────────
@@ -713,6 +848,7 @@ export const en: Translations = {
   dir: "ltr",
   nav: {
     announcement: "Free shipping across Algeria on orders over 5000 DZD  |  New collection: Spring 2024",
+    promoBar: { shipping: "Free Shipping Over 5,000 DZD", returns: "Free 30-Day Returns", support: "24/7 Customer Support" },
     collections: "Collections",
     women: "Women",
     men: "Men",
@@ -728,7 +864,7 @@ export const en: Translations = {
     signOut: "Sign Out",
     shopNow: "Shop Now",
     register: "Register",
-    searchPlaceholder: "Search products, brands...",
+    searchPlaceholder: "Search products, brands, or stores...",
     search: "Search",
   },
   hero: {
@@ -861,6 +997,7 @@ export const en: Translations = {
     privacy: "Privacy Policy",
     terms: "Terms of Service",
     cookies: "Cookie Policy",
+    app: { title: "Get the Foda App", subtitle: "Shop effortlessly from your phone", scanText: "Scan to download" },
   },
   cart: {
     title: "Your Cart",
@@ -877,6 +1014,21 @@ export const en: Translations = {
     checkout: "Proceed to Checkout",
     continueShopping: "Continue Shopping",
     remove: "Remove",
+    viewFullCart: "View Full Cart",
+  },
+  cartPage: {
+    title: "Shopping Cart",
+    emptyTitle: "Your cart is empty",
+    emptySub: "Add some items to get started",
+    continueShopping: "Continue Shopping",
+    itemCount: "items",
+    discountCode: "Discount Code",
+    enterCode: "Enter code",
+    apply: "Apply",
+    invalidCode: "Invalid discount code",
+    orderSummary: "Order Summary",
+    secureCheckout: "Secure, encrypted checkout",
+    freeShippingOver: "Free shipping on orders over 5,000 DZD",
   },
   auth: {
     login: {
@@ -947,13 +1099,40 @@ export const en: Translations = {
     noProducts: "No products found",
     noProductsSub: "Try adjusting your filters or search term",
     clearFilters: "Clear Filters",
+    size: "Size",
+    color: "Color",
+    seller: "Seller",
+    rating: "Rating",
+    availability: "Availability",
+    allProducts: "All Products",
+    inStockOnly: "In Stock Only",
+    andUp: "& Up",
+    applyFilters: "Apply Filters",
+    clearAll: "Clear All",
+    prev: "Previous",
+    nextPage: "Next",
+    page: "Page",
+    recentSearches: "Recent Searches",
+    clear: "Clear",
+    categories: "Categories",
+    searchAllFor: "Search all for \"{query}\"",
+    noResults: "No results found",
+    retry: "Retry",
+    sortFeatured: "Featured",
+    sortNewest: "Newest First",
+    sortPriceAsc: "Price: Low to High",
+    sortPriceDesc: "Price: High to Low",
+    soldOut: "Sold Out",
+    left: "left",
+    quickView: "Quick View",
+    colors: "colors",
   },
   checkout: {
     title: "Checkout",
     backToCart: "Back to Cart",
-    delivery: "Delivery",
+    delivery: "Shipping",
     payment: "Payment",
-    review: "Review",
+    review: "Review & Confirm",
     success: "Success",
     deliveryTitle: "Delivery Information",
     deliverySub: "Where should we deliver your order?",
@@ -981,9 +1160,9 @@ export const en: Translations = {
     expiry: "Expiry Date",
     cvv: "CVV",
     baridimobPhone: "BaridiMob Phone Number",
-    nextReview: "Next: Review",
-    reviewTitle: "Review Your Order",
-    reviewSub: "Check your order details before confirming.",
+    nextReview: "Next: Review & Confirm",
+    reviewTitle: "Review & Confirm Your Order",
+    reviewSub: "Check your order details and place your order.",
     deliveryInfo: "Delivery Info",
     paymentMethod: "Payment Method",
     orderItems: "Items",
@@ -1004,6 +1183,7 @@ export const en: Translations = {
     backHome: "Back to Home",
     change: "Change",
     items: "items",
+    comingSoon: "Coming Soon",
   },
   profile: {
     title: "My Profile",
@@ -1059,6 +1239,28 @@ export const en: Translations = {
     loading: "Loading…",
     required: "Required.",
     invalidEmail: "Enter a valid email.",
+  },
+  productPage: {
+    addToCart: "Add to Cart",
+    buyNow: "Buy Now",
+    quantity: "Quantity",
+    description: "Description",
+    youMayAlsoLike: "You May Also Like",
+    freeDelivery: "Free Delivery 5000+ DZD",
+    verifiedSeller: "Verified Seller",
+    easyReturns: "Easy Returns",
+    by: "by",
+  },
+  wishlist: {
+    title: "Wishlist",
+    item: "item",
+    items: "items",
+    emptyTitle: "Your wishlist is empty",
+    emptySub: "Save items you love to your wishlist and shop them later.",
+    moveToCart: "Move to Cart",
+    signInTitle: "Sign in to view your wishlist",
+    signInSub: "Log in to save your favourite products and access your wishlist.",
+    loading: "Loading your wishlist…",
   },
 };
 

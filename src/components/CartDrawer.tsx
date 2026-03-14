@@ -182,6 +182,15 @@ export default function CartDrawer() {
             />
           </button>
           <button
+            onClick={() => {
+              closeCart();
+              navigate("/cart");
+            }}
+            className="w-full text-center text-[#C9A84C] hover:text-[#d4b85d] text-xs font-semibold transition-colors duration-200"
+          >
+            {tr.cart.viewFullCart}
+          </button>
+          <button
             onClick={closeCart}
             className="w-full text-center text-white/40 hover:text-white/70 text-xs transition-colors duration-200"
           >
