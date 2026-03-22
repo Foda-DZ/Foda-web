@@ -49,6 +49,11 @@ export interface SessionUser {
   email: string;
   role: UserRole;
   isActive: boolean;
+  /** Seller-only fields (populated from login / settings responses) */
+  shopName?: string;
+  phone?: number | null;
+  logoUrl?: string | null;
+  address?: { wilaya: string; commune: string } | null;
 }
 
 export type AuthModalView = "login" | "register" | "reset" | "verify" | null;

@@ -36,6 +36,12 @@ interface AuthContextValue {
   }) => Promise<SessionUser>;
   logout: () => Promise<void>;
   updateProfile: (params: { fullName: string }) => void;
+  updateSellerSettings: (params: {
+    shopName?: string;
+    phone?: number | null;
+    logoUrl?: string | null;
+    address?: { wilaya: string; commune: string } | null;
+  }) => void;
 }
 
 // ─── Session storage helpers ──────────────────────────────────────────────────
@@ -69,12 +75,16 @@ function sessionFromResponse(data: ApiAuthResponse): SessionUser {
       isActive: true,
     };
   }
+  const s = data.seller!;
   return {
-    id: data.seller!.id,
-    fullName: data.seller!.shopName,
-    email: data.seller!.email,
+    id: s.id,
+    fullName: s.shopName,
+    email: s.email,
     role: "seller",
-    isActive: data.seller!.isActive,
+    isActive: s.isActive,
+    shopName: s.shopName,
+    phone: s.phone ?? null,
+    logoUrl: s.logoUrl ?? null,
   };
 }
 
@@ -190,6 +200,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
+  // ── Update Seller Settings (called after PUT /seller/settings succeeds) ────
+  const updateSellerSettings = useCallback(
+    (params: {
+      shopName?: string;
+      phone?: number | null;
+      logoUrl?: string | null;
+      address?: { wilaya: string; commune: string } | null;
+    }): void => {
+      if (!user || user.role !== "seller") return;
+      const updated: SessionUser = {
+        ...user,
+        ...(params.shopName !== undefined && {
+          shopName: params.shopName,
+          fullName: params.shopName,
+        }),
+        ...(params.phone !== undefined && { phone: params.phone }),
+        ...(params.logoUrl !== undefined && { logoUrl: params.logoUrl }),
+        ...(params.address !== undefined && { address: params.address }),
+      };
+      saveSession(updated);
+      setUser(updated);
+    },
+    [user],
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -206,6 +241,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         verifyEmail,
         logout,
         updateProfile,
+        updateSellerSettings,
       }}
     >
       {children}

@@ -1,8 +1,7 @@
 import {
   Instagram,
   Facebook,
-  Twitter,
-  Youtube,
+  Linkedin,
   MapPin,
   Phone,
   Mail,
@@ -10,17 +9,32 @@ import {
   Smartphone,
 } from "lucide-react";
 import AppleIcon from "@mui/icons-material/Apple";
-import ShopTwoOutlinedIcon from "@mui/icons-material/ShopTwoOutlined";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
 import { useNavigate } from "react-router-dom";
 import { useLang } from "../context/LangContext";
 import fodaLogo from "../assets/Foda-Logo (1).png";
 
+function TikTokIcon({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+    </svg>
+  );
+}
+
+function GooglePlayIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M3.61 1.814A1 1 0 0 0 3 2.7v18.6a1 1 0 0 0 .61.886L14.12 12 3.61 1.814ZM15.4 10.72 5.8 2.12l10.48 5.96-1.88 2.64ZM15.4 13.28l1.88 2.64L5.8 21.88l9.6-8.6ZM17.9 10.56l2.7 1.54a1 1 0 0 1 0 1.8l-2.7 1.54L16.22 12l1.68-1.44Z" />
+    </svg>
+  );
+}
+
 const socials = [
-  { Icon: Instagram, label: "Instagram", href: "#" },
   { Icon: Facebook, label: "Facebook", href: "#" },
-  { Icon: Twitter, label: "Twitter / X", href: "#" },
-  { Icon: Youtube, label: "YouTube", href: "#" },
+  { Icon: Instagram, label: "Instagram", href: "#" },
+  { Icon: TikTokIcon, label: "TikTok", href: "#" },
+  { Icon: Linkedin, label: "LinkedIn", href: "#" },
 ];
 
 export default function Footer() {
@@ -181,7 +195,9 @@ export default function Footer() {
                   href="#"
                   className="flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:border-[#C9A84C]/40 hover:bg-white/8 transition-all duration-200 group"
                 >
-                  <ShopTwoOutlinedIcon sx={{ fontSize: 22 }} className="text-white group-hover:text-[#C9A84C] transition-colors" />
+                  <span className="text-white group-hover:text-[#C9A84C] transition-colors">
+                    <GooglePlayIcon size={22} />
+                  </span>
                   <div className="text-start">
                     <span className="block text-white/40 text-[9px] leading-none">
                       GET IT ON

@@ -72,7 +72,7 @@ export default function ProductDetailModal({
   const related = relatedProducts.filter((p) => p.id !== product.id).slice(0, 8);
 
   const handleAddToCart = () => {
-    if (!user) { openLogin(); return; }
+    if (!user || user.role !== "customer") { openLogin(); return; }
     if (hasSizes && !selectedSize) {
       setSizeError(true);
       setTimeout(() => setSizeError(false), 2500);

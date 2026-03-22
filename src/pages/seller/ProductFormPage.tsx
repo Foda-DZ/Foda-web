@@ -6,16 +6,23 @@ import CheckIcon from "@mui/icons-material/Check";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import ImageIcon from "@mui/icons-material/Image";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import SellOutlinedIcon from "@mui/icons-material/SellOutlined";
+import PhotoLibraryOutlinedIcon from "@mui/icons-material/PhotoLibraryOutlined";
+import StraightenOutlinedIcon from "@mui/icons-material/StraightenOutlined";
+import PaletteOutlinedIcon from "@mui/icons-material/PaletteOutlined";
+import PublishOutlinedIcon from "@mui/icons-material/PublishOutlined";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Alert from "@mui/material/Alert";
 import CircularProgress from "@mui/material/CircularProgress";
 import IconButton from "@mui/material/IconButton";
 import { useSellerContext } from "../../context/SellerContext";
+import { useLang } from "../../context/LangContext";
 import SellerLayout from "../../components/seller/SellerLayout";
+import type { SvgIconComponent } from "@mui/icons-material";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const CATEGORIES = ["Men", "Women", "Kids", "Accessories", "Other"];
 const SIZES_OPTIONS = ["XS", "S", "M", "L", "XL", "XXL", "One Size"];
 const COLORS_OPTIONS = [
   { name: "Black",    hex: "#1a1a1a" },
@@ -42,14 +49,34 @@ const inputSx = {
   "& .MuiOutlinedInput-root": { borderRadius: 0, bgcolor: "#fff" },
 };
 
+// ─── Section Header ──────────────────────────────────────────────────────────
+function SectionHeader({ title, Icon }: { title: string; Icon: SvgIconComponent }) {
+  return (
+    <div className="flex items-center gap-2.5 mb-1">
+      <div className="w-7 h-7 bg-[#C9A84C]/10 flex items-center justify-center">
+        <Icon sx={{ fontSize: 14, color: "#C9A84C" }} />
+      </div>
+      <h2 className="font-semibold text-[#1A1A2E] text-sm uppercase tracking-widest">
+        {title}
+      </h2>
+    </div>
+  );
+}
+
 // ─── Image Upload ─────────────────────────────────────────────────────────────
 function ImageUpload({
   preview,
   required,
+  changeLabel,
+  uploadLabel,
+  fileTypesLabel,
   onFile,
 }: {
   preview: string;
   required?: boolean;
+  changeLabel: string;
+  uploadLabel: string;
+  fileTypesLabel: string;
   onFile: (file: File | null, preview: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -77,7 +104,7 @@ function ImageUpload({
           <img
             src={preview}
             alt="preview"
-            className="w-full h-40 object-cover"
+            className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-[#1A1A2E]/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
             <button
@@ -85,7 +112,7 @@ function ImageUpload({
               onClick={() => inputRef.current?.click()}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-colors duration-200"
             >
-              <CloudUploadIcon sx={{ fontSize: 11 }} /> Change
+              <CloudUploadIcon sx={{ fontSize: 11 }} /> {changeLabel}
             </button>
             <button
               type="button"
@@ -100,7 +127,7 @@ function ImageUpload({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className={`w-full h-36 border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all duration-200 ${
+          className={`w-full h-36 border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02] ${
             required
               ? "border-[#C9A84C]/40 hover:border-[#C9A84C] hover:bg-[#C9A84C]/5"
               : "border-[#1A1A2E]/15 hover:border-[#C9A84C]/50 hover:bg-[#FAF7F2]"
@@ -108,10 +135,10 @@ function ImageUpload({
         >
           <ImageIcon sx={{ fontSize: 22, color: "rgba(26,26,46,0.25)" }} />
           <span className="text-xs font-semibold text-[#1A1A2E]/40">
-            Click to upload{required ? " *" : ""}
+            {uploadLabel}{required ? " *" : ""}
           </span>
           <span className="text-[10px] text-[#1A1A2E]/25">
-            JPG · PNG · WEBP
+            {fileTypesLabel}
           </span>
         </button>
       )}
@@ -120,6 +147,9 @@ function ImageUpload({
 }
 
 // ─── Form state ───────────────────────────────────────────────────────────────
+type ImagePreviews = [string, string, string, string, string];
+type ImageFiles = [File | null, File | null, File | null, File | null, File | null];
+
 interface FormState {
   name: string;
   category: string;
@@ -128,8 +158,8 @@ interface FormState {
   description: string;
   sizes: string[];
   colors: string[];
-  imagePreviews: [string, string, string];
-  imageFiles: [File | null, File | null, File | null];
+  imagePreviews: ImagePreviews;
+  imageFiles: ImageFiles;
 }
 
 const defaultForm: FormState = {
@@ -138,10 +168,10 @@ const defaultForm: FormState = {
   price: "",
   stock: "",
   description: "",
-  sizes: ["M", "L"],
-  colors: ["Black", "White"],
-  imagePreviews: ["", "", ""],
-  imageFiles: [null, null, null],
+  sizes: [],
+  colors: [],
+  imagePreviews: ["", "", "", "", ""],
+  imageFiles: [null, null, null, null, null],
 };
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -149,8 +179,18 @@ export default function ProductFormPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { createProduct, updateProduct, sellerProducts } = useSellerContext();
+  const { tr } = useLang();
+  const t = tr.seller.form;
   const isEdit = !!id;
   const existingProduct = isEdit ? sellerProducts.find((p) => p.id === id) : null;
+
+  const categories = [
+    { value: "Men", label: t.catMen },
+    { value: "Women", label: t.catWomen },
+    { value: "Kids", label: t.catKids },
+    { value: "Accessories", label: t.catAccessories },
+    { value: "Other", label: t.catOther },
+  ];
 
   const [form, setForm] = useState<FormState>(defaultForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -174,8 +214,10 @@ export default function ProductFormPage() {
           existingProduct.images[0] || "",
           existingProduct.images[1] || "",
           existingProduct.images[2] || "",
-        ] as [string, string, string],
-        imageFiles: [null, null, null],
+          existingProduct.images[3] || "",
+          existingProduct.images[4] || "",
+        ] as ImagePreviews,
+        imageFiles: [null, null, null, null, null],
       });
     }
   }, [isEdit, existingProduct]);
@@ -184,13 +226,9 @@ export default function ProductFormPage() {
     setForm((f) => ({ ...f, [key]: val }));
 
   const handleImage =
-    (idx: 0 | 1 | 2) => (file: File | null, preview: string) => {
-      const previews = [...form.imagePreviews] as [string, string, string];
-      const files = [...form.imageFiles] as [
-        File | null,
-        File | null,
-        File | null,
-      ];
+    (idx: 0 | 1 | 2 | 3 | 4) => (file: File | null, preview: string) => {
+      const previews = [...form.imagePreviews] as ImagePreviews;
+      const files = [...form.imageFiles] as ImageFiles;
       previews[idx] = preview;
       files[idx] = file;
       setForm((f) => ({ ...f, imagePreviews: previews, imageFiles: files }));
@@ -214,15 +252,15 @@ export default function ProductFormPage() {
 
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
-    if (!form.name.trim()) e.name = "Required.";
+    if (!form.name.trim()) e.name = t.required;
     if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0)
-      e.price = "Enter a valid price.";
+      e.price = t.validPrice;
     if (!form.stock || isNaN(Number(form.stock)) || Number(form.stock) < 0)
-      e.stock = "Enter a valid stock quantity.";
-    if (!form.sizes.length) e.sizes = "Select at least one size.";
-    if (!form.colors.length) e.colors = "Select at least one color.";
+      e.stock = t.validStock;
+    if (!form.sizes.length) e.sizes = t.selectSize;
+    if (!form.colors.length) e.colors = t.selectColor;
     if (!form.imageFiles[0] && !(isEdit && form.imagePreviews[0]))
-      e.images = "At least one product image is required.";
+      e.images = t.imageRequired;
     return e;
   };
 
@@ -245,8 +283,8 @@ export default function ProductFormPage() {
           stock: Number(form.stock),
           category: form.category,
           description: form.description.trim() || undefined,
-          sizes: form.sizes.join(","),
-          colors: form.colors.join(","),
+          sizes: form.sizes,
+          colors: form.colors,
         });
       } else {
         await createProduct({
@@ -265,7 +303,7 @@ export default function ProductFormPage() {
       setTimeout(() => navigate("/seller/products"), 900);
     } catch (err) {
       setApiError(
-        err instanceof Error ? err.message : isEdit ? "Failed to update product." : "Failed to add product.",
+        err instanceof Error ? err.message : isEdit ? t.failedUpdate : t.failedAdd,
       );
     } finally {
       setSaving(false);
@@ -295,33 +333,31 @@ export default function ProductFormPage() {
           </IconButton>
           <div>
             <h1 className="font-display text-2xl font-bold text-[#1A1A2E]">
-              {isEdit ? "Edit Product" : "Add New Product"}
+              {isEdit ? t.editProduct : t.addNewProduct}
             </h1>
             <p className="text-[#1A1A2E]/50 text-sm">
-              {isEdit ? "Update the product details below." : "Fill in the details to list a new product."}
+              {isEdit ? t.editSubtitle : t.addSubtitle}
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic info */}
-          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4">
-            <h2 className="font-semibold text-[#1A1A2E] text-sm uppercase tracking-widest">
-              Basic Info
-            </h2>
+          {/* ── Basic info ────────────────────────────────────────────── */}
+          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
+            <SectionHeader title={t.basicInfo} Icon={InfoOutlinedIcon} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <TextField
-                label="Product Name *"
+                label={t.productName}
                 value={form.name}
                 onChange={(e) => set("name", e.target.value)}
-                placeholder="e.g. Robe Élégante"
+                placeholder={t.productNamePlaceholder}
                 error={!!errors.name}
                 helperText={errors.name}
                 fullWidth
                 sx={inputSx}
               />
               <TextField
-                label="Category *"
+                label={t.category}
                 value={form.category}
                 onChange={(e) => set("category", e.target.value)}
                 select
@@ -329,18 +365,18 @@ export default function ProductFormPage() {
                 sx={inputSx}
                 slotProps={{ select: { native: true } }}
               >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {categories.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
                   </option>
                 ))}
               </TextField>
             </div>
             <TextField
-              label="Description"
+              label={t.description}
               value={form.description}
               onChange={(e) => set("description", e.target.value)}
-              placeholder="Describe your product… (optional)"
+              placeholder={t.descriptionPlaceholder}
               multiline
               rows={3}
               fullWidth
@@ -348,14 +384,12 @@ export default function ProductFormPage() {
             />
           </div>
 
-          {/* Pricing & Stock */}
-          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4">
-            <h2 className="font-semibold text-[#1A1A2E] text-sm uppercase tracking-widest">
-              Pricing & Stock
-            </h2>
+          {/* ── Pricing & Stock ───────────────────────────────────────── */}
+          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
+            <SectionHeader title={t.pricingStock} Icon={SellOutlinedIcon} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <TextField
-                label="Price (DZD) *"
+                label={t.price}
                 type="number"
                 value={form.price}
                 onChange={(e) => set("price", e.target.value)}
@@ -366,7 +400,7 @@ export default function ProductFormPage() {
                 sx={inputSx}
               />
               <TextField
-                label="Stock Quantity *"
+                label={t.stockQty}
                 type="number"
                 value={form.stock}
                 onChange={(e) => set("stock", e.target.value)}
@@ -379,11 +413,9 @@ export default function ProductFormPage() {
             </div>
           </div>
 
-          {/* Images */}
-          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4">
-            <h2 className="font-semibold text-[#1A1A2E] text-sm uppercase tracking-widest">
-              Product Images
-            </h2>
+          {/* ── Images ────────────────────────────────────────────────── */}
+          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
+            <SectionHeader title={t.productImages} Icon={PhotoLibraryOutlinedIcon} />
             {errors.images && (
               <Alert
                 severity="error"
@@ -392,8 +424,8 @@ export default function ProductFormPage() {
                 {errors.images}
               </Alert>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {([0, 1, 2] as const).map((i) => (
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+              {([0, 1, 2, 3, 4] as const).map((i) => (
                 <div
                   key={i}
                   draggable={!!form.imagePreviews[i]}
@@ -401,8 +433,8 @@ export default function ProductFormPage() {
                   onDragOver={(e) => { e.preventDefault(); }}
                   onDrop={() => {
                     if (dragIdx !== null && dragIdx !== i) {
-                      const previews = [...form.imagePreviews] as [string, string, string];
-                      const files = [...form.imageFiles] as [File | null, File | null, File | null];
+                      const previews = [...form.imagePreviews] as ImagePreviews;
+                      const files = [...form.imageFiles] as ImageFiles;
                       [previews[dragIdx], previews[i]] = [previews[i], previews[dragIdx]];
                       [files[dragIdx], files[i]] = [files[i], files[dragIdx]];
                       setForm((f) => ({ ...f, imagePreviews: previews, imageFiles: files }));
@@ -410,20 +442,23 @@ export default function ProductFormPage() {
                     setDragIdx(null);
                   }}
                   onDragEnd={() => setDragIdx(null)}
-                  className={`transition-opacity duration-200 ${dragIdx === i ? "opacity-50" : ""}`}
+                  className={`transition-all duration-300 ${dragIdx === i ? "opacity-50 scale-95" : "hover:scale-[1.02]"}`}
                 >
                   <div className="flex items-center gap-1 mb-1.5">
                     {form.imagePreviews[i] && (
                       <DragIndicatorIcon sx={{ fontSize: 12, color: "rgba(26,26,46,0.25)", cursor: "grab" }} />
                     )}
                     <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/60">
-                      {i === 0 ? "Main Image" : `Image ${i + 1}`}
+                      {i === 0 ? t.mainImage : `${t.image} ${i + 1}`}
                       {i === 0 && <span className="text-red-400 ms-0.5">*</span>}
                     </p>
                   </div>
                   <ImageUpload
                     preview={form.imagePreviews[i]}
                     required={i === 0}
+                    changeLabel={t.change}
+                    uploadLabel={t.clickUpload}
+                    fileTypesLabel={t.fileTypes}
                     onFile={handleImage(i)}
                   />
                 </div>
@@ -431,14 +466,12 @@ export default function ProductFormPage() {
             </div>
           </div>
 
-          {/* Sizes */}
-          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4">
+          {/* ── Sizes ─────────────────────────────────────────────────── */}
+          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-[#1A1A2E] text-sm uppercase tracking-widest">
-                Available Sizes <span className="text-red-400">*</span>
-              </h2>
+              <SectionHeader title={t.availableSizes} Icon={StraightenOutlinedIcon} />
               {form.sizes.length > 0 && (
-                <span className="text-xs text-[#C9A84C] font-semibold">
+                <span className="text-xs text-[#C9A84C] font-semibold animate-in">
                   {form.sizes.join(" · ")}
                 </span>
               )}
@@ -449,29 +482,31 @@ export default function ProductFormPage() {
               </Alert>
             )}
             <div className="flex flex-wrap gap-2">
-              {SIZES_OPTIONS.map((size) => (
-                <button
-                  key={size}
-                  type="button"
-                  onClick={() => toggleSize(size)}
-                  className={`px-4 h-9 text-xs font-semibold tracking-wide border transition-all duration-200 ${
-                    form.sizes.includes(size)
-                      ? "border-[#1A1A2E] bg-[#1A1A2E] text-white"
-                      : "border-[#1A1A2E]/20 text-[#1A1A2E]/60 hover:border-[#1A1A2E] hover:text-[#1A1A2E]"
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
+              {SIZES_OPTIONS.map((size) => {
+                const selected = form.sizes.includes(size);
+                return (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => toggleSize(size)}
+                    className={`px-4 h-9 text-xs font-semibold tracking-wide border transition-all duration-200 ${
+                      selected
+                        ? "border-[#1A1A2E] bg-[#1A1A2E] text-white scale-105 shadow-md"
+                        : "border-[#1A1A2E]/20 text-[#1A1A2E]/60 hover:border-[#1A1A2E] hover:text-[#1A1A2E] hover:scale-105"
+                    }`}
+                  >
+                    {selected && <CheckIcon sx={{ fontSize: 11, mr: 0.5, verticalAlign: "middle" }} />}
+                    {size}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Colors */}
-          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4">
+          {/* ── Colors ────────────────────────────────────────────────── */}
+          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-[#1A1A2E] text-sm uppercase tracking-widest">
-                Available Colors <span className="text-red-400">*</span>
-              </h2>
+              <SectionHeader title={t.availableColors} Icon={PaletteOutlinedIcon} />
               {form.colors.length > 0 && (
                 <div className="flex items-center gap-1.5">
                   {form.colors.map((c) => {
@@ -480,7 +515,7 @@ export default function ProductFormPage() {
                       <span
                         key={c}
                         title={c}
-                        className="w-4 h-4 rounded-full border border-black/15 flex-shrink-0"
+                        className="w-4 h-4 rounded-full border border-black/15 flex-shrink-0 transition-transform duration-200 hover:scale-125"
                         style={{ backgroundColor: opt?.hex ?? c.toLowerCase() }}
                       />
                     );
@@ -503,12 +538,14 @@ export default function ProductFormPage() {
                     onClick={() => toggleColor(name)}
                     className={`flex items-center gap-2 px-3 h-9 text-xs font-semibold border transition-all duration-200 ${
                       selected
-                        ? "border-[#1A1A2E] bg-[#1A1A2E] text-white"
-                        : "border-[#1A1A2E]/15 text-[#1A1A2E]/60 hover:border-[#1A1A2E]/40 hover:text-[#1A1A2E]"
+                        ? "border-[#1A1A2E] bg-[#1A1A2E] text-white scale-105 shadow-md"
+                        : "border-[#1A1A2E]/15 text-[#1A1A2E]/60 hover:border-[#1A1A2E]/40 hover:text-[#1A1A2E] hover:scale-105"
                     }`}
                   >
                     <span
-                      className="w-3.5 h-3.5 rounded-full border border-black/10 flex-shrink-0"
+                      className={`w-3.5 h-3.5 rounded-full border flex-shrink-0 transition-shadow duration-200 ${
+                        selected ? "border-white/40 shadow-sm" : "border-black/10"
+                      }`}
                       style={{ backgroundColor: hex }}
                     />
                     <span className="truncate">{name}</span>
@@ -525,7 +562,7 @@ export default function ProductFormPage() {
             </Alert>
           )}
 
-          {/* Submit */}
+          {/* ── Submit ────────────────────────────────────────────────── */}
           <div className="flex items-center gap-4 pb-4">
             <Button
               type="submit"
@@ -541,11 +578,15 @@ export default function ProductFormPage() {
                     thickness={4}
                     sx={{ color: "inherit" }}
                   />
-                ) : undefined
+                ) : (
+                  <PublishOutlinedIcon sx={{ fontSize: 15 }} />
+                )
               }
               sx={{ borderRadius: 0, minWidth: 160 }}
             >
-              {saved ? (isEdit ? "Product Updated!" : "Product Added!") : (isEdit ? "Save Changes" : "Publish Product")}
+              {saved
+                ? (isEdit ? t.productUpdated : t.productAdded)
+                : (isEdit ? t.saveChanges : t.publishProduct)}
             </Button>
             <Button
               type="button"
@@ -555,7 +596,7 @@ export default function ProductFormPage() {
               disabled={saving || saved}
               sx={{ borderRadius: 0 }}
             >
-              Cancel
+              {t.cancel}
             </Button>
           </div>
         </form>

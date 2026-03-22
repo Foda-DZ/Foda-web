@@ -17,6 +17,7 @@ export interface ApiSeller {
   id: string;
   shopName: string;
   email: string;
+  phone: number | null;
   logoUrl: string | null;
   isActive: boolean;
 }
@@ -86,9 +87,16 @@ export type ApiOrderStatus =
   | "delivered"
   | "cancelled";
 
+/** Populated customer reference returned by seller orders endpoint */
+export interface ApiOrderCustomer {
+  _id: string;
+  fullName: string;
+  email: string;
+}
+
 export interface ApiOrder {
   _id: string;
-  customerId: string;
+  customerId: string | ApiOrderCustomer;
   sellerId: string;
   items: ApiCartItem[];
   shippingDetails: ApiShippingDetails;
@@ -96,6 +104,19 @@ export interface ApiOrder {
   totalAmount: number;
   createdAt: string;
   updatedAt: string;
+}
+
+// ─── Seller Settings ─────────────────────────────────────────────────────────
+export interface ApiSellerSettingsResponse {
+  message: string;
+  seller: {
+    id: string;
+    shopName: string;
+    email: string;
+    phone: number | null;
+    address: { wilaya: string; commune: string } | null;
+    logoUrl: string | null;
+  };
 }
 
 /** Response from POST /cart/checkout */

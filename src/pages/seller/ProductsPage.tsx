@@ -12,11 +12,14 @@ import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Alert from "@mui/material/Alert";
 import { useSellerContext } from "../../context/SellerContext";
+import { useLang } from "../../context/LangContext";
 import SellerLayout from "../../components/seller/SellerLayout";
 import type { Product } from "../../types";
 
 export default function ProductsPage() {
   const { sellerProducts, deleteProduct } = useSellerContext();
+  const { tr } = useLang();
+  const t = tr.seller.productsList;
   const navigate = useNavigate();
   const [confirmDelete, setConfirmDelete] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -31,7 +34,7 @@ export default function ProductsPage() {
       setConfirmDelete(null);
     } catch (err) {
       setDeleteError(
-        err instanceof Error ? err.message : "Failed to delete product.",
+        err instanceof Error ? err.message : t.failedDelete,
       );
     } finally {
       setDeleting(false);
@@ -40,10 +43,10 @@ export default function ProductsPage() {
 
   const stockChip = (stock: number) => {
     if (stock === 0)
-      return <Chip label="Out of Stock" size="small" color="error" sx={{ borderRadius: 0, fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }} />;
+      return <Chip label={t.outOfStock} size="small" color="error" sx={{ borderRadius: 0, fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }} />;
     if (stock <= 5)
-      return <Chip label="Low Stock" size="small" color="warning" sx={{ borderRadius: 0, fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }} />;
-    return <Chip label="In Stock" size="small" color="success" sx={{ borderRadius: 0, fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }} />;
+      return <Chip label={t.lowStock} size="small" color="warning" sx={{ borderRadius: 0, fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }} />;
+    return <Chip label={t.inStock} size="small" color="success" sx={{ borderRadius: 0, fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }} />;
   };
 
   return (
@@ -52,9 +55,9 @@ export default function ProductsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold text-[#1A1A2E]">My Products</h1>
+            <h1 className="font-display text-2xl font-bold text-[#1A1A2E]">{t.title}</h1>
             <p className="text-[#1A1A2E]/50 text-sm mt-0.5">
-              {sellerProducts.length} product{sellerProducts.length !== 1 ? "s" : ""} listed
+              {sellerProducts.length} {t.listed}
             </p>
           </div>
           <Button
@@ -64,7 +67,7 @@ export default function ProductsPage() {
             startIcon={<AddIcon sx={{ fontSize: 15 }} />}
             sx={{ borderRadius: 0 }}
           >
-            Add Product
+            {t.addProduct}
           </Button>
         </div>
 
@@ -72,9 +75,9 @@ export default function ProductsPage() {
         {sellerProducts.length === 0 ? (
           <div className="bg-white border border-[#1A1A2E]/8 p-16 text-center">
             <Inventory2Icon sx={{ fontSize: 40, color: "rgba(26,26,46,0.15)", display: "block", mx: "auto", mb: 2 }} />
-            <h3 className="font-display font-bold text-[#1A1A2E] text-lg mb-2">No products yet</h3>
+            <h3 className="font-display font-bold text-[#1A1A2E] text-lg mb-2">{t.noProducts}</h3>
             <p className="text-[#1A1A2E]/40 text-sm mb-6">
-              Add your first product to start selling on Foda.
+              {t.noProductsDesc}
             </p>
             <Button
               variant="contained"
@@ -83,7 +86,7 @@ export default function ProductsPage() {
               startIcon={<AddIcon sx={{ fontSize: 14 }} />}
               sx={{ borderRadius: 0 }}
             >
-              Add First Product
+              {t.addFirstProduct}
             </Button>
           </div>
         ) : (
@@ -91,7 +94,7 @@ export default function ProductsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#1A1A2E]/8">
-                  {["Product", "Category", "Price", "Stock", "Status", "Actions"].map((h) => (
+                  {[t.product, t.category, t.price, t.stock, t.status, t.actions].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-start text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/40"
@@ -131,7 +134,7 @@ export default function ProductsPage() {
                     {/* Price */}
                     <td className="px-4 py-3">
                       <span className="font-semibold text-[#1A1A2E]">
-                        {product.price.toLocaleString()} DZD
+                        {product.price.toLocaleString()} {tr.common.dzd}
                       </span>
                     </td>
 
@@ -139,7 +142,7 @@ export default function ProductsPage() {
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center gap-1 text-xs font-semibold ${product.stock <= 5 ? "text-red-500" : "text-[#1A1A2E]/60"}`}>
                         {product.stock <= 5 && product.stock > 0 && <WarningIcon sx={{ fontSize: 11 }} />}
-                        {product.stock} units
+                        {product.stock} {t.units}
                       </span>
                     </td>
 
@@ -152,7 +155,7 @@ export default function ProductsPage() {
                         <IconButton
                           onClick={() => navigate(`/seller/products/${product.id}/edit`)}
                           size="small"
-                          title="Edit"
+                          title={t.edit}
                           sx={{
                             borderRadius: 0,
                             width: 28,
@@ -167,7 +170,7 @@ export default function ProductsPage() {
                         <IconButton
                           onClick={() => setConfirmDelete(product)}
                           size="small"
-                          title="Delete"
+                          title={t.deleteLabel}
                           sx={{
                             borderRadius: 0,
                             width: 28,
@@ -202,11 +205,11 @@ export default function ProductsPage() {
             <DeleteIcon sx={{ fontSize: 20, color: "#ef4444" }} />
           </div>
           <div className="text-center">
-            <h3 className="font-display font-bold text-[#1A1A2E] text-lg">Delete Product</h3>
+            <h3 className="font-display font-bold text-[#1A1A2E] text-lg">{t.deleteProduct}</h3>
             <p className="text-[#1A1A2E]/50 text-sm mt-1">
-              Are you sure you want to delete{" "}
+              {t.deleteConfirm}{" "}
               <span className="font-semibold text-[#1A1A2E]">{confirmDelete?.name}</span>?
-              This action cannot be undone.
+              {" "}{t.deleteWarning}
             </p>
           </div>
           {deleteError && (
@@ -223,7 +226,7 @@ export default function ProductsPage() {
               fullWidth
               sx={{ borderRadius: 0 }}
             >
-              Cancel
+              {t.cancel}
             </Button>
             <Button
               variant="contained"
@@ -233,7 +236,7 @@ export default function ProductsPage() {
               startIcon={deleting ? <CircularProgress size={13} thickness={4} sx={{ color: "inherit" }} /> : undefined}
               sx={{ borderRadius: 0, bgcolor: "#ef4444", "&:hover": { bgcolor: "#dc2626" }, color: "#fff" }}
             >
-              {deleting ? "Deleting…" : "Delete"}
+              {deleting ? t.deleting : t.deleteBtn}
             </Button>
           </div>
         </div>

@@ -420,6 +420,208 @@ export interface Translations {
     signInSub: string;
     loading: string;
   };
+  seller: {
+    layout: {
+      portal: string;
+      dashboard: string;
+      myProducts: string;
+      orders: string;
+      storeSettings: string;
+      visitStore: string;
+      seller: string;
+      signOut: string;
+    };
+    dash: {
+      welcomeBack: string;
+      storePerformance: string;
+      pending: string;
+      orders: string;
+      addProduct: string;
+      totalRevenue: string;
+      fromDelivered: string;
+      totalOrders: string;
+      ordersForProducts: string;
+      productsListed: string;
+      activeMarketplace: string;
+      lowStock: string;
+      itemsFewUnits: string;
+      quickActions: string;
+      listNewProduct: string;
+      viewOrders: string;
+      manageOrders: string;
+      editProducts: string;
+      updateListings: string;
+      configureStore: string;
+      lowStockWarning: string;
+      lowStockDesc: string;
+      left: string;
+      recentOrders: string;
+      viewAll: string;
+      orderId: string;
+      date: string;
+      items: string;
+      total: string;
+      status: string;
+      units: string;
+      noOrdersYet: string;
+      noOrdersDesc: string;
+      addFirstProduct: string;
+      orderStatus: string;
+      noDataYet: string;
+      noDataDesc: string;
+      delivered: string;
+      totalOrdersLabel: string;
+      profileCard: string;
+      editSettings: string;
+      phone: string;
+      location: string;
+      noPhone: string;
+      noLocation: string;
+    };
+    form: {
+      addNewProduct: string;
+      editProduct: string;
+      addSubtitle: string;
+      editSubtitle: string;
+      basicInfo: string;
+      productName: string;
+      productNamePlaceholder: string;
+      category: string;
+      catMen: string;
+      catWomen: string;
+      catKids: string;
+      catAccessories: string;
+      catOther: string;
+      description: string;
+      descriptionPlaceholder: string;
+      pricingStock: string;
+      price: string;
+      stockQty: string;
+      productImages: string;
+      mainImage: string;
+      image: string;
+      clickUpload: string;
+      fileTypes: string;
+      change: string;
+      availableSizes: string;
+      availableColors: string;
+      required: string;
+      validPrice: string;
+      validStock: string;
+      selectSize: string;
+      selectColor: string;
+      imageRequired: string;
+      productUpdated: string;
+      productAdded: string;
+      saveChanges: string;
+      publishProduct: string;
+      cancel: string;
+      failedUpdate: string;
+      failedAdd: string;
+    };
+    productsList: {
+      title: string;
+      listed: string;
+      addProduct: string;
+      noProducts: string;
+      noProductsDesc: string;
+      addFirstProduct: string;
+      product: string;
+      category: string;
+      price: string;
+      stock: string;
+      status: string;
+      actions: string;
+      outOfStock: string;
+      lowStock: string;
+      inStock: string;
+      units: string;
+      edit: string;
+      deleteLabel: string;
+      deleteProduct: string;
+      deleteConfirm: string;
+      deleteWarning: string;
+      deleting: string;
+      deleteBtn: string;
+      cancel: string;
+      failedDelete: string;
+    };
+    ordersList: {
+      title: string;
+      totalOrders: string;
+      all: string;
+      orderId: string;
+      customer: string;
+      date: string;
+      items: string;
+      wilaya: string;
+      total: string;
+      status: string;
+      updateStatus: string;
+      noOrders: string;
+      noOrdersAll: string;
+      noOrdersStatus: string;
+      item: string;
+      orderItems: string;
+      shippingDetails: string;
+      customerInfo: string;
+      qty: string;
+      size: string;
+      color: string;
+      postal: string;
+      homeDelivery: string;
+      deskPickup: string;
+      orderTotal: string;
+      search: string;
+      sortNewest: string;
+      sortOldest: string;
+      sortHighest: string;
+      sortLowest: string;
+    };
+    settingsPage: {
+      title: string;
+      subtitle: string;
+      storeIdentity: string;
+      logo: string;
+      storeLogo: string;
+      logoHint: string;
+      shopName: string;
+      shopNamePlaceholder: string;
+      contactInfo: string;
+      phone: string;
+      phonePlaceholder: string;
+      email: string;
+      emailDisabled: string;
+      locationInfo: string;
+      wilaya: string;
+      wilayaPlaceholder: string;
+      commune: string;
+      communePlaceholder: string;
+      wilayaCommuneHint: string;
+      infoBanner: string;
+      saved: string;
+      save: string;
+      errorShopName: string;
+      errorWilayaCommune: string;
+    };
+    pendingPage: {
+      title: string;
+      hello: string;
+      message: string;
+      step1: string;
+      step2: string;
+      step3: string;
+      browseStore: string;
+      signOut: string;
+    };
+    statusLabels: {
+      pending: string;
+      confirmed: string;
+      shipped: string;
+      delivered: string;
+      cancelled: string;
+    };
+  };
 }
 
 // ─── Arabic ───────────────────────────────────────────────────────────────────
@@ -571,7 +773,7 @@ export const ar: Translations = {
     helpLinks: ["الأسئلة الشائعة", "الشحن والإرجاع", "دليل المقاسات", "تتبع الطلب", "تواصل معنا", "بطاقات الهدايا"],
     address: "15 شارع ديدوش مراد، وسط الجزائر، الجزائر",
     phone: "+213 (0) 21 XX XX XX",
-    email: "hello@foda.dz",
+    email: "support@foda.foo",
     copyright: "© {year} فودة. جميع الحقوق محفوظة. صُنع بـ ❤️ في الجزائر.",
     privacy: "سياسة الخصوصية",
     terms: "شروط الخدمة",
@@ -841,6 +1043,208 @@ export const ar: Translations = {
     signInSub: "قم بتسجيل الدخول لحفظ منتجاتك المفضلة والوصول إلى قائمة أمنياتك.",
     loading: "جاري تحميل قائمة الأمنيات…",
   },
+  seller: {
+    layout: {
+      portal: "بوابة البائع",
+      dashboard: "لوحة التحكم",
+      myProducts: "منتجاتي",
+      orders: "الطلبات",
+      storeSettings: "إعدادات المتجر",
+      visitStore: "زيارة المتجر",
+      seller: "بائع",
+      signOut: "تسجيل الخروج",
+    },
+    dash: {
+      welcomeBack: "مرحباً بعودتك،",
+      storePerformance: "إليك أداء متجرك اليوم.",
+      pending: "قيد الانتظار",
+      orders: "الطلبات",
+      addProduct: "إضافة منتج",
+      totalRevenue: "إجمالي الإيرادات",
+      fromDelivered: "من الطلبات المُسلّمة",
+      totalOrders: "إجمالي الطلبات",
+      ordersForProducts: "طلبات على منتجاتك",
+      productsListed: "المنتجات المدرجة",
+      activeMarketplace: "نشطة في السوق",
+      lowStock: "مخزون منخفض",
+      itemsFewUnits: "منتجات بأقل من 5 وحدات",
+      quickActions: "إجراءات سريعة",
+      listNewProduct: "إدراج منتج جديد",
+      viewOrders: "عرض الطلبات",
+      manageOrders: "إدارة طلباتك",
+      editProducts: "تعديل المنتجات",
+      updateListings: "تحديث القوائم",
+      configureStore: "ضبط متجرك",
+      lowStockWarning: "تنبيه مخزون منخفض",
+      lowStockDesc: "المنتجات التالية بها 5 وحدات أو أقل:",
+      left: "متبقي",
+      recentOrders: "أحدث الطلبات",
+      viewAll: "عرض الكل",
+      orderId: "رقم الطلب",
+      date: "التاريخ",
+      items: "المنتجات",
+      total: "الإجمالي",
+      status: "الحالة",
+      units: "وحدة",
+      noOrdersYet: "لا توجد طلبات بعد",
+      noOrdersDesc: "ستظهر هنا طلبات منتجاتك عندما يبدأ العملاء بالشراء.",
+      addFirstProduct: "أضف منتجك الأول",
+      orderStatus: "حالة الطلبات",
+      noDataYet: "لا توجد بيانات بعد",
+      noDataDesc: "ستظهر تحليلات الطلبات هنا عند استلام طلبات.",
+      delivered: "تم التوصيل",
+      totalOrdersLabel: "إجمالي الطلبات",
+      profileCard: "ملف المتجر",
+      editSettings: "تعديل الإعدادات",
+      phone: "الهاتف:",
+      location: "الموقع:",
+      noPhone: "لم يُضَف رقم هاتف",
+      noLocation: "لم يُضَف موقع",
+    },
+    form: {
+      addNewProduct: "إضافة منتج جديد",
+      editProduct: "تعديل المنتج",
+      addSubtitle: "أدخل تفاصيل المنتج لإدراجه في السوق.",
+      editSubtitle: "قم بتحديث تفاصيل المنتج أدناه.",
+      basicInfo: "المعلومات الأساسية",
+      productName: "اسم المنتج *",
+      productNamePlaceholder: "مثال: فستان أنيق",
+      category: "الفئة *",
+      catMen: "رجال",
+      catWomen: "نساء",
+      catKids: "أطفال",
+      catAccessories: "إكسسوارات",
+      catOther: "أخرى",
+      description: "الوصف",
+      descriptionPlaceholder: "صف منتجك… (اختياري)",
+      pricingStock: "السعر والمخزون",
+      price: "السعر (دج) *",
+      stockQty: "كمية المخزون *",
+      productImages: "صور المنتج",
+      mainImage: "الصورة الرئيسية",
+      image: "صورة",
+      clickUpload: "اضغط للرفع",
+      fileTypes: "JPG · PNG · WEBP",
+      change: "تغيير",
+      availableSizes: "المقاسات المتاحة",
+      availableColors: "الألوان المتاحة",
+      required: "مطلوب.",
+      validPrice: "أدخل سعراً صالحاً.",
+      validStock: "أدخل كمية مخزون صالحة.",
+      selectSize: "اختر مقاساً واحداً على الأقل.",
+      selectColor: "اختر لوناً واحداً على الأقل.",
+      imageRequired: "صورة واحدة على الأقل للمنتج مطلوبة.",
+      productUpdated: "تم تحديث المنتج!",
+      productAdded: "تمت إضافة المنتج!",
+      saveChanges: "حفظ التغييرات",
+      publishProduct: "نشر المنتج",
+      cancel: "إلغاء",
+      failedUpdate: "فشل تحديث المنتج.",
+      failedAdd: "فشل إضافة المنتج.",
+    },
+    productsList: {
+      title: "منتجاتي",
+      listed: "منتج مدرج",
+      addProduct: "إضافة منتج",
+      noProducts: "لا توجد منتجات بعد",
+      noProductsDesc: "أضف أول منتج لبدء البيع على فودة.",
+      addFirstProduct: "إضافة أول منتج",
+      product: "المنتج",
+      category: "الفئة",
+      price: "السعر",
+      stock: "المخزون",
+      status: "الحالة",
+      actions: "الإجراءات",
+      outOfStock: "نفد المخزون",
+      lowStock: "مخزون منخفض",
+      inStock: "متوفر",
+      units: "وحدة",
+      edit: "تعديل",
+      deleteLabel: "حذف",
+      deleteProduct: "حذف المنتج",
+      deleteConfirm: "هل أنت متأكد من حذف",
+      deleteWarning: "لا يمكن التراجع عن هذا الإجراء.",
+      deleting: "جارٍ الحذف…",
+      deleteBtn: "حذف",
+      cancel: "إلغاء",
+      failedDelete: "فشل حذف المنتج.",
+    },
+    ordersList: {
+      title: "الطلبات",
+      totalOrders: "إجمالي الطلبات",
+      all: "الكل",
+      orderId: "رقم الطلب",
+      customer: "العميل",
+      date: "التاريخ",
+      items: "المنتجات",
+      wilaya: "الولاية",
+      total: "الإجمالي",
+      status: "الحالة",
+      updateStatus: "تحديث الحالة",
+      noOrders: "لا توجد طلبات",
+      noOrdersAll: "ستظهر هنا طلبات منتجاتك عندما يبدأ العملاء بالشراء.",
+      noOrdersStatus: "لا توجد طلبات بحالة \"{status}\".",
+      item: "منتج",
+      orderItems: "عناصر الطلب",
+      shippingDetails: "تفاصيل الشحن",
+      customerInfo: "معلومات العميل",
+      qty: "الكمية:",
+      size: "المقاس:",
+      color: "اللون:",
+      postal: "الرمز البريدي:",
+      homeDelivery: "توصيل للمنزل",
+      deskPickup: "استلام من المكتب",
+      orderTotal: "إجمالي الطلب",
+      search: "بحث عن طلب...",
+      sortNewest: "الأحدث أولاً",
+      sortOldest: "الأقدم أولاً",
+      sortHighest: "الأعلى سعراً",
+      sortLowest: "الأقل سعراً",
+    },
+    settingsPage: {
+      title: "إعدادات المتجر",
+      subtitle: "خصّص ملف متجرك ومعلومات الاتصال.",
+      storeIdentity: "هوية المتجر",
+      logo: "الشعار",
+      storeLogo: "شعار المتجر",
+      logoHint: "JPG أو PNG أو WEBP. أقصى حجم 5 ميغا.",
+      shopName: "اسم المتجر",
+      shopNamePlaceholder: "متجر الأزياء الخاص بي",
+      contactInfo: "معلومات الاتصال",
+      phone: "رقم الهاتف",
+      phonePlaceholder: "0555123456",
+      email: "البريد الإلكتروني",
+      emailDisabled: "لا يمكن تغيير البريد الإلكتروني.",
+      locationInfo: "الموقع",
+      wilaya: "الولاية",
+      wilayaPlaceholder: "الجزائر",
+      commune: "البلدية",
+      communePlaceholder: "باب الوادي",
+      wilayaCommuneHint: "يجب إدخال الولاية والبلدية معاً.",
+      infoBanner: "تأكد من صحة المعلومات قبل الحفظ. اسم المتجر يجب أن يكون فريداً.",
+      saved: "تم حفظ الإعدادات!",
+      save: "حفظ الإعدادات",
+      errorShopName: "اسم المتجر مطلوب (3 أحرف على الأقل).",
+      errorWilayaCommune: "يجب إدخال الولاية والبلدية معاً.",
+    },
+    pendingPage: {
+      title: "الطلب قيد المراجعة",
+      hello: "مرحباً،",
+      message: "حساب البائع الخاص بك بانتظار موافقة الإدارة. سيتم إبلاغك فور مراجعة طلبك.",
+      step1: "تم إنشاء الحساب وتأكيد البريد",
+      step2: "الإدارة تراجع طلبك",
+      step3: "تمت الموافقة — دخول لوحة التحكم",
+      browseStore: "تصفح المتجر",
+      signOut: "تسجيل الخروج",
+    },
+    statusLabels: {
+      pending: "قيد الانتظار",
+      confirmed: "تم التأكيد",
+      shipped: "تم الشحن",
+      delivered: "تم التوصيل",
+      cancelled: "ملغى",
+    },
+  },
 };
 
 // ─── English ──────────────────────────────────────────────────────────────────
@@ -992,7 +1396,7 @@ export const en: Translations = {
     helpLinks: ["FAQ", "Shipping & Returns", "Size Guide", "Track Order", "Contact Us", "Gift Cards"],
     address: "15 Rue Didouche Mourad, Alger Centre, Algeria",
     phone: "+213 (0) 21 XX XX XX",
-    email: "hello@foda.dz",
+    email: "support@foda.foo",
     copyright: "© {year} Foda. All rights reserved. Made with ❤️ in Algeria.",
     privacy: "Privacy Policy",
     terms: "Terms of Service",
@@ -1261,6 +1665,208 @@ export const en: Translations = {
     signInTitle: "Sign in to view your wishlist",
     signInSub: "Log in to save your favourite products and access your wishlist.",
     loading: "Loading your wishlist…",
+  },
+  seller: {
+    layout: {
+      portal: "Seller Portal",
+      dashboard: "Dashboard",
+      myProducts: "My Products",
+      orders: "Orders",
+      storeSettings: "Store Settings",
+      visitStore: "Visit Store",
+      seller: "Seller",
+      signOut: "Sign Out",
+    },
+    dash: {
+      welcomeBack: "Welcome back,",
+      storePerformance: "Here's how your store is performing today.",
+      pending: "pending",
+      orders: "Orders",
+      addProduct: "Add Product",
+      totalRevenue: "Total Revenue",
+      fromDelivered: "From delivered orders",
+      totalOrders: "Total Orders",
+      ordersForProducts: "Orders for your products",
+      productsListed: "Products Listed",
+      activeMarketplace: "Active in the marketplace",
+      lowStock: "Low Stock",
+      itemsFewUnits: "Items with 5 or fewer units",
+      quickActions: "Quick Actions",
+      listNewProduct: "List a new product",
+      viewOrders: "View Orders",
+      manageOrders: "Manage your orders",
+      editProducts: "Edit Products",
+      updateListings: "Update listings",
+      configureStore: "Configure your store",
+      lowStockWarning: "Low stock warning",
+      lowStockDesc: "The following products have 5 or fewer units remaining:",
+      left: "left",
+      recentOrders: "Recent Orders",
+      viewAll: "View all",
+      orderId: "Order ID",
+      date: "Date",
+      items: "Items",
+      total: "Total",
+      status: "Status",
+      units: "unit(s)",
+      noOrdersYet: "No orders yet",
+      noOrdersDesc: "Orders for your products will appear here once customers start buying.",
+      addFirstProduct: "Add your first product",
+      orderStatus: "Order Status",
+      noDataYet: "No data yet",
+      noDataDesc: "Order analytics will appear here once you receive orders.",
+      delivered: "Delivered",
+      totalOrdersLabel: "Total orders",
+      profileCard: "Store Profile",
+      editSettings: "Edit Settings",
+      phone: "Phone:",
+      location: "Location:",
+      noPhone: "No phone added",
+      noLocation: "No location added",
+    },
+    form: {
+      addNewProduct: "Add New Product",
+      editProduct: "Edit Product",
+      addSubtitle: "Fill in the details to list a new product.",
+      editSubtitle: "Update the product details below.",
+      basicInfo: "Basic Info",
+      productName: "Product Name *",
+      productNamePlaceholder: "e.g. Robe Élégante",
+      category: "Category *",
+      catMen: "Men",
+      catWomen: "Women",
+      catKids: "Kids",
+      catAccessories: "Accessories",
+      catOther: "Other",
+      description: "Description",
+      descriptionPlaceholder: "Describe your product… (optional)",
+      pricingStock: "Pricing & Stock",
+      price: "Price (DZD) *",
+      stockQty: "Stock Quantity *",
+      productImages: "Product Images",
+      mainImage: "Main Image",
+      image: "Image",
+      clickUpload: "Click to upload",
+      fileTypes: "JPG · PNG · WEBP",
+      change: "Change",
+      availableSizes: "Available Sizes",
+      availableColors: "Available Colors",
+      required: "Required.",
+      validPrice: "Enter a valid price.",
+      validStock: "Enter a valid stock quantity.",
+      selectSize: "Select at least one size.",
+      selectColor: "Select at least one color.",
+      imageRequired: "At least one product image is required.",
+      productUpdated: "Product Updated!",
+      productAdded: "Product Added!",
+      saveChanges: "Save Changes",
+      publishProduct: "Publish Product",
+      cancel: "Cancel",
+      failedUpdate: "Failed to update product.",
+      failedAdd: "Failed to add product.",
+    },
+    productsList: {
+      title: "My Products",
+      listed: "listed",
+      addProduct: "Add Product",
+      noProducts: "No products yet",
+      noProductsDesc: "Add your first product to start selling on Foda.",
+      addFirstProduct: "Add First Product",
+      product: "Product",
+      category: "Category",
+      price: "Price",
+      stock: "Stock",
+      status: "Status",
+      actions: "Actions",
+      outOfStock: "Out of Stock",
+      lowStock: "Low Stock",
+      inStock: "In Stock",
+      units: "units",
+      edit: "Edit",
+      deleteLabel: "Delete",
+      deleteProduct: "Delete Product",
+      deleteConfirm: "Are you sure you want to delete",
+      deleteWarning: "This action cannot be undone.",
+      deleting: "Deleting…",
+      deleteBtn: "Delete",
+      cancel: "Cancel",
+      failedDelete: "Failed to delete product.",
+    },
+    ordersList: {
+      title: "Orders",
+      totalOrders: "total orders",
+      all: "All",
+      orderId: "Order ID",
+      customer: "Customer",
+      date: "Date",
+      items: "Items",
+      wilaya: "Wilaya",
+      total: "Total",
+      status: "Status",
+      updateStatus: "Update Status",
+      noOrders: "No orders",
+      noOrdersAll: "Orders for your products will appear here once customers start buying.",
+      noOrdersStatus: "You have no orders with the status \"{status}\".",
+      item: "item",
+      orderItems: "Order Items",
+      shippingDetails: "Shipping Details",
+      customerInfo: "Customer Info",
+      qty: "Qty:",
+      size: "Size:",
+      color: "Color:",
+      postal: "Postal:",
+      homeDelivery: "Home Delivery",
+      deskPickup: "Desk Pickup",
+      orderTotal: "Order Total",
+      search: "Search orders...",
+      sortNewest: "Newest first",
+      sortOldest: "Oldest first",
+      sortHighest: "Highest amount",
+      sortLowest: "Lowest amount",
+    },
+    settingsPage: {
+      title: "Store Settings",
+      subtitle: "Customize your store profile and contact information.",
+      storeIdentity: "Store Identity",
+      logo: "Logo",
+      storeLogo: "Store Logo",
+      logoHint: "JPG, PNG or WEBP. Max 5MB.",
+      shopName: "Shop Name",
+      shopNamePlaceholder: "My Fashion Store",
+      contactInfo: "Contact Information",
+      phone: "Phone Number",
+      phonePlaceholder: "0555123456",
+      email: "Email",
+      emailDisabled: "Email cannot be changed.",
+      locationInfo: "Location",
+      wilaya: "Wilaya",
+      wilayaPlaceholder: "Algiers",
+      commune: "Commune",
+      communePlaceholder: "Bab El Oued",
+      wilayaCommuneHint: "Wilaya and commune must be provided together.",
+      infoBanner: "Make sure your info is correct before saving. Shop name must be unique.",
+      saved: "Settings Saved!",
+      save: "Save Settings",
+      errorShopName: "Shop name is required (at least 3 characters).",
+      errorWilayaCommune: "Wilaya and commune must be provided together.",
+    },
+    pendingPage: {
+      title: "Application Under Review",
+      hello: "Hello,",
+      message: "Your seller account is pending admin approval. You'll be notified once your application is reviewed.",
+      step1: "Account created & email verified",
+      step2: "Admin reviews your application",
+      step3: "Approval granted — access dashboard",
+      browseStore: "Browse Store",
+      signOut: "Sign Out",
+    },
+    statusLabels: {
+      pending: "Pending",
+      confirmed: "Confirmed",
+      shipped: "Shipped",
+      delivered: "Delivered",
+      cancelled: "Cancelled",
+    },
   },
 };
 

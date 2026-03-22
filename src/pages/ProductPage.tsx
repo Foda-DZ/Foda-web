@@ -132,11 +132,16 @@ export default function ProductPage() {
       )
     : 0;
   const isOutOfStock = product ? product.stock === 0 : false;
-  const canAdd = !isOutOfStock && selectedSize && selectedColor;
+  const hasSizes = product ? product.sizes.length > 0 : false;
+  const hasColors = product ? product.colors.length > 0 : false;
+  const canAdd = !isOutOfStock && (!hasSizes || selectedSize) && (!hasColors || selectedColor);
 
   const handleAddToCart = () => {
-    if (!product || !selectedSize || !selectedColor) return;
-    addItem(product, selectedSize, selectedColor, quantity);
+    if (!product) return;
+    if (!user) { openLogin(); return; }
+    const sizeToAdd = selectedSize ?? "One Size";
+    const colorToAdd = selectedColor ?? "Default";
+    addItem(product, sizeToAdd, colorToAdd, quantity);
   };
 
   const handleBuyNow = () => {
@@ -158,7 +163,7 @@ export default function ProductPage() {
   if (loading) {
     return (
       <>
-        <div className="pt-32 pb-20 px-6 lg:px-12 max-w-7xl mx-auto">
+        <div className="pt-6 pb-20 px-6 lg:px-12 max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12">
             <div className="bg-[#F0EBE3] aspect-[3/4] max-h-[70vh] animate-pulse" />
             <div className="space-y-4">
@@ -181,7 +186,7 @@ export default function ProductPage() {
   if (error || !product) {
     return (
       <>
-        <div className="pt-32 pb-20 px-6 lg:px-12 max-w-7xl mx-auto text-center">
+        <div className="pt-6 pb-20 px-6 lg:px-12 max-w-7xl mx-auto text-center">
           <p className="text-[#1A1A2E]/60 text-lg">{tr.shop.noResults}</p>
           <button
             onClick={() => navigate("/shop")}
@@ -197,9 +202,9 @@ export default function ProductPage() {
 
   return (
     <>
-      <div className="pt-32 pb-20 px-6 lg:px-12 max-w-7xl mx-auto">
+      <div className="pt-6 pb-20 px-6 lg:px-12 max-w-7xl mx-auto">
         {/* ── Breadcrumb ── */}
-        <nav className="flex items-center gap-2 text-xs text-[#1A1A2E]/40 mb-8 overflow-x-auto whitespace-nowrap scrollbar-hide">
+        <nav className="flex items-center gap-2 text-xs text-[#1A1A2E]/40 mb-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
           <button
             onClick={() => navigate("/")}
             className="hover:text-[#C9A84C] transition-colors"
@@ -222,7 +227,7 @@ export default function ProductPage() {
         {/* ── Main grid ── */}
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Left: Image gallery */}
-          <div className="lg:sticky lg:top-28">
+          <div className="lg:sticky lg:top-4">
             <ImageGallery images={product.images} alt={product.name} />
           </div>
 
@@ -230,7 +235,7 @@ export default function ProductPage() {
           <div className="flex flex-col gap-5">
             {/* Category + seller */}
             <div className="flex items-center gap-3">
-              <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-[#C9A84C]">
+              <span className="inline-flex items-center px-3 py-1 bg-[#C9A84C]/10 text-[10px] font-bold tracking-[0.14em] uppercase text-[#C9A84C]">
                 {product.category}
               </span>
               {product.sellerName && (
@@ -255,39 +260,41 @@ export default function ProductPage() {
               </div>
             )}
 
-            {/* Price */}
-            <div className="flex items-baseline gap-3">
-              <span className="text-2xl font-bold text-[#1A1A2E]">
-                {product.price.toLocaleString()}{" "}
-                <span className="text-sm font-normal text-[#1A1A2E]/45">
-                  {tr.common.dzd}
+            {/* Price + Stock panel */}
+            <div className="bg-[#FAF7F2] border border-[#C9A84C]/10 px-5 py-4 space-y-2">
+              <div className="flex items-baseline gap-3">
+                <span className="text-2xl font-bold text-[#1A1A2E]">
+                  {product.price.toLocaleString()}{" "}
+                  <span className="text-sm font-normal text-[#1A1A2E]/45">
+                    {tr.common.dzd}
+                  </span>
                 </span>
-              </span>
-              {hasDiscount && (
-                <>
-                  <span className="text-lg text-[#1A1A2E]/30 line-through">
-                    {product.originalPrice!.toLocaleString()}
-                  </span>
-                  <span className="text-sm font-bold text-red-500">
-                    -{discountPercent}%
-                  </span>
-                </>
-              )}
+                {hasDiscount && (
+                  <>
+                    <span className="text-lg text-[#1A1A2E]/30 line-through">
+                      {product.originalPrice!.toLocaleString()}
+                    </span>
+                    <span className="text-sm font-bold text-red-500">
+                      -{discountPercent}%
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {/* Stock indicator */}
+              {isOutOfStock ? (
+                <span className="text-sm font-semibold text-red-500">
+                  {tr.shop.soldOut}
+                </span>
+              ) : product.stock <= 5 ? (
+                <span className="text-sm font-medium text-orange-500">
+                  {product.stock} {tr.shop.left}
+                </span>
+              ) : null}
             </div>
 
-            {/* Stock indicator */}
-            {isOutOfStock ? (
-              <span className="text-sm font-semibold text-red-500">
-                {tr.shop.soldOut}
-              </span>
-            ) : product.stock <= 5 ? (
-              <span className="text-sm font-medium text-orange-500">
-                {product.stock} {tr.shop.left}
-              </span>
-            ) : null}
-
             {/* Divider */}
-            <div className="h-px bg-[#1A1A2E]/8" />
+            <div className="h-px bg-gradient-to-r from-transparent via-[#C9A84C]/20 to-transparent" />
 
             {/* Size selector */}
             {product.sizes.length > 0 && (
@@ -323,17 +330,21 @@ export default function ProductPage() {
                 </p>
                 <div className="flex flex-wrap gap-3">
                   {product.colors.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setSelectedColor(c)}
-                      title={c}
-                      className={`w-8 h-8 rounded-full flex-shrink-0 transition-all duration-200 ${
-                        selectedColor === c
-                          ? "ring-2 ring-[#C9A84C] ring-offset-2"
-                          : "ring-1 ring-inset ring-black/15 hover:ring-black/30"
-                      }`}
-                      style={{ backgroundColor: colorToHex(c) }}
-                    />
+                    <div key={c} className="flex flex-col items-center gap-1">
+                      <button
+                        onClick={() => setSelectedColor(c)}
+                        title={c}
+                        className={`w-8 h-8 rounded-full flex-shrink-0 transition-all duration-200 ${
+                          selectedColor === c
+                            ? "ring-2 ring-[#C9A84C] ring-offset-2"
+                            : "ring-1 ring-inset ring-black/15 hover:ring-black/30"
+                        }`}
+                        style={{ backgroundColor: colorToHex(c) }}
+                      />
+                      <span className="text-[9px] text-[#1A1A2E]/40 capitalize">
+                        {c}
+                      </span>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -371,7 +382,7 @@ export default function ProductPage() {
                 <button
                   onClick={handleAddToCart}
                   disabled={!canAdd}
-                  className="flex-1 flex items-center justify-center gap-2 btn-dark py-3.5 text-sm font-semibold tracking-wider disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center gap-2 btn-dark h-13 text-sm font-semibold tracking-wider hover:scale-[1.01] transition-transform disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   <ShoppingBagIcon sx={{ fontSize: 18 }} />
                   {tr.productPage.addToCart}
@@ -379,7 +390,7 @@ export default function ProductPage() {
                 <button
                   onClick={handleBuyNow}
                   disabled={!canAdd}
-                  className="flex-1 flex items-center justify-center gap-2 gold-gradient text-[#1A1A2E] py-3.5 text-sm font-bold tracking-wider hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center gap-2 gold-gradient text-[#1A1A2E] h-13 text-sm font-bold tracking-wider hover:opacity-90 hover:scale-[1.01] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   <FlashOnIcon sx={{ fontSize: 18 }} />
                   {tr.productPage.buyNow}
@@ -387,7 +398,7 @@ export default function ProductPage() {
               </div>
               <button
                 onClick={toggleWishlist}
-                className="w-full sm:w-13 h-13 flex items-center justify-center border-2 border-[#1A1A2E]/12 hover:border-[#C9A84C] transition-colors"
+                className="w-full sm:w-13 h-13 flex items-center justify-center border-2 border-[#1A1A2E]/12 hover:border-[#C9A84C] hover:scale-[1.04] transition-all"
               >
                 {wishlisted ? (
                   <FavoriteIcon sx={{ fontSize: 20, color: "#ef4444" }} />
@@ -408,9 +419,9 @@ export default function ProductPage() {
               ].map(({ Icon, label }) => (
                 <div
                   key={label}
-                  className="flex flex-col items-center gap-1.5 py-3 bg-[#FAF7F2] border border-[#C9A84C]/10"
+                  className="flex flex-col items-center gap-1.5 py-3 bg-[#FAF7F2] border border-[#C9A84C]/10 border-l-2 border-l-[#C9A84C]/30"
                 >
-                  <Icon sx={{ fontSize: 18, color: "#C9A84C" }} />
+                  <Icon sx={{ fontSize: 20, color: "#C9A84C" }} />
                   <span className="text-[10px] font-medium text-[#1A1A2E]/60 text-center leading-tight">
                     {label}
                   </span>
@@ -434,7 +445,8 @@ export default function ProductPage() {
 
         {/* ── Related Products ── */}
         {related.length > 0 && (
-          <section className="mt-20">
+          <section className="mt-14">
+            <div className="h-px bg-gradient-to-r from-transparent via-[#C9A84C]/20 to-transparent mb-10" />
             <h2 className="font-display text-2xl font-bold text-[#1A1A2E] mb-8">
               {tr.productPage.youMayAlsoLike}
             </h2>

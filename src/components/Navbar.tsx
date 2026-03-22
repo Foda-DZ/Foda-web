@@ -111,7 +111,7 @@ export default function Navbar() {
   ];
 
   const handleNavLink = (href: string) => {
-    navigate(href);
+    navigate(href, { state: { scrollToProducts: true } });
   };
 
   // Auth popup hover handlers (logged-out state)

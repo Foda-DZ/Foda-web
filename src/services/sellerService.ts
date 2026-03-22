@@ -1,5 +1,5 @@
 import api from "../lib/api";
-import type { ApiProduct, ApiOrder, ApiOrderStatus } from "../types/api";
+import type { ApiProduct, ApiOrder, ApiOrderStatus, ApiSellerSettingsResponse } from "../types/api";
 
 export interface AddProductPayload {
   name: string;
@@ -18,8 +18,8 @@ export interface UpdateProductPayload {
   stock: number;
   category: string;
   description?: string;
-  sizes: string;
-  colors: string;
+  sizes: string[];
+  colors: string[];
 }
 
 export const sellerService = {
@@ -65,4 +65,24 @@ export const sellerService = {
     api
       .put<{ message: string }>(`/seller/orders/${id}`, { status })
       .then((r) => r.data),
+
+  updateSettings: (payload: {
+    shopName?: string;
+    phone?: number;
+    wilaya?: string;
+    commune?: string;
+    logo?: File;
+  }) => {
+    const form = new FormData();
+    if (payload.shopName !== undefined) form.append("shopName", payload.shopName);
+    if (payload.phone !== undefined) form.append("phone", String(payload.phone));
+    if (payload.wilaya !== undefined) form.append("wilaya", payload.wilaya);
+    if (payload.commune !== undefined) form.append("commune", payload.commune);
+    if (payload.logo) form.append("logo", payload.logo);
+    return api
+      .put<ApiSellerSettingsResponse>("/seller/settings", form, {
+        headers: { "Content-Type": undefined },
+      })
+      .then((r) => r.data);
+  },
 };

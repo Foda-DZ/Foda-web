@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import GridViewIcon from "@mui/icons-material/GridView";
 import ViewListIcon from "@mui/icons-material/ViewList";
@@ -13,6 +13,7 @@ import Fuse from "fuse.js";
 import {
   useNavigate,
   useSearchParams,
+  useLocation,
 } from "react-router-dom";
 import { categories } from "../data/products";
 import type { Product } from "../types";
@@ -34,8 +35,10 @@ const ITEMS_PER_PAGE = 12;
 
 export default function ShopPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { tr } = useLang();
   const [searchParams, setSearchParams] = useSearchParams();
+  const productsRef = useRef<HTMLDivElement>(null);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,6 +118,18 @@ export default function ShopPage() {
     const s = searchParams.get("search");
     if (s) setSearch(s);
   }, [searchParams]);
+
+  // Scroll to products section when navigating from navbar category links
+  useEffect(() => {
+    if (location.state?.scrollToProducts && productsRef.current) {
+      // Small delay to let the layout settle after navigation
+      setTimeout(() => {
+        productsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+      // Clear the state so back-navigation doesn't re-trigger
+      window.history.replaceState({}, "");
+    }
+  }, [location.state]);
 
   // Available filter options
   const availableSizes = useMemo(() => {
@@ -298,7 +313,7 @@ export default function ShopPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-8">
+      <div ref={productsRef} className="max-w-7xl mx-auto px-6 lg:px-12 py-8">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1 relative">

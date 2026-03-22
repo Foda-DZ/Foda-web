@@ -45,6 +45,13 @@ function SellerIndexRedirect() {
   return <Navigate to="/seller/dashboard" replace />;
 }
 
+/** Logged-in sellers landing on "/" get sent to their dashboard */
+function HomeOrSellerRedirect() {
+  const { user } = useAuth();
+  if (user?.role === "seller") return <Navigate to="/seller/dashboard" replace />;
+  return <HomePage />;
+}
+
 /** Only sellers can access seller routes */
 function RequireSeller({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -67,7 +74,7 @@ export default function App() {
               <Routes>
                 {/* ── Buyer routes (with buyer Navbar/Footer layout) ── */}
                 <Route element={<Layout />}>
-                  <Route index element={<HomePage />} />
+                  <Route index element={<HomeOrSellerRedirect />} />
                   <Route path="shop" element={<ShopPage />} />
                   <Route path="product/:id" element={<ProductPage />} />
                   <Route path="wishlist" element={<WishlistPage />} />
