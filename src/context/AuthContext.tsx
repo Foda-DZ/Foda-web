@@ -11,8 +11,16 @@ interface AuthContextValue {
   user: SessionUser | null;
   authModal: AuthModalView;
   pendingEmail: string | null;
-  openLogin: () => void;
-  openRegister: () => void;
+  authCustomerOnly: boolean;
+  authRedirectTo: string | null;
+  openLogin: (options?: {
+    customerOnly?: boolean;
+    redirectTo?: string;
+  }) => void;
+  openRegister: (options?: {
+    customerOnly?: boolean;
+    redirectTo?: string;
+  }) => void;
   openReset: () => void;
   closeAuth: () => void;
   registerCustomer: (params: {
@@ -95,13 +103,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(getSession);
   const [authModal, setAuthModal] = useState<AuthModalView>(null);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [authCustomerOnly, setAuthCustomerOnly] = useState(false);
+  const [authRedirectTo, setAuthRedirectTo] = useState<string | null>(null);
 
-  const openLogin = useCallback(() => setAuthModal("login"), []);
-  const openRegister = useCallback(() => setAuthModal("register"), []);
+  const openLogin = useCallback(
+    (options?: { customerOnly?: boolean; redirectTo?: string }) => {
+      setAuthCustomerOnly(Boolean(options?.customerOnly));
+      setAuthRedirectTo(options?.redirectTo ?? null);
+      setAuthModal("login");
+    },
+    [],
+  );
+  const openRegister = useCallback(
+    (options?: { customerOnly?: boolean; redirectTo?: string }) => {
+      setAuthCustomerOnly(Boolean(options?.customerOnly));
+      setAuthRedirectTo(options?.redirectTo ?? null);
+      setAuthModal("register");
+    },
+    [],
+  );
   const openReset = useCallback(() => setAuthModal("reset"), []);
   const closeAuth = useCallback(() => {
     setAuthModal(null);
     setPendingEmail(null);
+    setAuthCustomerOnly(false);
+    setAuthRedirectTo(null);
   }, []);
 
   // ── Register Customer ──────────────────────────────────────────────────────
@@ -231,6 +257,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         authModal,
         pendingEmail,
+        authCustomerOnly,
+        authRedirectTo,
         openLogin,
         openRegister,
         openReset,

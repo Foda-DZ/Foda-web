@@ -80,6 +80,42 @@ export interface ApiReview {
   updatedAt: string;
 }
 
+export interface ApiProductReviewCustomer {
+  _id: string;
+  fullName: string;
+}
+
+export interface ApiProductReview {
+  _id: string;
+  customerId: ApiProductReviewCustomer;
+  productId: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiProductReviewsResponse {
+  reviews: ApiProductReview[];
+}
+
+export interface ApiProductSharePlatforms {
+  whatsapp: string;
+  facebook: string;
+  telegram: string;
+  instagram: string;
+}
+
+export interface ApiProductShare {
+  productUrl: string;
+  platforms: ApiProductSharePlatforms;
+}
+
+export interface ApiProductShareResponse {
+  message: string;
+  share: ApiProductShare;
+}
+
 // ─── Cart ─────────────────────────────────────────────────────────────────────
 export interface ApiCartItem {
   productId: string;

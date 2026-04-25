@@ -15,6 +15,7 @@ import { useNavigate, Navigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
+import wilayasData from "../data/wilayas.json";
 import { cartService } from "../services/cartService";
 import type { CartItem } from "../types";
 import type { ApiShippingDetails, ApiOrder } from "../types/api";
@@ -23,23 +24,32 @@ import TextInput from "../components/ui/TextInput";
 import Button from "../components/ui/Button";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const WILAYAS = [
-  "01 - Adrar", "02 - Chlef", "03 - Laghouat", "04 - Oum El Bouaghi",
-  "05 - Batna", "06 - Béjaïa", "07 - Biskra", "08 - Béchar", "09 - Blida",
-  "10 - Bouira", "11 - Tamanrasset", "12 - Tébessa", "13 - Tlemcen",
-  "14 - Tiaret", "15 - Tizi Ouzou", "16 - Alger", "17 - Djelfa",
-  "18 - Jijel", "19 - Sétif", "20 - Saïda", "21 - Skikda",
-  "22 - Sidi Bel Abbès", "23 - Annaba", "24 - Guelma", "25 - Constantine",
-  "26 - Médéa", "27 - Mostaganem", "28 - M'Sila", "29 - Mascara",
-  "30 - Ouargla", "31 - Oran", "32 - El Bayadh", "33 - Illizi",
-  "34 - Bordj Bou Arréridj", "35 - Boumerdès", "36 - El Tarf",
-  "37 - Tindouf", "38 - Tissemsilt", "39 - El Oued", "40 - Khenchela",
-  "41 - Souk Ahras", "42 - Tipaza", "43 - Mila", "44 - Aïn Defla",
-  "45 - Naâma", "46 - Aïn Témouchent", "47 - Ghardaïa", "48 - Relizane",
-  "49 - El M'Ghair", "50 - El Menia", "51 - Ouled Djellal",
-  "52 - Bordj Badji Mokhtar", "53 - Béni Abbès", "54 - Timimoun",
-  "55 - Touggourt", "56 - Djanet", "57 - In Salah", "58 - In Guezzam",
-];
+type WilayaEntry = {
+  wilayaCode: number;
+  nameFr: string;
+  nameAr: string;
+  communes: Array<{
+    id: number;
+    nameFr: string;
+    nameAr: string;
+  }>;
+};
+
+const WILAYAS_DATA = wilayasData as WilayaEntry[];
+
+const WILAYAS = WILAYAS_DATA.slice()
+  .sort((a, b) => a.wilayaCode - b.wilayaCode)
+  .map((wilaya) => ({
+    code: wilaya.wilayaCode,
+    nameFr: wilaya.nameFr,
+    nameAr: wilaya.nameAr,
+    value: `${String(wilaya.wilayaCode).padStart(2, "0")} - ${wilaya.nameFr}`,
+  }));
+
+function getWilayaCode(wilayaLabel: string): number {
+  const code = Number(wilayaLabel.split("-")[0]?.trim());
+  return Number.isFinite(code) ? code : 0;
+}
 
 const SHIPPING_THRESHOLD = 5000;
 const STEPS = ["Shipping", "Payment", "Review"] as const;
@@ -65,14 +75,22 @@ interface PaymentInfo {
 
 // ─── Order Summary ────────────────────────────────────────────────────────────
 function OrderSummary({
-  items, subtotal, shipping, total,
+  items,
+  subtotal,
+  shipping,
+  total,
 }: {
-  items: CartItem[]; subtotal: number; shipping: number; total: number;
+  items: CartItem[];
+  subtotal: number;
+  shipping: number;
+  total: number;
 }) {
   const { tr } = useLang();
   return (
     <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-5 lg:sticky lg:top-28">
-      <h3 className="font-display font-bold text-[#1A1A2E] text-lg">{tr.checkout.orderSummary}</h3>
+      <h3 className="font-display font-bold text-[#1A1A2E] text-lg">
+        {tr.checkout.orderSummary}
+      </h3>
       <div className="space-y-3 max-h-60 overflow-y-auto pe-1">
         {items.map((item) => (
           <div key={item.key} className="flex gap-3">
@@ -103,12 +121,18 @@ function OrderSummary({
       <div className="border-t border-[#1A1A2E]/8 pt-4 space-y-2">
         <div className="flex justify-between text-sm text-[#1A1A2E]/60">
           <span>{tr.checkout.subtotal}</span>
-          <span>{subtotal.toLocaleString()} {tr.common.dzd}</span>
+          <span>
+            {subtotal.toLocaleString()} {tr.common.dzd}
+          </span>
         </div>
         <div className="flex justify-between text-sm text-[#1A1A2E]/60">
           <span>{tr.checkout.shipping}</span>
-          <span className={shipping === 0 ? "text-[#C9A84C] font-semibold" : ""}>
-            {shipping === 0 ? tr.checkout.freeShipping : `${shipping.toLocaleString()} ${tr.common.dzd}`}
+          <span
+            className={shipping === 0 ? "text-[#C9A84C] font-semibold" : ""}
+          >
+            {shipping === 0
+              ? tr.checkout.freeShipping
+              : `${shipping.toLocaleString()} ${tr.common.dzd}`}
           </span>
         </div>
         <div className="h-px bg-[#1A1A2E]/8" />
@@ -124,8 +148,12 @@ function OrderSummary({
           { Icon: SecurityIcon, text: "Secure checkout" },
           { Icon: LocalShippingIcon, text: "Delivery across all 58 wilayas" },
         ].map(({ Icon, text }) => (
-          <div key={text} className="flex items-center gap-2 text-xs text-[#1A1A2E]/40">
-            <Icon sx={{ fontSize: 13, color: "#C9A84C", flexShrink: 0 }} /> {text}
+          <div
+            key={text}
+            className="flex items-center gap-2 text-xs text-[#1A1A2E]/40"
+          >
+            <Icon sx={{ fontSize: 13, color: "#C9A84C", flexShrink: 0 }} />{" "}
+            {text}
           </div>
         ))}
       </div>
@@ -135,7 +163,10 @@ function OrderSummary({
 
 // ─── Delivery Form ────────────────────────────────────────────────────────────
 function DeliveryForm({
-  info, setInfo, errors, onNext,
+  info,
+  setInfo,
+  errors,
+  onNext,
 }: {
   info: DeliveryInfo;
   setInfo: React.Dispatch<React.SetStateAction<DeliveryInfo>>;
@@ -145,6 +176,30 @@ function DeliveryForm({
   const { tr } = useLang();
   const set = (key: keyof DeliveryInfo) => (val: string) =>
     setInfo((f) => ({ ...f, [key]: val }));
+
+  const wilayaOptions = WILAYAS.map((wilaya) => ({
+    code: wilaya.code,
+    value: wilaya.value,
+    label: `${String(wilaya.code).padStart(2, "0")} - ${tr.dir === "rtl" ? wilaya.nameAr || wilaya.nameFr : wilaya.nameFr}`,
+  }));
+
+  const selectedWilayaCode = getWilayaCode(info.wilaya);
+  const selectedWilaya = WILAYAS_DATA.find(
+    (wilaya) => wilaya.wilayaCode === selectedWilayaCode,
+  );
+  const communeOptions = selectedWilaya
+    ? selectedWilaya.communes.map((commune) =>
+        tr.dir === "rtl" ? commune.nameAr || commune.nameFr : commune.nameFr,
+      )
+    : [];
+
+  const handleWilayaChange = (nextWilaya: string) => {
+    setInfo((f) => ({
+      ...f,
+      wilaya: nextWilaya,
+      commune: "",
+    }));
+  };
 
   return (
     <div className="space-y-6">
@@ -161,10 +216,20 @@ function DeliveryForm({
           Shipping Method
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {([
-            { value: "home_delivery" as const, label: "Home Delivery", sub: "Delivered to your door", Icon: HomeIcon },
-            { value: "desk_pickup" as const, label: "Desk Pickup", sub: "Pick up at delivery desk", Icon: BusinessIcon },
-          ]).map(({ value, label, sub, Icon }) => (
+          {[
+            {
+              value: "home_delivery" as const,
+              label: "Home Delivery",
+              sub: "Delivered to your door",
+              Icon: HomeIcon,
+            },
+            {
+              value: "desk_pickup" as const,
+              label: "Desk Pickup",
+              sub: "Pick up at delivery desk",
+              Icon: BusinessIcon,
+            },
+          ].map(({ value, label, sub, Icon }) => (
             <button
               key={value}
               type="button"
@@ -175,16 +240,23 @@ function DeliveryForm({
                   : "border-[#1A1A2E]/10 hover:border-[#C9A84C]/40"
               }`}
             >
-              <div className={`w-9 h-9 flex items-center justify-center flex-shrink-0 ${info.shippingType === value ? "gold-gradient" : "bg-[#F0EBE3]"}`}>
+              <div
+                className={`w-9 h-9 flex items-center justify-center flex-shrink-0 ${info.shippingType === value ? "gold-gradient" : "bg-[#F0EBE3]"}`}
+              >
                 <Icon
                   sx={{
                     fontSize: 16,
-                    color: info.shippingType === value ? "#1A1A2E" : "rgba(26,26,46,0.5)",
+                    color:
+                      info.shippingType === value
+                        ? "#1A1A2E"
+                        : "rgba(26,26,46,0.5)",
                   }}
                 />
               </div>
               <div>
-                <p className={`font-semibold text-sm ${info.shippingType === value ? "text-[#1A1A2E]" : "text-[#1A1A2E]/60"}`}>
+                <p
+                  className={`font-semibold text-sm ${info.shippingType === value ? "text-[#1A1A2E]" : "text-[#1A1A2E]/60"}`}
+                >
                   {label}
                 </p>
                 <p className="text-[#1A1A2E]/40 text-xs">{sub}</p>
@@ -196,7 +268,9 @@ function DeliveryForm({
 
       {/* Contact */}
       <div className="space-y-4">
-        <p className="text-xs font-semibold tracking-widest uppercase text-[#C9A84C]">Contact</p>
+        <p className="text-xs font-semibold tracking-widest uppercase text-[#C9A84C]">
+          Contact
+        </p>
         <Field label={tr.checkout.phone} error={errors.phone}>
           <TextInput
             type="tel"
@@ -219,28 +293,49 @@ function DeliveryForm({
           </label>
           <select
             value={info.wilaya}
-            onChange={(e) => set("wilaya")(e.target.value)}
+            onChange={(e) => handleWilayaChange(e.target.value)}
             className={`w-full border bg-white py-2.5 px-3 text-sm text-[#1A1A2E] focus:outline-none transition-colors appearance-none cursor-pointer ${
               errors.wilaya
                 ? "border-red-400"
                 : "border-[#1A1A2E]/15 focus:border-[#C9A84C]"
-            } ${!info.wilaya ? "text-[#1A1A2E]/40" : ""}`}
+            } ${
+              !info.wilaya
+                ? "text-[#1A1A2E]/70 font-medium"
+                : "text-[#1A1A2E] font-semibold"
+            }`}
           >
             <option value="">{tr.checkout.selectWilaya}</option>
-            {WILAYAS.map((w) => (
-              <option key={w} value={w}>{w}</option>
+            {wilayaOptions.map((wilaya) => (
+              <option key={wilaya.code} value={wilaya.value}>
+                {wilaya.label}
+              </option>
             ))}
           </select>
-          {errors.wilaya && <p className="mt-1.5 text-xs text-red-500">{errors.wilaya}</p>}
+          {errors.wilaya && (
+            <p className="mt-1.5 text-xs text-red-500">{errors.wilaya}</p>
+          )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Commune" error={errors.commune}>
-            <TextInput
+            <select
               value={info.commune}
-              onChange={set("commune")}
-              placeholder="Bab El Oued"
-              error={errors.commune}
-            />
+              onChange={(e) => set("commune")(e.target.value)}
+              disabled={!info.wilaya}
+              className={`w-full border bg-white py-2.5 px-3 text-sm text-[#1A1A2E] focus:outline-none transition-colors appearance-none cursor-pointer ${
+                errors.commune
+                  ? "border-red-400"
+                  : "border-[#1A1A2E]/15 focus:border-[#C9A84C]"
+              } ${!info.wilaya ? "opacity-60 cursor-not-allowed" : ""}`}
+            >
+              <option value="">
+                {tr.dir === "rtl" ? "اختر البلدية" : "Select commune"}
+              </option>
+              {communeOptions.map((commune) => (
+                <option key={commune} value={commune}>
+                  {commune}
+                </option>
+              ))}
+            </select>
           </Field>
           <Field label="Postal Code (optional)">
             <TextInput
@@ -261,7 +356,11 @@ function DeliveryForm({
 
 // ─── Payment Form ──────────────────────────────────────────────────────────────
 function formatCard(val: string) {
-  return val.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
+  return val
+    .replace(/\D/g, "")
+    .slice(0, 16)
+    .replace(/(.{4})/g, "$1 ")
+    .trim();
 }
 function formatExpiry(val: string) {
   const d = val.replace(/\D/g, "").slice(0, 4);
@@ -269,7 +368,11 @@ function formatExpiry(val: string) {
 }
 
 function PaymentForm({
-  payment, setPayment, errors, onNext, onBack,
+  payment,
+  setPayment,
+  errors,
+  onNext,
+  onBack,
 }: {
   payment: PaymentInfo;
   setPayment: React.Dispatch<React.SetStateAction<PaymentInfo>>;
@@ -282,9 +385,27 @@ function PaymentForm({
     setPayment((f) => ({ ...f, [key]: val }));
 
   const paymentMethods = [
-    { id: "cod" as const, label: tr.checkout.cod, sub: tr.checkout.codSub, Icon: LocalShippingIcon, disabled: false },
-    { id: "cib" as const, label: tr.checkout.cib, sub: tr.checkout.comingSoon, Icon: CreditCardIcon, disabled: true },
-    { id: "baridimob" as const, label: tr.checkout.baridimob, sub: tr.checkout.comingSoon, Icon: SmartphoneIcon, disabled: true },
+    {
+      id: "cod" as const,
+      label: tr.checkout.cod,
+      sub: tr.checkout.codSub,
+      Icon: LocalShippingIcon,
+      disabled: false,
+    },
+    {
+      id: "cib" as const,
+      label: tr.checkout.cib,
+      sub: tr.checkout.comingSoon,
+      Icon: CreditCardIcon,
+      disabled: true,
+    },
+    {
+      id: "baridimob" as const,
+      label: tr.checkout.baridimob,
+      sub: tr.checkout.comingSoon,
+      Icon: SmartphoneIcon,
+      disabled: true,
+    },
   ];
 
   return (
@@ -309,11 +430,23 @@ function PaymentForm({
                   : "border-[#1A1A2E]/10 hover:border-[#C9A84C]/40"
             }`}
           >
-            <div className={`w-10 h-10 flex items-center justify-center flex-shrink-0 ${!disabled && payment.method === id ? "gold-gradient" : "bg-[#F0EBE3]"}`}>
-              <Icon sx={{ fontSize: 18, color: !disabled && payment.method === id ? "#1A1A2E" : "rgba(26,26,46,0.5)" }} />
+            <div
+              className={`w-10 h-10 flex items-center justify-center flex-shrink-0 ${!disabled && payment.method === id ? "gold-gradient" : "bg-[#F0EBE3]"}`}
+            >
+              <Icon
+                sx={{
+                  fontSize: 18,
+                  color:
+                    !disabled && payment.method === id
+                      ? "#1A1A2E"
+                      : "rgba(26,26,46,0.5)",
+                }}
+              />
             </div>
             <div className="flex-1">
-              <p className={`font-semibold text-sm ${!disabled && payment.method === id ? "text-[#1A1A2E]" : "text-[#1A1A2E]/70"}`}>
+              <p
+                className={`font-semibold text-sm ${!disabled && payment.method === id ? "text-[#1A1A2E]" : "text-[#1A1A2E]/70"}`}
+              >
                 {label}
                 {disabled && (
                   <span className="ms-2 text-[10px] font-bold tracking-widest uppercase text-[#C9A84C] bg-[#C9A84C]/10 px-2 py-0.5">
@@ -323,14 +456,18 @@ function PaymentForm({
               </p>
               {!disabled && <p className="text-[#1A1A2E]/40 text-xs">{sub}</p>}
             </div>
-            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-              disabled
-                ? "border-[#1A1A2E]/10"
-                : payment.method === id
-                  ? "border-[#C9A84C] bg-[#C9A84C]"
-                  : "border-[#1A1A2E]/20"
-            }`}>
-              {!disabled && payment.method === id && <div className="w-2 h-2 rounded-full bg-[#1A1A2E]" />}
+            <div
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                disabled
+                  ? "border-[#1A1A2E]/10"
+                  : payment.method === id
+                    ? "border-[#C9A84C] bg-[#C9A84C]"
+                    : "border-[#1A1A2E]/20"
+              }`}
+            >
+              {!disabled && payment.method === id && (
+                <div className="w-2 h-2 rounded-full bg-[#1A1A2E]" />
+              )}
             </div>
           </button>
         ))}
@@ -339,8 +476,8 @@ function PaymentForm({
       {payment.method === "cod" && (
         <div className="bg-[#F5F0E8] p-4 border border-[#C9A84C]/20">
           <p className="text-sm text-[#1A1A2E]/60 leading-relaxed">
-            Pay in cash when your delivery arrives. A 750 {tr.common.dzd} delivery fee applies for
-            orders under 5,000 {tr.common.dzd}.
+            Pay in cash when your delivery arrives. A 750 {tr.common.dzd}{" "}
+            delivery fee applies for orders under 5,000 {tr.common.dzd}.
           </p>
         </div>
       )}
@@ -359,7 +496,16 @@ function PaymentForm({
 
 // ─── Review & Confirm Step ───────────────────────────────────────────────────
 function ReviewConfirmStep({
-  info, payment, items, subtotal, shipping, total, onPlace, onBack, placing, placeError,
+  info,
+  payment,
+  items,
+  subtotal,
+  shipping,
+  total,
+  onPlace,
+  onBack,
+  placing,
+  placeError,
 }: {
   info: DeliveryInfo;
   payment: PaymentInfo;
@@ -374,7 +520,9 @@ function ReviewConfirmStep({
 }) {
   const { tr } = useLang();
   const methodLabels: Record<PaymentMethod, string> = {
-    cod: tr.checkout.cod, cib: tr.checkout.cib, baridimob: tr.checkout.baridimob,
+    cod: tr.checkout.cod,
+    cib: tr.checkout.cib,
+    baridimob: tr.checkout.baridimob,
   };
 
   return (
@@ -389,13 +537,18 @@ function ReviewConfirmStep({
       {/* Delivery info */}
       <div className="bg-white border border-[#1A1A2E]/8 p-5 space-y-3">
         <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/50 flex items-center gap-2">
-          <LocationOnIcon sx={{ fontSize: 12, color: "#C9A84C" }} /> {tr.checkout.deliveryInfo}
+          <LocationOnIcon sx={{ fontSize: 12, color: "#C9A84C" }} />{" "}
+          {tr.checkout.deliveryInfo}
         </p>
         <div className="text-sm text-[#1A1A2E]/70 space-y-0.5">
           <p className="font-semibold text-[#1A1A2E] capitalize">
-            {info.shippingType === "home_delivery" ? "Home Delivery" : "Desk Pickup"}
+            {info.shippingType === "home_delivery"
+              ? "Home Delivery"
+              : "Desk Pickup"}
           </p>
-          <p>{info.commune}, {info.wilaya}</p>
+          <p>
+            {info.commune}, {info.wilaya}
+          </p>
           {info.postalCode && <p>Postal: {info.postalCode}</p>}
           <p>{info.phone}</p>
         </div>
@@ -404,9 +557,12 @@ function ReviewConfirmStep({
       {/* Payment method */}
       <div className="bg-white border border-[#1A1A2E]/8 p-5 space-y-3">
         <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/50 flex items-center gap-2">
-          <CreditCardIcon sx={{ fontSize: 12, color: "#C9A84C" }} /> {tr.checkout.paymentMethod}
+          <CreditCardIcon sx={{ fontSize: 12, color: "#C9A84C" }} />{" "}
+          {tr.checkout.paymentMethod}
         </p>
-        <p className="text-sm text-[#1A1A2E]/70">{methodLabels[payment.method]}</p>
+        <p className="text-sm text-[#1A1A2E]/70">
+          {methodLabels[payment.method]}
+        </p>
       </div>
 
       {/* Order items */}
@@ -417,14 +573,26 @@ function ReviewConfirmStep({
         </p>
         <div className="space-y-3">
           {items.map((item) => (
-            <div key={item.key} className="flex justify-between items-center text-sm">
+            <div
+              key={item.key}
+              className="flex justify-between items-center text-sm"
+            >
               <div>
-                <span className="text-[#1A1A2E] font-medium">{item.product.name}</span>
-                <span className="text-[#1A1A2E]/40 ms-2">&times; {item.quantity}</span>
-                {item.size && <span className="text-[#1A1A2E]/40 text-xs ms-1">({item.size})</span>}
+                <span className="text-[#1A1A2E] font-medium">
+                  {item.product.name}
+                </span>
+                <span className="text-[#1A1A2E]/40 ms-2">
+                  &times; {item.quantity}
+                </span>
+                {item.size && (
+                  <span className="text-[#1A1A2E]/40 text-xs ms-1">
+                    ({item.size})
+                  </span>
+                )}
               </div>
               <span className="font-semibold text-[#1A1A2E]">
-                {(item.product.price * item.quantity).toLocaleString()} {tr.common.dzd}
+                {(item.product.price * item.quantity).toLocaleString()}{" "}
+                {tr.common.dzd}
               </span>
             </div>
           ))}
@@ -432,7 +600,9 @@ function ReviewConfirmStep({
         <div className="border-t border-[#1A1A2E]/8 pt-3 space-y-1.5">
           <div className="flex justify-between text-sm text-[#1A1A2E]/50">
             <span>{tr.checkout.subtotal}</span>
-            <span>{subtotal.toLocaleString()} {tr.common.dzd}</span>
+            <span>
+              {subtotal.toLocaleString()} {tr.common.dzd}
+            </span>
           </div>
           <div className="flex justify-between text-sm text-[#1A1A2E]/50">
             <span>{tr.checkout.shipping}</span>
@@ -444,7 +614,9 @@ function ReviewConfirmStep({
           </div>
           <div className="flex justify-between font-bold text-base border-t border-[#1A1A2E]/8 pt-2 mt-2">
             <span className="text-[#1A1A2E]">{tr.checkout.total}</span>
-            <span className="gold-text font-display">{total.toLocaleString()} {tr.common.dzd}</span>
+            <span className="gold-text font-display">
+              {total.toLocaleString()} {tr.common.dzd}
+            </span>
           </div>
         </div>
       </div>
@@ -457,7 +629,12 @@ function ReviewConfirmStep({
       )}
 
       <div className="flex flex-col sm:flex-row gap-3">
-        <Button variant="outline-gold" onClick={onBack} disabled={placing} className="h-11 gap-2">
+        <Button
+          variant="outline-gold"
+          onClick={onBack}
+          disabled={placing}
+          className="h-11 gap-2"
+        >
           <ArrowBackIcon sx={{ fontSize: 15 }} /> {tr.common.back}
         </Button>
         <Button
@@ -465,7 +642,8 @@ function ReviewConfirmStep({
           loading={placing}
           className="h-11 flex-1 gap-2"
         >
-          {tr.checkout.placeOrder} &middot; {total.toLocaleString()} {tr.common.dzd}
+          {tr.checkout.placeOrder} &middot; {total.toLocaleString()}{" "}
+          {tr.common.dzd}
           <ArrowForwardIcon sx={{ fontSize: 15 }} />
         </Button>
       </div>
@@ -475,7 +653,10 @@ function ReviewConfirmStep({
 
 // ─── Order Success ────────────────────────────────────────────────────────────
 function OrderSuccess({
-  orders, method, onHome, onViewOrders,
+  orders,
+  method,
+  onHome,
+  onViewOrders,
 }: {
   orders: ApiOrder[];
   method: PaymentMethod;
@@ -484,14 +665,18 @@ function OrderSuccess({
 }) {
   const { tr } = useLang();
   const methodLabels: Record<PaymentMethod, string> = {
-    cod: tr.checkout.cod, cib: tr.checkout.cib, baridimob: tr.checkout.baridimob,
+    cod: tr.checkout.cod,
+    cib: tr.checkout.cib,
+    baridimob: tr.checkout.baridimob,
   };
   const allItems = orders.flatMap((o) => o.items);
   const grandTotal = orders.reduce((sum, o) => sum + o.totalAmount, 0);
   const shipping = orders[0]?.shippingDetails;
   const orderDate = orders[0]?.createdAt
     ? new Date(orders[0].createdAt).toLocaleDateString("en-GB", {
-        day: "numeric", month: "long", year: "numeric",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
       })
     : null;
 
@@ -519,7 +704,10 @@ function OrderSuccess({
         {/* Order references + meta */}
         <div className="bg-white border border-[#1A1A2E]/8 divide-y divide-[#1A1A2E]/6">
           {orders.map((order) => (
-            <div key={order._id} className="flex items-center justify-between px-5 py-3.5">
+            <div
+              key={order._id}
+              className="flex items-center justify-between px-5 py-3.5"
+            >
               <span className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/45">
                 {tr.checkout.orderNumber}
               </span>
@@ -549,7 +737,9 @@ function OrderSuccess({
             <span className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/45">
               {tr.checkout.paymentMethod}
             </span>
-            <span className="text-sm text-[#1A1A2E]/70">{methodLabels[method]}</span>
+            <span className="text-sm text-[#1A1A2E]/70">
+              {methodLabels[method]}
+            </span>
           </div>
         </div>
 
@@ -558,29 +748,44 @@ function OrderSuccess({
           <div className="px-5 py-3 border-b border-[#1A1A2E]/6">
             <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/45 flex items-center gap-2">
               <ShoppingBagIcon sx={{ fontSize: 12, color: "#C9A84C" }} />
-              {tr.checkout.orderItems} ({allItems.reduce((s, i) => s + i.quantity, 0)})
+              {tr.checkout.orderItems} (
+              {allItems.reduce((s, i) => s + i.quantity, 0)})
             </p>
           </div>
           <div className="divide-y divide-[#1A1A2E]/5">
             {allItems.map((item, idx) => (
-              <div key={`${item.productId}-${idx}`} className="flex gap-4 px-5 py-4">
+              <div
+                key={`${item.productId}-${idx}`}
+                className="flex gap-4 px-5 py-4"
+              >
                 {item.image && (
                   <div className="w-14 h-16 flex-shrink-0 bg-[#F0EBE3] overflow-hidden">
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-[#1A1A2E] text-sm font-semibold leading-tight">{item.name}</p>
-                  <p className="text-[#1A1A2E]/45 text-xs mt-0.5">Qty: {item.quantity}</p>
+                  <p className="text-[#1A1A2E] text-sm font-semibold leading-tight">
+                    {item.name}
+                  </p>
+                  <p className="text-[#1A1A2E]/45 text-xs mt-0.5">
+                    Qty: {item.quantity}
+                  </p>
                 </div>
                 <p className="text-[#1A1A2E] font-bold text-sm flex-shrink-0">
-                  {(item.price * item.quantity).toLocaleString()} {tr.common.dzd}
+                  {(item.price * item.quantity).toLocaleString()}{" "}
+                  {tr.common.dzd}
                 </p>
               </div>
             ))}
           </div>
           <div className="px-5 py-4 border-t border-[#1A1A2E]/6 flex justify-between items-center">
-            <span className="text-sm font-bold text-[#1A1A2E]">{tr.checkout.total}</span>
+            <span className="text-sm font-bold text-[#1A1A2E]">
+              {tr.checkout.total}
+            </span>
             <span className="font-display font-bold text-xl gold-text">
               {grandTotal.toLocaleString()} {tr.common.dzd}
             </span>
@@ -598,9 +803,13 @@ function OrderSuccess({
             </div>
             <div className="px-5 py-4 space-y-1.5 text-sm text-[#1A1A2E]/70">
               <p className="font-semibold text-[#1A1A2E]">
-                {shipping.shippingType === "home_delivery" ? "Home Delivery" : "Desk Pickup"}
+                {shipping.shippingType === "home_delivery"
+                  ? "Home Delivery"
+                  : "Desk Pickup"}
               </p>
-              <p>{shipping.commune}, {shipping.wilaya}</p>
+              <p>
+                {shipping.commune}, {shipping.wilaya}
+              </p>
               {shipping.postalCode && <p>Postal code: {shipping.postalCode}</p>}
               <p>{shipping.phone}</p>
             </div>
@@ -609,7 +818,11 @@ function OrderSuccess({
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
-          <Button variant="outline-gold" onClick={onViewOrders} className="flex-1 h-11 gap-2">
+          <Button
+            variant="outline-gold"
+            onClick={onViewOrders}
+            className="flex-1 h-11 gap-2"
+          >
             <ShoppingBagIcon sx={{ fontSize: 15 }} /> View My Orders
           </Button>
           <Button variant="dark" onClick={onHome} className="flex-1 h-11 gap-2">
@@ -624,7 +837,11 @@ function OrderSuccess({
 // ─── Step Indicator ───────────────────────────────────────────────────────────
 function StepIndicator({ current }: { current: string }) {
   const { tr } = useLang();
-  const stepLabels = [tr.checkout.delivery, tr.checkout.payment, tr.checkout.review];
+  const stepLabels = [
+    tr.checkout.delivery,
+    tr.checkout.payment,
+    tr.checkout.review,
+  ];
   const idx = STEPS.indexOf(current as (typeof STEPS)[number]);
   return (
     <div className="flex items-center gap-0">
@@ -644,7 +861,11 @@ function StepIndicator({ current }: { current: string }) {
             </div>
             <span
               className={`text-xs font-semibold tracking-wide hidden sm:block transition-colors duration-300 ${
-                i === idx ? "text-[#1A1A2E]" : i < idx ? "text-[#C9A84C]" : "text-[#1A1A2E]/30"
+                i === idx
+                  ? "text-[#1A1A2E]"
+                  : i < idx
+                    ? "text-[#C9A84C]"
+                    : "text-[#1A1A2E]/30"
               }`}
             >
               {stepLabels[i]}
@@ -675,10 +896,14 @@ function validateDelivery(info: DeliveryInfo): Record<string, string> {
 function validatePayment(payment: PaymentInfo): Record<string, string> {
   const e: Record<string, string> = {};
   if (payment.method === "cib") {
-    if (!payment.cardNumber || payment.cardNumber.replace(/\s/g, "").length < 16)
+    if (
+      !payment.cardNumber ||
+      payment.cardNumber.replace(/\s/g, "").length < 16
+    )
       e.cardNumber = "Enter a valid 16-digit card number.";
     if (!payment.cardName.trim()) e.cardName = "Required.";
-    if (!payment.expiry || payment.expiry.length < 5) e.expiry = "Enter a valid expiry (MM/YY).";
+    if (!payment.expiry || payment.expiry.length < 5)
+      e.expiry = "Enter a valid expiry (MM/YY).";
     if (!payment.cvv || payment.cvv.length < 3) e.cvv = "Enter a valid CVV.";
   }
   if (payment.method === "baridimob") {
@@ -700,18 +925,30 @@ export default function CheckoutPage() {
 
   const [step, setStep] = useState<Step>("Shipping");
   const [info, setInfo] = useState<DeliveryInfo>({
-    phone: "", wilaya: "", commune: "", postalCode: "", shippingType: "home_delivery",
+    phone: "",
+    wilaya: "",
+    commune: "",
+    postalCode: "",
+    shippingType: "home_delivery",
   });
   const [infoErrors, setInfoErrors] = useState<Record<string, string>>({});
   const [payment, setPayment] = useState<PaymentInfo>({
-    method: "cod", cardNumber: "", cardName: "", expiry: "", cvv: "", baridimobPhone: "",
+    method: "cod",
+    cardNumber: "",
+    cardName: "",
+    expiry: "",
+    cvv: "",
+    baridimobPhone: "",
   });
-  const [paymentErrors, setPaymentErrors] = useState<Record<string, string>>({});
+  const [paymentErrors, setPaymentErrors] = useState<Record<string, string>>(
+    {},
+  );
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState("");
   const [placedOrders, setPlacedOrders] = useState<ApiOrder[] | null>(null);
 
-  if (items.length === 0 && step !== "Success") return <Navigate to="/shop" replace />;
+  if (items.length === 0 && step !== "Success")
+    return <Navigate to="/shop" replace />;
   if (!user) {
     openLogin();
     return <Navigate to="/shop" replace />;
@@ -719,7 +956,10 @@ export default function CheckoutPage() {
 
   const handleNextFromDelivery = () => {
     const e = validateDelivery(info);
-    if (Object.keys(e).length) { setInfoErrors(e); return; }
+    if (Object.keys(e).length) {
+      setInfoErrors(e);
+      return;
+    }
     setInfoErrors({});
     setStep("Payment");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -727,7 +967,10 @@ export default function CheckoutPage() {
 
   const handleNextFromPayment = () => {
     const e = validatePayment(payment);
-    if (Object.keys(e).length) { setPaymentErrors(e); return; }
+    if (Object.keys(e).length) {
+      setPaymentErrors(e);
+      return;
+    }
     setPaymentErrors({});
     setStep("Review");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -751,7 +994,11 @@ export default function CheckoutPage() {
       setStep("Success");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      setPlaceError(err instanceof Error ? err.message : "Failed to place order. Please try again.");
+      setPlaceError(
+        err instanceof Error
+          ? err.message
+          : "Failed to place order. Please try again.",
+      );
     } finally {
       setPlacing(false);
     }
@@ -780,7 +1027,9 @@ export default function CheckoutPage() {
             {tr.checkout.backToCart}
           </button>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h1 className="font-display text-3xl font-bold text-white">{tr.checkout.title}</h1>
+            <h1 className="font-display text-3xl font-bold text-white">
+              {tr.checkout.title}
+            </h1>
             <StepIndicator current={step} />
           </div>
         </div>
@@ -789,7 +1038,12 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           <div className="lg:col-span-2">
             {step === "Shipping" && (
-              <DeliveryForm info={info} setInfo={setInfo} errors={infoErrors} onNext={handleNextFromDelivery} />
+              <DeliveryForm
+                info={info}
+                setInfo={setInfo}
+                errors={infoErrors}
+                onNext={handleNextFromDelivery}
+              />
             )}
             {step === "Payment" && (
               <PaymentForm
@@ -797,7 +1051,10 @@ export default function CheckoutPage() {
                 setPayment={setPayment}
                 errors={paymentErrors}
                 onNext={handleNextFromPayment}
-                onBack={() => { setStep("Shipping"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                onBack={() => {
+                  setStep("Shipping");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
               />
             )}
             {step === "Review" && (
@@ -811,12 +1068,20 @@ export default function CheckoutPage() {
                 placing={placing}
                 placeError={placeError}
                 onPlace={handlePlaceOrder}
-                onBack={() => { setStep("Payment"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                onBack={() => {
+                  setStep("Payment");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
               />
             )}
           </div>
           <div>
-            <OrderSummary items={items} subtotal={subtotal} shipping={shipping} total={total} />
+            <OrderSummary
+              items={items}
+              subtotal={subtotal}
+              shipping={shipping}
+              total={total}
+            />
           </div>
         </div>
       </div>

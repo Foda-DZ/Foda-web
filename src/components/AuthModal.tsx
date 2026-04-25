@@ -17,7 +17,15 @@ import Button from "./ui/Button";
 import fodaLogo from "../assets/Foda-Logo (1).png";
 
 // ─── Login Form ───────────────────────────────────────────────────────────────
-function LoginForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
+function LoginForm({
+  switchTo,
+  customerOnly,
+  redirectTo,
+}: {
+  switchTo: (v: ModalView) => void;
+  customerOnly: boolean;
+  redirectTo: string | null;
+}) {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { tr } = useLang();
@@ -27,6 +35,10 @@ function LoginForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (customerOnly) setRole("customer");
+  }, [customerOnly]);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -39,14 +51,20 @@ function LoginForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
   const handleSubmit = async (evt: React.FormEvent) => {
     evt.preventDefault();
     const e = validate();
-    if (Object.keys(e).length) { setErrors(e); return; }
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
+    }
     setErrors({});
     setApiError("");
     setLoading(true);
     try {
+      const redirectTarget = redirectTo;
       const session = await login({ email, password, role });
       if (session.role === "seller") {
         navigate("/seller/dashboard");
+      } else if (redirectTarget) {
+        navigate(redirectTarget);
       }
     } catch (err) {
       setApiError(err instanceof Error ? err.message : "Login failed");
@@ -58,23 +76,35 @@ function LoginForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Role toggle */}
-      <div className="flex gap-1 bg-[#1A1A2E]/5 p-1">
-        {[
-          { value: "customer" as UserRole, label: "Shop as Customer", Icon: ShoppingBagOutlinedIcon },
-          { value: "seller" as UserRole, label: "Seller Login", Icon: StoreIcon },
-        ].map(({ value, label, Icon }) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => setRole(value)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 ${
-              role === value ? "gold-gradient text-[#1A1A2E]" : "text-[#1A1A2E]/40 hover:text-[#1A1A2E]/70"
-            }`}
-          >
-            <Icon sx={{ fontSize: 13 }} /> {label}
-          </button>
-        ))}
-      </div>
+      {!customerOnly && (
+        <div className="flex gap-1 bg-[#1A1A2E]/5 p-1">
+          {[
+            {
+              value: "customer" as UserRole,
+              label: "Shop as Customer",
+              Icon: ShoppingBagOutlinedIcon,
+            },
+            {
+              value: "seller" as UserRole,
+              label: "Seller Login",
+              Icon: StoreIcon,
+            },
+          ].map(({ value, label, Icon }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setRole(value)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 ${
+                role === value
+                  ? "gold-gradient text-[#1A1A2E]"
+                  : "text-[#1A1A2E]/40 hover:text-[#1A1A2E]/70"
+              }`}
+            >
+              <Icon sx={{ fontSize: 13 }} /> {label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div>
         <TextInput
@@ -83,9 +113,15 @@ function LoginForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
           onChange={setEmail}
           placeholder={tr.auth.login.emailPlaceholder}
           error={errors.email}
-          icon={<MailOutlineIcon sx={{ fontSize: 15, color: "rgba(26,26,46,0.4)" }} />}
+          icon={
+            <MailOutlineIcon
+              sx={{ fontSize: 15, color: "rgba(26,26,46,0.4)" }}
+            />
+          }
         />
-        {errors.email && <p className="mt-1.5 text-xs text-red-500">{errors.email}</p>}
+        {errors.email && (
+          <p className="mt-1.5 text-xs text-red-500">{errors.email}</p>
+        )}
       </div>
 
       <PasswordInput
@@ -108,7 +144,11 @@ function LoginForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
 
       <p className="text-center text-xs text-[#1A1A2E]/50">
         {tr.auth.login.noAccount}{" "}
-        <button type="button" onClick={() => switchTo("register")} className="text-[#C9A84C] font-semibold hover:underline">
+        <button
+          type="button"
+          onClick={() => switchTo("register")}
+          className="text-[#C9A84C] font-semibold hover:underline"
+        >
           {tr.auth.login.createOne}
         </button>
       </p>
@@ -117,14 +157,29 @@ function LoginForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
 }
 
 // ─── Register Form ────────────────────────────────────────────────────────────
-function RegisterForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
+function RegisterForm({
+  switchTo,
+  customerOnly,
+}: {
+  switchTo: (v: ModalView) => void;
+  customerOnly: boolean;
+}) {
   const { registerCustomer, registerSeller } = useAuth();
   const { tr } = useLang();
   const [role, setRole] = useState<UserRole>("customer");
-  const [fields, setFields] = useState({ fullName: "", email: "", password: "", confirm: "" });
+  const [fields, setFields] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirm: "",
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (customerOnly) setRole("customer");
+  }, [customerOnly]);
 
   const set = (key: keyof typeof fields) => (val: string) =>
     setFields((f) => ({ ...f, [key]: val }));
@@ -133,7 +188,8 @@ function RegisterForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
     const e: Record<string, string> = {};
     if (!fields.fullName.trim()) e.fullName = tr.common.required;
     if (!fields.email.trim()) e.email = tr.common.required;
-    else if (!/\S+@\S+\.\S+/.test(fields.email)) e.email = tr.common.invalidEmail;
+    else if (!/\S+@\S+\.\S+/.test(fields.email))
+      e.email = tr.common.invalidEmail;
     if (!fields.password) e.password = tr.common.required;
     else if (fields.password.length < 8) e.password = tr.common.required;
     if (fields.confirm !== fields.password) e.confirm = tr.common.required;
@@ -151,21 +207,44 @@ function RegisterForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
     return s;
   })();
 
-  const strengthLabels = ["", tr.auth.register.strength.weak, tr.auth.register.strength.fair, tr.auth.register.strength.good, tr.auth.register.strength.strong];
-  const strengthColor = ["", "bg-red-400", "bg-yellow-400", "bg-blue-400", "bg-green-500"][strength];
+  const strengthLabels = [
+    "",
+    tr.auth.register.strength.weak,
+    tr.auth.register.strength.fair,
+    tr.auth.register.strength.good,
+    tr.auth.register.strength.strong,
+  ];
+  const strengthColor = [
+    "",
+    "bg-red-400",
+    "bg-yellow-400",
+    "bg-blue-400",
+    "bg-green-500",
+  ][strength];
 
   const handleSubmit = async (evt: React.FormEvent) => {
     evt.preventDefault();
     const e = validate();
-    if (Object.keys(e).length) { setErrors(e); return; }
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
+    }
     setErrors({});
     setApiError("");
     setLoading(true);
     try {
       if (role === "seller") {
-        await registerSeller({ shopName: fields.fullName.trim(), email: fields.email.trim(), password: fields.password });
+        await registerSeller({
+          shopName: fields.fullName.trim(),
+          email: fields.email.trim(),
+          password: fields.password,
+        });
       } else {
-        await registerCustomer({ fullName: fields.fullName.trim(), email: fields.email.trim(), password: fields.password });
+        await registerCustomer({
+          fullName: fields.fullName.trim(),
+          email: fields.email.trim(),
+          password: fields.password,
+        });
       }
     } catch (err) {
       setApiError(err instanceof Error ? err.message : "Registration failed");
@@ -177,35 +256,59 @@ function RegisterForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Role toggle */}
-      <div className="flex gap-1 bg-[#1A1A2E]/5 p-1">
-        {[
-          { value: "customer" as UserRole, label: "Shop as Customer", Icon: ShoppingBagOutlinedIcon },
-          { value: "seller" as UserRole, label: "Join as Seller", Icon: StoreIcon },
-        ].map(({ value, label, Icon }) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => setRole(value)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 ${
-              role === value ? "gold-gradient text-[#1A1A2E]" : "text-[#1A1A2E]/40 hover:text-[#1A1A2E]/70"
-            }`}
-          >
-            <Icon sx={{ fontSize: 13 }} /> {label}
-          </button>
-        ))}
-      </div>
+      {!customerOnly && (
+        <div className="flex gap-1 bg-[#1A1A2E]/5 p-1">
+          {[
+            {
+              value: "customer" as UserRole,
+              label: "Shop as Customer",
+              Icon: ShoppingBagOutlinedIcon,
+            },
+            {
+              value: "seller" as UserRole,
+              label: "Join as Seller",
+              Icon: StoreIcon,
+            },
+          ].map(({ value, label, Icon }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setRole(value)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 ${
+                role === value
+                  ? "gold-gradient text-[#1A1A2E]"
+                  : "text-[#1A1A2E]/40 hover:text-[#1A1A2E]/70"
+              }`}
+            >
+              <Icon sx={{ fontSize: 13 }} /> {label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div>
         <TextInput
           value={fields.fullName}
           onChange={set("fullName")}
-          placeholder={role === "seller" ? tr.auth.register.shopNamePlaceholder : tr.auth.register.fullNamePlaceholder}
+          placeholder={
+            role === "seller"
+              ? tr.auth.register.shopNamePlaceholder
+              : tr.auth.register.fullNamePlaceholder
+          }
           error={errors.fullName}
-          icon={role === "seller"
-            ? <StoreIcon sx={{ fontSize: 15, color: "rgba(26,26,46,0.4)" }} />
-            : <PersonOutlineIcon sx={{ fontSize: 15, color: "rgba(26,26,46,0.4)" }} />}
+          icon={
+            role === "seller" ? (
+              <StoreIcon sx={{ fontSize: 15, color: "rgba(26,26,46,0.4)" }} />
+            ) : (
+              <PersonOutlineIcon
+                sx={{ fontSize: 15, color: "rgba(26,26,46,0.4)" }}
+              />
+            )
+          }
         />
-        {errors.fullName && <p className="mt-1.5 text-xs text-red-500">{errors.fullName}</p>}
+        {errors.fullName && (
+          <p className="mt-1.5 text-xs text-red-500">{errors.fullName}</p>
+        )}
       </div>
 
       <div>
@@ -215,9 +318,15 @@ function RegisterForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
           onChange={set("email")}
           placeholder={tr.auth.register.emailPlaceholder}
           error={errors.email}
-          icon={<MailOutlineIcon sx={{ fontSize: 15, color: "rgba(26,26,46,0.4)" }} />}
+          icon={
+            <MailOutlineIcon
+              sx={{ fontSize: 15, color: "rgba(26,26,46,0.4)" }}
+            />
+          }
         />
-        {errors.email && <p className="mt-1.5 text-xs text-red-500">{errors.email}</p>}
+        {errors.email && (
+          <p className="mt-1.5 text-xs text-red-500">{errors.email}</p>
+        )}
       </div>
 
       <div>
@@ -231,10 +340,15 @@ function RegisterForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
           <div className="mt-2 space-y-1">
             <div className="flex gap-1">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= strength ? strengthColor : "bg-[#1A1A2E]/10"}`} />
+                <div
+                  key={i}
+                  className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= strength ? strengthColor : "bg-[#1A1A2E]/10"}`}
+                />
               ))}
             </div>
-            <p className="text-[10px] text-[#1A1A2E]/50">{strengthLabels[strength]}</p>
+            <p className="text-[10px] text-[#1A1A2E]/50">
+              {strengthLabels[strength]}
+            </p>
           </div>
         )}
       </div>
@@ -259,7 +373,11 @@ function RegisterForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
 
       <p className="text-center text-xs text-[#1A1A2E]/50">
         {tr.auth.register.hasAccount}{" "}
-        <button type="button" onClick={() => switchTo("login")} className="text-[#C9A84C] font-semibold hover:underline">
+        <button
+          type="button"
+          onClick={() => switchTo("login")}
+          className="text-[#C9A84C] font-semibold hover:underline"
+        >
           {tr.auth.register.signIn}
         </button>
       </p>
@@ -268,7 +386,13 @@ function RegisterForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
 }
 
 // ─── Verify Form ──────────────────────────────────────────────────────────────
-function VerifyForm() {
+function VerifyForm({
+  customerOnly,
+  redirectTo,
+}: {
+  customerOnly: boolean;
+  redirectTo: string | null;
+}) {
   const navigate = useNavigate();
   const { verifyEmail, pendingEmail } = useAuth();
   const { tr } = useLang();
@@ -278,14 +402,26 @@ function VerifyForm() {
 
   const handleSubmit = async (evt: React.FormEvent) => {
     evt.preventDefault();
-    if (code.trim().length !== 6) { setError(tr.auth.verify.invalidCode); return; }
-    if (!pendingEmail) { setError("Missing email. Please start again."); return; }
+    if (code.trim().length !== 6) {
+      setError(tr.auth.verify.invalidCode);
+      return;
+    }
+    if (!pendingEmail) {
+      setError("Missing email. Please start again.");
+      return;
+    }
     setError("");
     setLoading(true);
     try {
-      const session = await verifyEmail({ email: pendingEmail, verificationCode: parseInt(code, 10) });
+      const redirectTarget = redirectTo;
+      const session = await verifyEmail({
+        email: pendingEmail,
+        verificationCode: parseInt(code, 10),
+      });
       if (session.role === "seller") {
         navigate("/seller/dashboard");
+      } else if (customerOnly && redirectTarget) {
+        navigate(redirectTarget);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : tr.auth.verify.invalidCode);
@@ -305,8 +441,12 @@ function VerifyForm() {
           <MailOutlineIcon sx={{ fontSize: 16, color: "#1A1A2E" }} />
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-widest text-[#1A1A2E]/40 mb-0.5">Check your inbox</p>
-          <p className="text-sm text-[#1A1A2E]/70">A 6-digit verification code was sent to your email address.</p>
+          <p className="text-[10px] uppercase tracking-widest text-[#1A1A2E]/40 mb-0.5">
+            Check your inbox
+          </p>
+          <p className="text-sm text-[#1A1A2E]/70">
+            A 6-digit verification code was sent to your email address.
+          </p>
         </div>
       </div>
 
@@ -316,10 +456,14 @@ function VerifyForm() {
           inputMode="numeric"
           maxLength={6}
           value={code}
-          onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          onChange={(e) =>
+            setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+          }
           placeholder={tr.auth.verify.codePlaceholder}
           className={`w-full border bg-white h-14 text-center text-3xl font-bold tracking-[0.5em] focus:outline-none transition-colors ${
-            error ? "border-red-400" : "border-[#1A1A2E]/15 focus:border-[#C9A84C]"
+            error
+              ? "border-red-400"
+              : "border-[#1A1A2E]/15 focus:border-[#C9A84C]"
           }`}
         />
         {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
@@ -353,10 +497,16 @@ function ResetForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
 
   const handleSubmit = (evt: React.FormEvent) => {
     evt.preventDefault();
-    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) { setError(tr.common.invalidEmail); return; }
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
+      setError(tr.common.invalidEmail);
+      return;
+    }
     setError("");
     setLoading(true);
-    setTimeout(() => { setLoading(false); setSent(true); }, 800);
+    setTimeout(() => {
+      setLoading(false);
+      setSent(true);
+    }, 800);
   };
 
   if (sent) {
@@ -366,7 +516,9 @@ function ResetForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
           <CheckIcon sx={{ fontSize: 24, color: "#16a34a" }} />
         </div>
         <div>
-          <p className="font-display font-bold text-[#1A1A2E] text-lg">{tr.auth.reset.checkEmail}</p>
+          <p className="font-display font-bold text-[#1A1A2E] text-lg">
+            {tr.auth.reset.checkEmail}
+          </p>
           <p className="text-[#1A1A2E]/50 text-sm mt-1">
             {tr.auth.reset.sentMessage.replace("{email}", email)}
           </p>
@@ -381,7 +533,9 @@ function ResetForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <p className="text-[#1A1A2E]/60 text-sm leading-relaxed">{tr.auth.reset.description}</p>
+      <p className="text-[#1A1A2E]/60 text-sm leading-relaxed">
+        {tr.auth.reset.description}
+      </p>
 
       <div>
         <TextInput
@@ -390,7 +544,11 @@ function ResetForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
           onChange={setEmail}
           placeholder={tr.auth.reset.emailPlaceholder}
           error={error}
-          icon={<MailOutlineIcon sx={{ fontSize: 15, color: "rgba(26,26,46,0.4)" }} />}
+          icon={
+            <MailOutlineIcon
+              sx={{ fontSize: 15, color: "rgba(26,26,46,0.4)" }}
+            />
+          }
         />
         {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
       </div>
@@ -402,7 +560,11 @@ function ResetForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
 
       <p className="text-center text-xs text-[#1A1A2E]/50">
         {tr.auth.reset.hasPassword}{" "}
-        <button type="button" onClick={() => switchTo("login")} className="text-[#C9A84C] font-semibold hover:underline">
+        <button
+          type="button"
+          onClick={() => switchTo("login")}
+          className="text-[#C9A84C] font-semibold hover:underline"
+        >
           {tr.auth.reset.signIn}
         </button>
       </p>
@@ -414,7 +576,7 @@ function ResetForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
 type ModalView = "login" | "register" | "reset" | "verify";
 
 export default function AuthModal() {
-  const { authModal, closeAuth } = useAuth();
+  const { authModal, authCustomerOnly, authRedirectTo, closeAuth } = useAuth();
   const { tr } = useLang();
   const [view, setView] = useState<ModalView>("login");
 
@@ -429,36 +591,50 @@ export default function AuthModal() {
     } else {
       document.body.style.overflow = "";
     }
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [authModal]);
 
   if (!authModal) return null;
 
   const titles: Record<ModalView, { heading: string; sub: string }> = {
-    login:    { heading: tr.auth.login.heading,    sub: tr.auth.login.sub },
+    login: { heading: tr.auth.login.heading, sub: tr.auth.login.sub },
     register: { heading: tr.auth.register.heading, sub: tr.auth.register.sub },
-    reset:    { heading: tr.auth.reset.heading,    sub: tr.auth.reset.sub },
-    verify:   { heading: tr.auth.verify.heading,   sub: tr.auth.verify.sub },
+    reset: { heading: tr.auth.reset.heading, sub: tr.auth.reset.sub },
+    verify: { heading: tr.auth.verify.heading, sub: tr.auth.verify.sub },
   };
 
   const { heading, sub } = titles[view] ?? titles.login;
   const showTabs = view === "login" || view === "register";
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={closeAuth}>
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      onClick={closeAuth}
+    >
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm pointer-events-none" />
       {/* Panel */}
-      <div className="relative z-10 w-full max-w-md bg-[#FAF7F2] shadow-[0_25px_50px_rgba(0,0,0,0.4)] overflow-hidden max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="relative z-10 w-full max-w-md bg-[#FAF7F2] shadow-[0_25px_50px_rgba(0,0,0,0.4)] overflow-hidden max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="relative dark-gradient px-8 py-7 flex-shrink-0">
           <div className="absolute top-0 end-0 w-32 h-32 bg-[#C9A84C]/10 rounded-full blur-2xl" />
           <div className="relative z-10 flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <img src={fodaLogo} alt="FODA" className="h-10 w-auto object-contain [filter:invert(1)_hue-rotate(180deg)]" />
+                <img
+                  src={fodaLogo}
+                  alt="FODA"
+                  className="h-10 w-auto object-contain [filter:invert(1)_hue-rotate(180deg)]"
+                />
               </div>
-              <h2 className="font-display text-2xl font-bold text-white">{heading}</h2>
+              <h2 className="font-display text-2xl font-bold text-white">
+                {heading}
+              </h2>
               <p className="text-white/50 text-sm mt-1">{sub}</p>
             </div>
             <button
@@ -475,7 +651,9 @@ export default function AuthModal() {
                   key={id}
                   onClick={() => setView(id)}
                   className={`flex-1 py-2 text-xs font-semibold tracking-widest uppercase transition-all duration-200 ${
-                    view === id ? "gold-gradient text-[#1A1A2E]" : "text-white/40 hover:text-white/70"
+                    view === id
+                      ? "gold-gradient text-[#1A1A2E]"
+                      : "text-white/40 hover:text-white/70"
                   }`}
                 >
                   {id === "login" ? tr.auth.login.tab : tr.auth.register.tab}
@@ -487,13 +665,26 @@ export default function AuthModal() {
 
         {/* Body */}
         <div className="px-8 py-6 overflow-y-auto">
-          {view === "login" && <LoginForm switchTo={setView} />}
-          {view === "register" && <RegisterForm switchTo={setView} />}
+          {view === "login" && (
+            <LoginForm
+              switchTo={setView}
+              customerOnly={authCustomerOnly}
+              redirectTo={authRedirectTo}
+            />
+          )}
+          {view === "register" && (
+            <RegisterForm switchTo={setView} customerOnly={authCustomerOnly} />
+          )}
           {view === "reset" && <ResetForm switchTo={setView} />}
-          {view === "verify" && <VerifyForm />}
+          {view === "verify" && (
+            <VerifyForm
+              customerOnly={authCustomerOnly}
+              redirectTo={authRedirectTo}
+            />
+          )}
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

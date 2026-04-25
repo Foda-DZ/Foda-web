@@ -12,8 +12,6 @@ import { useCart } from "../context/CartContext";
 import { useLang } from "../context/LangContext";
 import type { CartItem } from "../types";
 
-const SHIPPING_THRESHOLD = 5000;
-
 export default function CartDrawer() {
   const navigate = useNavigate();
   const {
@@ -27,7 +25,7 @@ export default function CartDrawer() {
   } = useCart();
   const { tr } = useLang();
 
-  const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : 750;
+  const shipping = 750;
   const total = subtotal + shipping;
 
   const handleCheckout = () => {
@@ -83,36 +81,6 @@ export default function CartDrawer() {
         </IconButton>
       </div>
 
-      {/* Free shipping progress */}
-      {subtotal < SHIPPING_THRESHOLD && (
-        <div className="px-6 py-3 bg-white/5 border-b border-white/10">
-          <div className="flex justify-between text-xs text-white/50 mb-1.5">
-            <span>
-              {tr.cart.addMore.replace(
-                "{amount}",
-                (SHIPPING_THRESHOLD - subtotal).toLocaleString(),
-              )}
-            </span>
-            <span>{tr.cart.freeShippingAt}</span>
-          </div>
-          <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-            <div
-              className="h-full gold-gradient rounded-full transition-all duration-500"
-              style={{
-                width: `${Math.min((subtotal / SHIPPING_THRESHOLD) * 100, 100)}%`,
-              }}
-            />
-          </div>
-        </div>
-      )}
-      {subtotal >= SHIPPING_THRESHOLD && (
-        <div className="px-6 py-3 bg-[#C9A84C]/10 border-b border-[#C9A84C]/20">
-          <p className="text-xs text-[#C9A84C] font-semibold text-center">
-            {tr.cart.qualifies}
-          </p>
-        </div>
-      )}
-
       {/* Cart items */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
         {items.length === 0 ? (
@@ -155,13 +123,7 @@ export default function CartDrawer() {
             </div>
             <div className="flex justify-between text-sm text-white/60">
               <span>{tr.cart.shipping}</span>
-              <span>
-                {shipping === 0 ? (
-                  <span className="text-[#C9A84C]">{tr.cart.free}</span>
-                ) : (
-                  `${shipping.toLocaleString()} DZD`
-                )}
-              </span>
+              <span>{shipping.toLocaleString()} DZD</span>
             </div>
             <div className="h-px bg-white/10" />
             <div className="flex justify-between font-bold">
@@ -236,9 +198,7 @@ function CartItemRow({
               {product.name}
             </p>
             <div className="flex items-center gap-2 mt-0.5">
-              {size && (
-                <span className="text-white/40 text-xs">{size}</span>
-              )}
+              {size && <span className="text-white/40 text-xs">{size}</span>}
               {color && (
                 <>
                   {size && <span className="text-white/20 text-xs">·</span>}

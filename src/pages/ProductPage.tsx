@@ -1,9 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FlashOnIcon from "@mui/icons-material/FlashOn";
+import ShareIcon from "@mui/icons-material/Share";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import CloseIcon from "@mui/icons-material/Close";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import TelegramIcon from "@mui/icons-material/Telegram";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import FacebookIcon from "@mui/icons-material/Facebook";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import LoopIcon from "@mui/icons-material/Loop";
@@ -20,6 +27,7 @@ import { useWishlist } from "../context/WishlistContext";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import type { Product } from "../types";
+import type { ApiProductReview, ApiProductShare } from "../types/api";
 
 const COLOR_HEX: Record<string, string> = {
   black: "#1a1a1a",
@@ -80,6 +88,7 @@ function RatingStars({ rating }: { rating: number }) {
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addItem } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user, openLogin } = useAuth();
@@ -88,8 +97,11 @@ export default function ProductPage() {
 
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
+  const [reviews, setReviews] = useState<ApiProductReview[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [reviewsError, setReviewsError] = useState("");
 
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -100,11 +112,19 @@ export default function ProductPage() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState("");
   const [reviewError, setReviewError] = useState("");
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareError, setShareError] = useState("");
+  const [shareCopied, setShareCopied] = useState(false);
+  const [shareData, setShareData] = useState<ApiProductShare | null>(null);
 
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     setError(false);
+    setReviews([]);
+    setReviewsError("");
+    setReviewsLoading(true);
     productsService
       .getById(id)
       .then((ap) => {
@@ -113,7 +133,6 @@ export default function ProductPage() {
         setSelectedSize(mapped.sizes[0] ?? null);
         setSelectedColor(mapped.colors[0] ?? null);
         setQuantity(1);
-        // fetch related
         return productsService.getAll({ category: mapped.category });
       })
       .then((all) => {
@@ -126,6 +145,33 @@ export default function ProductPage() {
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    let active = true;
+    setReviewsLoading(true);
+    setReviewsError("");
+
+    productsService
+      .getProductReviews(id)
+      .then((data) => {
+        if (!active) return;
+        setReviews(data.reviews);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setReviewsError(
+          err instanceof Error ? err.message : "Failed to load reviews.",
+        );
+      })
+      .finally(() => {
+        if (active) setReviewsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [id]);
 
   const wishlisted = isCustomer && product ? isInWishlist(product.id) : false;
@@ -145,10 +191,53 @@ export default function ProductPage() {
     (!hasSizes || selectedSize) &&
     (!hasColors || selectedColor);
 
+  const reviewStats = useMemo(() => {
+    const total = reviews.length;
+    const average = total
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / total
+      : 0;
+    const breakdown = [5, 4, 3, 2, 1].map((rating) => {
+      const count = reviews.filter((review) => review.rating === rating).length;
+      return { rating, count, percent: total ? (count / total) * 100 : 0 };
+    });
+    return { total, average, breakdown };
+  }, [reviews]);
+
+  const reviewCopy = {
+    title: tr.dir === "rtl" ? "آراء العملاء" : "Customer Reviews",
+    summary:
+      tr.dir === "rtl"
+        ? "تقييمات حقيقية من العملاء الذين اشتروا هذا المنتج."
+        : "Real feedback from customers who bought this product.",
+    emptyTitle: tr.dir === "rtl" ? "لا توجد مراجعات بعد" : "No reviews yet",
+    emptySub:
+      tr.dir === "rtl"
+        ? "كن أول من يشارك رأيه حول هذا المنتج."
+        : "Be the first to share feedback about this product.",
+    loadText:
+      tr.dir === "rtl" ? "جارٍ تحميل التقييمات..." : "Loading reviews...",
+    errorText:
+      tr.dir === "rtl"
+        ? "تعذر تحميل المراجعات حالياً."
+        : "We couldn’t load reviews right now.",
+    starsLabel: tr.dir === "rtl" ? "من 5" : "out of 5",
+    latestLabel: tr.dir === "rtl" ? "أحدث المراجعات" : "Latest reviews",
+  };
+
+  const formatReviewDate = (date: string) =>
+    new Intl.DateTimeFormat(tr.dir === "rtl" ? "ar-DZ" : "en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(date));
+
   const handleAddToCart = () => {
     if (!product) return;
-    if (!user) {
-      openLogin();
+    if (!user || user.role !== "customer") {
+      openLogin({
+        customerOnly: true,
+        redirectTo: `${location.pathname}${location.search}`,
+      });
       return;
     }
     const sizeToAdd = selectedSize ?? "One Size";
@@ -157,7 +246,17 @@ export default function ProductPage() {
   };
 
   const handleBuyNow = () => {
-    handleAddToCart();
+    if (!product) return;
+    if (!user || user.role !== "customer") {
+      openLogin({
+        customerOnly: true,
+        redirectTo: `${location.pathname}${location.search}`,
+      });
+      return;
+    }
+    const sizeToAdd = selectedSize ?? "One Size";
+    const colorToAdd = selectedColor ?? "Default";
+    addItem(product, sizeToAdd, colorToAdd, quantity);
     navigate("/checkout");
   };
 
@@ -169,6 +268,48 @@ export default function ProductPage() {
     }
     if (wishlisted) removeFromWishlist(product.id);
     else addToWishlist(product);
+  };
+
+  const copyShareLink = async (link?: string) => {
+    const textToCopy = link || shareData?.productUrl || window.location.href;
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 1800);
+    } catch {
+      setShareError(
+        tr.dir === "rtl"
+          ? "تعذر نسخ الرابط، انسخه يدوياً."
+          : "Could not copy automatically, please copy it manually.",
+      );
+    }
+  };
+
+  const handleOpenShare = async () => {
+    if (!product) return;
+    setIsShareOpen(true);
+    setShareLoading(true);
+    setShareError("");
+    setShareData(null);
+    try {
+      const response = await productsService.getShareLink(product.id);
+      setShareData(response.share);
+    } catch (err) {
+      setShareError(
+        err instanceof Error ? err.message : "Failed to load share links.",
+      );
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  const handlePlatformShare = async (platformUrl: string) => {
+    if (platformUrl.startsWith("http")) {
+      window.open(platformUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+    await copyShareLink();
+    setShareError(platformUrl);
   };
 
   const handleSubmitReview = async (e: React.FormEvent) => {
@@ -198,6 +339,8 @@ export default function ProductPage() {
       setReviewSuccess("Your review has been submitted successfully!");
       setReviewRating(0);
       setReviewComment("");
+      const refreshed = await productsService.getProductReviews(product.id);
+      setReviews(refreshed.reviews);
     } catch (err: any) {
       setReviewError(
         err?.response?.data?.message || "Failed to submit review.",
@@ -456,6 +599,13 @@ export default function ProductPage() {
                   />
                 )}
               </button>
+              <button
+                onClick={handleOpenShare}
+                className="w-full sm:w-13 h-13 flex items-center justify-center border-2 border-[#1A1A2E]/12 hover:border-[#C9A84C] hover:text-[#C9A84C] hover:scale-[1.04] transition-all"
+                aria-label="Share product"
+              >
+                <ShareIcon sx={{ fontSize: 20, color: "#1A1A2E80" }} />
+              </button>
             </div>
 
             {/* Trust signals */}
@@ -490,6 +640,172 @@ export default function ProductPage() {
             )}
           </div>
         </div>
+
+        {/* ── Customer Reviews ── */}
+        <section className="mt-16">
+          <div className="flex items-end justify-between gap-4 mb-6">
+            <div>
+              <h2 className="font-display text-2xl font-bold text-[#1A1A2E] mb-2">
+                {reviewCopy.title}
+              </h2>
+              <p className="text-sm text-[#1A1A2E]/55 max-w-2xl">
+                {reviewCopy.summary}
+              </p>
+            </div>
+            <div className="hidden md:flex items-center gap-2 text-xs text-[#1A1A2E]/45">
+              <span className="w-2 h-2 rounded-full bg-[#C9A84C]" />
+              {reviewCopy.latestLabel}
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-[340px_1fr] gap-5 lg:gap-6">
+            <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-5 lg:sticky lg:top-24 h-fit">
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-1">
+                    <StarIcon sx={{ fontSize: 20, color: "#C9A84C" }} />
+                    <span className="font-display text-3xl font-bold text-[#1A1A2E]">
+                      {reviewStats.average
+                        ? reviewStats.average.toFixed(1)
+                        : "0.0"}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#1A1A2E]/45 uppercase tracking-widest font-semibold">
+                      {reviewStats.total}{" "}
+                      {reviewStats.total === 1
+                        ? tr.dir === "rtl"
+                          ? "تقييم"
+                          : "review"
+                        : tr.dir === "rtl"
+                          ? "تقييمات"
+                          : "reviews"}
+                    </p>
+                    <p className="text-xs text-[#1A1A2E]/45">
+                      {reviewCopy.starsLabel}
+                    </p>
+                  </div>
+                </div>
+                <RatingStars rating={reviewStats.average} />
+              </div>
+
+              <div className="space-y-2">
+                {reviewStats.breakdown.map(({ rating, count, percent }) => (
+                  <div key={rating} className="flex items-center gap-3">
+                    <span className="text-xs font-semibold text-[#1A1A2E]/60 w-5">
+                      {rating}
+                    </span>
+                    <div className="flex-1 h-2 bg-[#1A1A2E]/8 overflow-hidden">
+                      <div
+                        className="h-full bg-[#C9A84C]"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-[#1A1A2E]/45 w-6 text-end">
+                      {count}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-[#1A1A2E]/8 pt-4 text-sm text-[#1A1A2E]/60 leading-relaxed">
+                {reviewStats.total > 0
+                  ? reviewCopy.summary
+                  : reviewCopy.emptySub}
+              </div>
+            </div>
+
+            <div className="bg-white border border-[#1A1A2E]/8">
+              <div className="px-5 py-4 border-b border-[#1A1A2E]/8 flex items-center justify-between">
+                <h3 className="font-semibold text-[#1A1A2E]">
+                  {tr.dir === "rtl" ? "أحدث الآراء" : "Recent feedback"}
+                </h3>
+                <span className="text-xs text-[#1A1A2E]/45">
+                  {reviewStats.total}
+                </span>
+              </div>
+
+              <div className="p-5">
+                {reviewsLoading ? (
+                  <div className="space-y-3">
+                    {[0, 1, 2].map((s) => (
+                      <div
+                        key={s}
+                        className="animate-pulse border border-[#1A1A2E]/8 p-4 space-y-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-[#1A1A2E]/10" />
+                          <div className="flex-1 space-y-2">
+                            <div className="h-3 w-32 bg-[#1A1A2E]/10" />
+                            <div className="h-3 w-20 bg-[#1A1A2E]/10" />
+                          </div>
+                        </div>
+                        <div className="h-3 w-full bg-[#1A1A2E]/10" />
+                        <div className="h-3 w-5/6 bg-[#1A1A2E]/10" />
+                      </div>
+                    ))}
+                  </div>
+                ) : reviewsError ? (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-5 text-sm text-red-700">
+                    {reviewCopy.errorText}
+                  </div>
+                ) : reviews.length === 0 ? (
+                  <div className="text-center py-10 px-4 space-y-3">
+                    <div className="w-14 h-14 mx-auto rounded-full bg-[#C9A84C]/10 flex items-center justify-center">
+                      <StarOutlineIcon
+                        sx={{ fontSize: 22, color: "#C9A84C" }}
+                      />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[#1A1A2E]">
+                        {reviewCopy.emptyTitle}
+                      </p>
+                      <p className="text-sm text-[#1A1A2E]/55 mt-1 max-w-sm mx-auto">
+                        {reviewCopy.emptySub}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {reviews.map((review) => (
+                      <article
+                        key={review._id}
+                        className="border border-[#1A1A2E]/8 bg-[#FAF7F2] p-4 sm:p-5"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-11 h-11 rounded-full gold-gradient text-[#1A1A2E] flex items-center justify-center font-black text-sm shrink-0">
+                              {review.customerId.fullName
+                                .split(" ")
+                                .map((part) => part[0])
+                                .slice(0, 2)
+                                .join("")
+                                .toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-[#1A1A2E] truncate">
+                                {review.customerId.fullName}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <RatingStars rating={review.rating} />
+                                <span className="text-[11px] uppercase tracking-widest text-[#1A1A2E]/40">
+                                  {formatReviewDate(review.createdAt)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <p className="mt-4 text-sm sm:text-[15px] text-[#1A1A2E]/75 leading-relaxed">
+                          {review.comment}
+                        </p>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* ── Write a Review Section ── */}
         {isCustomer && (
@@ -573,6 +889,114 @@ export default function ProductPage() {
           </section>
         )}
       </div>
+
+      {isShareOpen && (
+        <div className="fixed inset-0 z-[120] bg-black/55 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white border border-[#C9A84C]/20 shadow-2xl">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#1A1A2E]/10">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.18em] text-[#C9A84C] font-bold">
+                  {tr.dir === "rtl" ? "مشاركة المنتج" : "Share Product"}
+                </p>
+                <h3 className="font-display text-xl text-[#1A1A2E] font-bold">
+                  {product.name}
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsShareOpen(false)}
+                className="w-9 h-9 border border-[#1A1A2E]/15 flex items-center justify-center text-[#1A1A2E]/50 hover:text-[#1A1A2E] hover:border-[#C9A84C]/50 transition-colors"
+              >
+                <CloseIcon sx={{ fontSize: 18 }} />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              {shareLoading ? (
+                <div className="text-sm text-[#1A1A2E]/60">
+                  {tr.dir === "rtl"
+                    ? "جارٍ تجهيز روابط المشاركة..."
+                    : "Preparing share links..."}
+                </div>
+              ) : shareData ? (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      {
+                        label: "WhatsApp",
+                        Icon: WhatsAppIcon,
+                        href: shareData.platforms.whatsapp,
+                        color: "#25D366",
+                      },
+                      {
+                        label: "Facebook",
+                        Icon: FacebookIcon,
+                        href: shareData.platforms.facebook,
+                        color: "#1877F2",
+                      },
+                      {
+                        label: "Telegram",
+                        Icon: TelegramIcon,
+                        href: shareData.platforms.telegram,
+                        color: "#229ED9",
+                      },
+                      {
+                        label: "Instagram",
+                        Icon: InstagramIcon,
+                        href: shareData.platforms.instagram,
+                        color: "#E4405F",
+                      },
+                    ].map(({ label, Icon, href, color }) => (
+                      <button
+                        key={label}
+                        onClick={() => handlePlatformShare(href)}
+                        className="flex items-center gap-2.5 p-3 border border-[#1A1A2E]/12 hover:border-[#C9A84C]/45 transition-all text-start"
+                      >
+                        <Icon sx={{ fontSize: 19, color }} />
+                        <span className="text-sm font-semibold text-[#1A1A2E]">
+                          {label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs uppercase tracking-widest text-[#1A1A2E]/45 font-semibold">
+                      {tr.dir === "rtl" ? "رابط المنتج" : "Product Link"}
+                    </p>
+                    <div className="flex items-stretch gap-2">
+                      <input
+                        value={shareData.productUrl}
+                        readOnly
+                        className="flex-1 border border-[#1A1A2E]/15 px-3 py-2 text-xs text-[#1A1A2E]/80 bg-[#FAF7F2]"
+                      />
+                      <button
+                        onClick={() => copyShareLink(shareData.productUrl)}
+                        className="px-3 border border-[#C9A84C]/40 text-[#1A1A2E] hover:bg-[#C9A84C]/10 transition-colors"
+                        title={tr.dir === "rtl" ? "نسخ الرابط" : "Copy link"}
+                      >
+                        <ContentCopyIcon sx={{ fontSize: 16 }} />
+                      </button>
+                    </div>
+                    {shareCopied && (
+                      <p className="text-xs text-emerald-600 font-medium">
+                        {tr.dir === "rtl"
+                          ? "تم نسخ الرابط ✅"
+                          : "Link copied ✅"}
+                      </p>
+                    )}
+                  </div>
+                </>
+              ) : null}
+
+              {shareError && (
+                <p className="text-xs text-red-500 leading-relaxed">
+                  {shareError}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </>

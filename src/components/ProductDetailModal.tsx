@@ -60,7 +60,9 @@ export default function ProductDetailModal({
   useEffect(() => {
     productsService
       .getAll()
-      .then((apiProducts) => setRelatedProducts(apiProducts.map(apiProductToProduct)))
+      .then((apiProducts) =>
+        setRelatedProducts(apiProducts.map(apiProductToProduct)),
+      )
       .catch(() => {});
   }, []);
 
@@ -69,10 +71,15 @@ export default function ProductDetailModal({
   const hasSizes = product.sizes.length > 0;
   const hasColors = product.colors.length > 0;
   const isOutOfStock = product.stock === 0;
-  const related = relatedProducts.filter((p) => p.id !== product.id).slice(0, 8);
+  const related = relatedProducts
+    .filter((p) => p.id !== product.id)
+    .slice(0, 8);
 
   const handleAddToCart = () => {
-    if (!user || user.role !== "customer") { openLogin(); return; }
+    if (!user || user.role !== "customer") {
+      openLogin();
+      return;
+    }
     if (hasSizes && !selectedSize) {
       setSizeError(true);
       setTimeout(() => setSizeError(false), 2500);
@@ -91,9 +98,10 @@ export default function ProductDetailModal({
   };
 
   const prevImg = () =>
-    setActiveImg((i) => (i - 1 + product.images.length) % product.images.length);
-  const nextImg = () =>
-    setActiveImg((i) => (i + 1) % product.images.length);
+    setActiveImg(
+      (i) => (i - 1 + product.images.length) % product.images.length,
+    );
+  const nextImg = () => setActiveImg((i) => (i + 1) % product.images.length);
 
   const AddToCartButton = ({ compact = false }: { compact?: boolean }) => (
     <Button
@@ -101,25 +109,42 @@ export default function ProductDetailModal({
       disabled={isOutOfStock}
       onClick={handleAddToCart}
       startIcon={
-        addedToCart
-          ? <CheckIcon sx={{ fontSize: compact ? 13 : 15 }} />
-          : <ShoppingBagIcon sx={{ fontSize: compact ? 13 : 15 }} />
+        addedToCart ? (
+          <CheckIcon sx={{ fontSize: compact ? 13 : 15 }} />
+        ) : (
+          <ShoppingBagIcon sx={{ fontSize: compact ? 13 : 15 }} />
+        )
       }
       fullWidth
       sx={{
         height: compact ? 44 : 48,
         fontSize: compact ? "0.7rem" : "0.75rem",
-        bgcolor: addedToCart ? "#16a34a" : (sizeError || colorError) ? "#ef4444" : "#C9A84C",
+        bgcolor: addedToCart
+          ? "#16a34a"
+          : sizeError || colorError
+            ? "#ef4444"
+            : "#C9A84C",
         color: "#1A1A2E",
         "&:hover": {
-          bgcolor: addedToCart ? "#15803d" : (sizeError || colorError) ? "#dc2626" : "#D4B060",
+          bgcolor: addedToCart
+            ? "#15803d"
+            : sizeError || colorError
+              ? "#dc2626"
+              : "#D4B060",
         },
-        "&:disabled": { bgcolor: "rgba(26,26,46,0.08)", color: "rgba(26,26,46,0.3)" },
+        "&:disabled": {
+          bgcolor: "rgba(26,26,46,0.08)",
+          color: "rgba(26,26,46,0.3)",
+        },
       }}
     >
       {addedToCart
-        ? compact ? "Added!" : "Added to Cart"
-        : isOutOfStock ? "Out of Stock" : "Add to Cart"}
+        ? compact
+          ? "Added!"
+          : "Added to Cart"
+        : isOutOfStock
+          ? "Out of Stock"
+          : "Add to Cart"}
     </Button>
   );
 
@@ -132,7 +157,9 @@ export default function ProductDetailModal({
       scroll="body"
       disableEnforceFocus
       slotProps={{
-        backdrop: { sx: { bgcolor: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" } },
+        backdrop: {
+          sx: { bgcolor: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" },
+        },
       }}
       PaperProps={{
         sx: {
@@ -161,22 +188,35 @@ export default function ProductDetailModal({
             size="small"
             onClick={() => setLiked(!liked)}
             sx={{
-              borderRadius: 0, width: 32, height: 32,
-              border: liked ? "1px solid #fca5a5" : "1px solid rgba(26,26,46,0.15)",
+              borderRadius: 0,
+              width: 32,
+              height: 32,
+              border: liked
+                ? "1px solid #fca5a5"
+                : "1px solid rgba(26,26,46,0.15)",
               color: liked ? "#ef4444" : "rgba(26,26,46,0.4)",
               bgcolor: liked ? "#fef2f2" : "transparent",
               "&:hover": { borderColor: "#fca5a5", color: "#ef4444" },
             }}
           >
-            {liked ? <FavoriteIcon sx={{ fontSize: 13 }} /> : <FavoriteBorderIcon sx={{ fontSize: 13 }} />}
+            {liked ? (
+              <FavoriteIcon sx={{ fontSize: 13 }} />
+            ) : (
+              <FavoriteBorderIcon sx={{ fontSize: 13 }} />
+            )}
           </IconButton>
           <IconButton
             size="small"
             sx={{
-              borderRadius: 0, width: 32, height: 32,
+              borderRadius: 0,
+              width: 32,
+              height: 32,
               border: "1px solid rgba(26,26,46,0.15)",
               color: "rgba(26,26,46,0.4)",
-              "&:hover": { borderColor: "rgba(201,168,76,0.5)", color: "#C9A84C" },
+              "&:hover": {
+                borderColor: "rgba(201,168,76,0.5)",
+                color: "#C9A84C",
+              },
             }}
           >
             <ShareIcon sx={{ fontSize: 13 }} />
@@ -185,7 +225,10 @@ export default function ProductDetailModal({
             onClick={onClose}
             size="small"
             sx={{
-              borderRadius: 0, width: 32, height: 32, ml: 0.5,
+              borderRadius: 0,
+              width: 32,
+              height: 32,
+              ml: 0.5,
               color: "rgba(26,26,46,0.4)",
               "&:hover": { color: "#1A1A2E", bgcolor: "rgba(26,26,46,0.05)" },
             }}
@@ -197,7 +240,6 @@ export default function ProductDetailModal({
 
       {/* ── Body ── */}
       <div className="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0">
-
         {/* LEFT — Image gallery */}
         <div className="lg:w-[55%] flex flex-col bg-[#F0EBE3] flex-shrink-0">
           <div className="relative overflow-hidden h-[42vw] max-h-56 sm:max-h-72 lg:max-h-none lg:flex-1">
@@ -215,7 +257,15 @@ export default function ProductDetailModal({
                 <Chip
                   label="NEW"
                   size="small"
-                  sx={{ bgcolor: "#1A1A2E", color: "#C9A84C", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em", height: 20, borderRadius: 0 }}
+                  sx={{
+                    bgcolor: "#1A1A2E",
+                    color: "#C9A84C",
+                    fontSize: "0.6rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.1em",
+                    height: 20,
+                    borderRadius: 0,
+                  }}
                 />
               </div>
             )}
@@ -233,14 +283,34 @@ export default function ProductDetailModal({
                 <IconButton
                   onClick={prevImg}
                   size="small"
-                  sx={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", bgcolor: "rgba(255,255,255,0.8)", borderRadius: 0, "&:hover": { bgcolor: "#fff" }, width: { xs: 28, sm: 36 }, height: { xs: 28, sm: 36 } }}
+                  sx={{
+                    position: "absolute",
+                    left: 8,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    bgcolor: "rgba(255,255,255,0.8)",
+                    borderRadius: 0,
+                    "&:hover": { bgcolor: "#fff" },
+                    width: { xs: 28, sm: 36 },
+                    height: { xs: 28, sm: 36 },
+                  }}
                 >
                   <ChevronLeftIcon sx={{ fontSize: 18, color: "#1A1A2E" }} />
                 </IconButton>
                 <IconButton
                   onClick={nextImg}
                   size="small"
-                  sx={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", bgcolor: "rgba(255,255,255,0.8)", borderRadius: 0, "&:hover": { bgcolor: "#fff" }, width: { xs: 28, sm: 36 }, height: { xs: 28, sm: 36 } }}
+                  sx={{
+                    position: "absolute",
+                    right: 8,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    bgcolor: "rgba(255,255,255,0.8)",
+                    borderRadius: 0,
+                    "&:hover": { bgcolor: "#fff" },
+                    width: { xs: 28, sm: 36 },
+                    height: { xs: 28, sm: 36 },
+                  }}
                 >
                   <ChevronRightIcon sx={{ fontSize: 18, color: "#1A1A2E" }} />
                 </IconButton>
@@ -255,7 +325,9 @@ export default function ProductDetailModal({
                     key={i}
                     onClick={() => setActiveImg(i)}
                     className={`rounded-full transition-all duration-300 ${
-                      i === activeImg ? "w-5 h-1.5 bg-[#C9A84C]" : "w-1.5 h-1.5 bg-white/50 hover:bg-white/80"
+                      i === activeImg
+                        ? "w-5 h-1.5 bg-[#C9A84C]"
+                        : "w-1.5 h-1.5 bg-white/50 hover:bg-white/80"
                     }`}
                   />
                 ))}
@@ -276,7 +348,11 @@ export default function ProductDetailModal({
                       : "opacity-55 hover:opacity-100"
                   }`}
                 >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={img}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
                 </button>
               ))}
             </div>
@@ -286,16 +362,31 @@ export default function ProductDetailModal({
         {/* RIGHT — Product info (scrollable) */}
         <div className="lg:w-[45%] overflow-y-auto flex-1">
           <div className="p-4 sm:p-5 lg:p-8 space-y-5">
-
             {/* Stock badge */}
             <div className="flex items-center gap-2">
               {isOutOfStock ? (
-                <Chip label="Out of Stock" size="small" sx={{ bgcolor: "#fee2e2", color: "#dc2626", borderRadius: 0, fontWeight: 700, fontSize: "0.68rem" }} />
+                <Chip
+                  label="Out of Stock"
+                  size="small"
+                  sx={{
+                    bgcolor: "#fee2e2",
+                    color: "#dc2626",
+                    borderRadius: 0,
+                    fontWeight: 700,
+                    fontSize: "0.68rem",
+                  }}
+                />
               ) : (
                 <Chip
                   label={`In Stock · ${product.stock} available`}
                   size="small"
-                  sx={{ bgcolor: "#dcfce7", color: "#15803d", borderRadius: 0, fontWeight: 700, fontSize: "0.68rem" }}
+                  sx={{
+                    bgcolor: "#dcfce7",
+                    color: "#15803d",
+                    borderRadius: 0,
+                    fontWeight: 700,
+                    fontSize: "0.68rem",
+                  }}
                 />
               )}
             </div>
@@ -314,7 +405,9 @@ export default function ProductDetailModal({
             {hasSizes && (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <p className={`text-[10px] font-bold tracking-widest uppercase ${sizeError ? "text-red-500" : "text-[#1A1A2E]"}`}>
+                  <p
+                    className={`text-[10px] font-bold tracking-widest uppercase ${sizeError ? "text-red-500" : "text-[#1A1A2E]"}`}
+                  >
                     Size
                   </p>
                   {selectedSize ? (
@@ -322,7 +415,9 @@ export default function ProductDetailModal({
                       {selectedSize} selected
                     </span>
                   ) : (
-                    <span className={`text-[10px] font-medium ${sizeError ? "text-red-500" : "text-[#1A1A2E]/40"}`}>
+                    <span
+                      className={`text-[10px] font-medium ${sizeError ? "text-red-500" : "text-[#1A1A2E]/40"}`}
+                    >
                       {sizeError ? "Required — pick one" : "Choose a size"}
                     </span>
                   )}
@@ -333,7 +428,10 @@ export default function ProductDetailModal({
                     return (
                       <button
                         key={size}
-                        onClick={() => { setSelectedSize(isSelected ? null : size); setSizeError(false); }}
+                        onClick={() => {
+                          setSelectedSize(isSelected ? null : size);
+                          setSizeError(false);
+                        }}
                         className={`relative h-10 min-w-[48px] px-4 text-[11px] font-bold tracking-widest uppercase border-2 transition-all duration-200 select-none ${
                           isSelected
                             ? "border-[#1A1A2E] bg-[#1A1A2E] text-[#C9A84C] shadow-md"
@@ -365,7 +463,9 @@ export default function ProductDetailModal({
             {hasColors && (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <p className={`text-[10px] font-bold tracking-widest uppercase ${colorError ? "text-red-500" : "text-[#1A1A2E]"}`}>
+                  <p
+                    className={`text-[10px] font-bold tracking-widest uppercase ${colorError ? "text-red-500" : "text-[#1A1A2E]"}`}
+                  >
                     Color
                   </p>
                   {selectedColor ? (
@@ -373,7 +473,9 @@ export default function ProductDetailModal({
                       {selectedColor} selected
                     </span>
                   ) : (
-                    <span className={`text-[10px] font-medium ${colorError ? "text-red-500" : "text-[#1A1A2E]/40"}`}>
+                    <span
+                      className={`text-[10px] font-medium ${colorError ? "text-red-500" : "text-[#1A1A2E]/40"}`}
+                    >
                       {colorError ? "Required — pick one" : "Choose a color"}
                     </span>
                   )}
@@ -384,7 +486,10 @@ export default function ProductDetailModal({
                     return (
                       <button
                         key={color}
-                        onClick={() => { setSelectedColor(isSelected ? null : color); setColorError(false); }}
+                        onClick={() => {
+                          setSelectedColor(isSelected ? null : color);
+                          setColorError(false);
+                        }}
                         className={`relative h-9 px-4 text-[11px] font-bold tracking-widest uppercase border-2 transition-all duration-200 select-none flex items-center gap-2 ${
                           isSelected
                             ? "border-[#1A1A2E] bg-[#1A1A2E] text-[#C9A84C] shadow-md"
@@ -423,16 +528,32 @@ export default function ProductDetailModal({
                   onClick={() => setQty(Math.max(1, qty - 1))}
                   disabled={isOutOfStock}
                   size="small"
-                  sx={{ borderRadius: 0, width: 40, height: 48, color: "rgba(26,26,46,0.5)", "&:hover": { color: "#1A1A2E" }, "&:disabled": { opacity: 0.3 } }}
+                  sx={{
+                    borderRadius: 0,
+                    width: 40,
+                    height: 48,
+                    color: "rgba(26,26,46,0.5)",
+                    "&:hover": { color: "#1A1A2E" },
+                    "&:disabled": { opacity: 0.3 },
+                  }}
                 >
                   <RemoveIcon sx={{ fontSize: 14 }} />
                 </IconButton>
-                <span className="w-10 text-center text-[#1A1A2E] font-bold">{qty}</span>
+                <span className="w-10 text-center text-[#1A1A2E] font-bold">
+                  {qty}
+                </span>
                 <IconButton
                   onClick={() => setQty(Math.min(product.stock, qty + 1))}
                   disabled={isOutOfStock}
                   size="small"
-                  sx={{ borderRadius: 0, width: 40, height: 48, color: "rgba(26,26,46,0.5)", "&:hover": { color: "#1A1A2E" }, "&:disabled": { opacity: 0.3 } }}
+                  sx={{
+                    borderRadius: 0,
+                    width: 40,
+                    height: 48,
+                    color: "rgba(26,26,46,0.5)",
+                    "&:hover": { color: "#1A1A2E" },
+                    "&:disabled": { opacity: 0.3 },
+                  }}
                 >
                   <AddIcon sx={{ fontSize: 14 }} />
                 </IconButton>
@@ -443,13 +564,27 @@ export default function ProductDetailModal({
             {/* Trust signals */}
             <div className="grid grid-cols-3 gap-2 py-3 border-t border-b border-[#1A1A2E]/8">
               {[
-                { Icon: LocalShippingIcon, label: "Free Shipping", sub: "5,000+ DZD" },
+                {
+                  Icon: LocalShippingIcon,
+                  label: "Fast Shipping",
+                  sub: "All orders",
+                },
                 { Icon: ReplayIcon, label: "Free Returns", sub: "30 days" },
                 { Icon: SecurityIcon, label: "Secure Pay", sub: "Protected" },
               ].map(({ Icon, label, sub }) => (
                 <div key={label} className="text-center">
-                  <Icon sx={{ fontSize: 15, color: "#C9A84C", display: "block", mx: "auto", mb: 0.5 }} />
-                  <p className="text-[#1A1A2E] text-[10px] font-semibold leading-tight">{label}</p>
+                  <Icon
+                    sx={{
+                      fontSize: 15,
+                      color: "#C9A84C",
+                      display: "block",
+                      mx: "auto",
+                      mb: 0.5,
+                    }}
+                  />
+                  <p className="text-[#1A1A2E] text-[10px] font-semibold leading-tight">
+                    {label}
+                  </p>
                   <p className="text-[#1A1A2E]/40 text-[9px]">{sub}</p>
                 </div>
               ))}
@@ -504,14 +639,15 @@ export default function ProductDetailModal({
                       </p>
                       <p className="text-[#1A1A2E] text-xs font-bold mt-0.5">
                         {p.price.toLocaleString()}{" "}
-                        <span className="text-[#1A1A2E]/40 font-normal text-[10px]">DZD</span>
+                        <span className="text-[#1A1A2E]/40 font-normal text-[10px]">
+                          DZD
+                        </span>
                       </p>
                     </button>
                   ))}
                 </div>
               </div>
             )}
-
           </div>
         </div>
       </div>
@@ -524,16 +660,32 @@ export default function ProductDetailModal({
               onClick={() => setQty(Math.max(1, qty - 1))}
               disabled={isOutOfStock}
               size="small"
-              sx={{ borderRadius: 0, width: 36, height: 44, color: "rgba(26,26,46,0.5)", "&:hover": { color: "#1A1A2E" }, "&:disabled": { opacity: 0.3 } }}
+              sx={{
+                borderRadius: 0,
+                width: 36,
+                height: 44,
+                color: "rgba(26,26,46,0.5)",
+                "&:hover": { color: "#1A1A2E" },
+                "&:disabled": { opacity: 0.3 },
+              }}
             >
               <RemoveIcon sx={{ fontSize: 13 }} />
             </IconButton>
-            <span className="w-7 text-center text-[#1A1A2E] font-bold text-sm">{qty}</span>
+            <span className="w-7 text-center text-[#1A1A2E] font-bold text-sm">
+              {qty}
+            </span>
             <IconButton
               onClick={() => setQty(Math.min(product.stock, qty + 1))}
               disabled={isOutOfStock}
               size="small"
-              sx={{ borderRadius: 0, width: 36, height: 44, color: "rgba(26,26,46,0.5)", "&:hover": { color: "#1A1A2E" }, "&:disabled": { opacity: 0.3 } }}
+              sx={{
+                borderRadius: 0,
+                width: 36,
+                height: 44,
+                color: "rgba(26,26,46,0.5)",
+                "&:hover": { color: "#1A1A2E" },
+                "&:disabled": { opacity: 0.3 },
+              }}
             >
               <AddIcon sx={{ fontSize: 13 }} />
             </IconButton>

@@ -89,7 +89,7 @@ export default function Navbar() {
   const lastScrollY = useRef(0);
   const navRef = useRef<HTMLElement>(null);
   const [navHeight, setNavHeight] = useState(0);
-  const { totalItems, openCart } = useCart();
+  const { totalItems } = useCart();
   const { user, openLogin, openRegister, logout } = useAuth();
   const { tr } = useLang();
   const { totalItems: wishlistCount } = useWishlist();
@@ -230,233 +230,241 @@ export default function Navbar() {
 
         {/* ── Nav content ────────────────────────────────────────── */}
         <div className="border-b border-[#1A1A2E]/8">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          {/* ── Desktop Row 1: Logo | Icons ──────────────────────── */}
-          <div className="hidden lg:flex items-center justify-between h-14">
-            {/* Logo */}
-            <a href="/" className="flex items-center shrink-0">
-              <img
-                src={fodaLogo}
-                alt="FODA"
-                className="h-20 w-auto pt-3 object-contain"
-              />
-            </a>
+          <div className="max-w-7xl mx-auto px-4 lg:px-8">
+            {/* ── Desktop Row 1: Logo | Icons ──────────────────────── */}
+            <div className="hidden lg:flex items-center justify-between h-14">
+              {/* Logo */}
+              <a href="/" className="flex items-center shrink-0">
+                <img
+                  src={fodaLogo}
+                  alt="FODA"
+                  className="h-20 w-auto pt-3 object-contain"
+                />
+              </a>
 
-            {/* Icons — clean outlines, no backgrounds */}
-            <div className="flex items-center gap-5">
-              <LanguageSwitch />
+              {/* Icons — clean outlines, no backgrounds */}
+              <div className="flex items-center gap-5">
+                <LanguageSwitch />
 
-              {/* Account — logged in: icon only, click to toggle dropdown */}
-              {user ? (
-                <div className="relative" ref={accountRef}>
-                  <button
-                    onClick={() => setAccountOpen((o) => !o)}
-                    className="relative p-1.5 text-[#1A1A2E]/70 hover:text-[#1A1A2E] transition-colors duration-200"
-                  >
-                    <PersonOutlineIcon sx={{ fontSize: 26 }} />
-                  </button>
+                {/* Account — logged in: icon only, click to toggle dropdown */}
+                {user ? (
+                  <div className="relative" ref={accountRef}>
+                    <button
+                      onClick={() => setAccountOpen((o) => !o)}
+                      className="relative p-1.5 text-[#1A1A2E]/70 hover:text-[#1A1A2E] transition-colors duration-200"
+                    >
+                      <PersonOutlineIcon sx={{ fontSize: 26 }} />
+                    </button>
 
-                  {/* Account dropdown */}
-                  {accountOpen && (
-                    <div className="absolute top-full end-0 mt-2 w-52 bg-white rounded-xl border border-[#1A1A2E]/8 shadow-lg z-50 overflow-hidden">
-                      <div className="px-4 py-3 border-b border-[#1A1A2E]/8">
-                        <p className="text-[#1A1A2E] font-semibold text-sm">
-                          {user.fullName}
-                        </p>
-                        <p className="text-[#1A1A2E]/40 text-xs truncate">
-                          {user.email}
-                        </p>
-                      </div>
-                      {[
-                        {
-                          Icon: PersonIcon,
-                          label: tr.nav.myProfile,
-                          path: "/profile",
-                        },
-                        {
-                          Icon: Inventory2Icon,
-                          label: tr.nav.myOrders,
-                          path: "/profile?tab=orders",
-                        },
-                      ].map(({ Icon, label, path }) => (
-                        <button
-                          key={label}
-                          onClick={() => {
-                            navigate(path);
-                            setAccountOpen(false);
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1A1A2E]/70 hover:bg-[#FAF7F2] hover:text-[#C9A84C] transition-colors duration-150"
-                        >
-                          <Icon sx={{ fontSize: 15 }} /> {label}
-                        </button>
-                      ))}
-                      <div className="border-t border-[#1A1A2E]/8">
-                        {user.role === "seller" && (
+                    {/* Account dropdown */}
+                    {accountOpen && (
+                      <div className="absolute top-full end-0 mt-2 w-52 bg-white rounded-xl border border-[#1A1A2E]/8 shadow-lg z-50 overflow-hidden">
+                        <div className="px-4 py-3 border-b border-[#1A1A2E]/8">
+                          <p className="text-[#1A1A2E] font-semibold text-sm">
+                            {user.fullName}
+                          </p>
+                          <p className="text-[#1A1A2E]/40 text-xs truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                        {[
+                          {
+                            Icon: PersonIcon,
+                            label: tr.nav.myProfile,
+                            path: "/profile",
+                          },
+                          {
+                            Icon: Inventory2Icon,
+                            label: tr.nav.myOrders,
+                            path: "/profile?tab=orders",
+                          },
+                        ].map(({ Icon, label, path }) => (
                           <button
+                            key={label}
                             onClick={() => {
-                              navigate("/seller/dashboard");
+                              navigate(path);
                               setAccountOpen(false);
                             }}
                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1A1A2E]/70 hover:bg-[#FAF7F2] hover:text-[#C9A84C] transition-colors duration-150"
                           >
-                            <StoreIcon sx={{ fontSize: 15 }} /> Seller Dashboard
+                            <Icon sx={{ fontSize: 15 }} /> {label}
                           </button>
-                        )}
-                        <button
-                          onClick={async () => {
-                            setAccountOpen(false);
-                            await logout();
-                            navigate("/");
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors duration-150"
-                        >
-                          <LogoutIcon sx={{ fontSize: 15 }} /> {tr.nav.signOut}
-                        </button>
+                        ))}
+                        <div className="border-t border-[#1A1A2E]/8">
+                          {user.role === "seller" && (
+                            <button
+                              onClick={() => {
+                                navigate("/seller/dashboard");
+                                setAccountOpen(false);
+                              }}
+                              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1A1A2E]/70 hover:bg-[#FAF7F2] hover:text-[#C9A84C] transition-colors duration-150"
+                            >
+                              <StoreIcon sx={{ fontSize: 15 }} /> Seller
+                              Dashboard
+                            </button>
+                          )}
+                          <button
+                            onClick={async () => {
+                              setAccountOpen(false);
+                              await logout();
+                              navigate("/");
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors duration-150"
+                          >
+                            <LogoutIcon sx={{ fontSize: 15 }} />{" "}
+                            {tr.nav.signOut}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                /* Account — logged out: hover shows auth popup */
-                <div
-                  className="relative"
-                  ref={authPopupRef}
-                  onMouseEnter={openAuthPopup}
-                  onMouseLeave={scheduleCloseAuthPopup}
-                >
-                  <button
-                    onClick={openLogin}
-                    className="relative p-1.5 text-[#1A1A2E]/70 hover:text-[#1A1A2E] transition-colors duration-200"
-                  >
-                    <PersonOutlineIcon sx={{ fontSize: 26 }} />
-                  </button>
-
-                  {/* Auth hover popup */}
-                  {authPopupOpen && (
-                    <div
-                      className="absolute top-full end-0 mt-2 w-60 bg-white rounded-xl border border-[#1A1A2E]/8 shadow-lg z-50 overflow-hidden"
-                      onMouseEnter={openAuthPopup}
-                      onMouseLeave={scheduleCloseAuthPopup}
-                    >
-                      <div className="px-5 pt-5 pb-3">
-                        <p className="text-[#1A1A2E] font-semibold text-sm">
-                          {tr.nav.myProfile}
-                        </p>
-                        <p className="text-[#1A1A2E]/45 text-xs mt-1 leading-relaxed">
-                          {tr.auth.login.sub}
-                        </p>
-                      </div>
-                      <div className="px-5 pb-5 flex flex-col gap-2">
-                        <button
-                          onClick={() => {
-                            setAuthPopupOpen(false);
-                            openLogin();
-                          }}
-                          className="w-full py-2.5 text-sm font-semibold text-white bg-[#1A1A2E] hover:bg-[#1A1A2E]/90 rounded-lg transition-colors duration-150"
-                        >
-                          {tr.nav.signIn}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setAuthPopupOpen(false);
-                            openRegister();
-                          }}
-                          className="w-full py-2.5 text-sm font-semibold text-[#1A1A2E] border border-[#1A1A2E]/15 hover:border-[#C9A84C] hover:text-[#C9A84C] rounded-lg transition-colors duration-150"
-                        >
-                          {tr.nav.register}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Wishlist — customers only */}
-              {user?.role === "customer" && (
-                <NavIconBtn
-                  onClick={() => navigate("/wishlist")}
-                  badge={wishlistCount}
-                >
-                  <FavoriteBorderIcon sx={{ fontSize: 26 }} />
-                </NavIconBtn>
-              )}
-
-              {/* Cart */}
-              {user && (
-                <NavIconBtn onClick={openCart} badge={totalItems}>
-                  <LocalMallOutlinedIcon sx={{ fontSize: 26 }} />
-                </NavIconBtn>
-              )}
-            </div>
-          </div>
-
-          {/* ── Desktop Row 2: Categories | Search ───────────────── */}
-          <div className="hidden lg:flex items-center justify-between h-11 border-t border-[#1A1A2E]/5">
-            {/* Category links */}
-            <div className="flex items-center gap-7">
-              {navLinks.map((link) => (
-                <div key={link.label} className="relative group">
-                  <button
-                    onClick={() => handleNavLink(link.href)}
-                    className="text-[13px] font-semibold tracking-wide text-[#1A1A2E]/60 hover:text-[#C9A84C] transition-colors duration-200"
-                  >
-                    {link.label}
-                  </button>
-                  <span className="absolute -bottom-1 start-0 w-0 h-0.5 bg-[#C9A84C] transition-all duration-300 group-hover:w-full rounded-full" />
-                </div>
-              ))}
-            </div>
-
-            {/* Search bar */}
-            <div className="w-72 xl:w-80">
-              <SearchBar
-                products={searchProducts}
-                mobileOpen={mobileSearchOpen}
-                onMobileClose={() => setMobileSearchOpen(false)}
-              />
-            </div>
-          </div>
-
-          {/* ── Mobile layout ────────────────────────────────────── */}
-          <div className="flex lg:hidden items-center justify-between h-14">
-            <a href="/" className="flex items-center shrink-0">
-              <img
-                src={fodaLogo}
-                alt="FODA"
-                className="h-16 w-auto pt-2 object-contain"
-              />
-            </a>
-
-            <div className="flex items-center gap-1">
-              <MobileIconBtn onClick={() => setMobileSearchOpen(true)}>
-                <SearchIcon sx={{ fontSize: 22 }} />
-              </MobileIconBtn>
-
-              {user?.role === "customer" && (
-                <MobileIconBtn
-                  onClick={() => navigate("/wishlist")}
-                  badge={wishlistCount}
-                >
-                  <FavoriteBorderIcon sx={{ fontSize: 22 }} />
-                </MobileIconBtn>
-              )}
-
-              {user && (
-                <MobileIconBtn onClick={openCart} badge={totalItems}>
-                  <LocalMallOutlinedIcon sx={{ fontSize: 22 }} />
-                </MobileIconBtn>
-              )}
-
-              <MobileIconBtn onClick={() => setMenuOpen(!menuOpen)}>
-                {menuOpen ? (
-                  <CloseIcon sx={{ fontSize: 22 }} />
+                    )}
+                  </div>
                 ) : (
-                  <MenuIcon sx={{ fontSize: 22 }} />
+                  /* Account — logged out: hover shows auth popup */
+                  <div
+                    className="relative"
+                    ref={authPopupRef}
+                    onMouseEnter={openAuthPopup}
+                    onMouseLeave={scheduleCloseAuthPopup}
+                  >
+                    <button
+                      onClick={openLogin}
+                      className="relative p-1.5 text-[#1A1A2E]/70 hover:text-[#1A1A2E] transition-colors duration-200"
+                    >
+                      <PersonOutlineIcon sx={{ fontSize: 26 }} />
+                    </button>
+
+                    {/* Auth hover popup */}
+                    {authPopupOpen && (
+                      <div
+                        className="absolute top-full end-0 mt-2 w-60 bg-white rounded-xl border border-[#1A1A2E]/8 shadow-lg z-50 overflow-hidden"
+                        onMouseEnter={openAuthPopup}
+                        onMouseLeave={scheduleCloseAuthPopup}
+                      >
+                        <div className="px-5 pt-5 pb-3">
+                          <p className="text-[#1A1A2E] font-semibold text-sm">
+                            {tr.nav.myProfile}
+                          </p>
+                          <p className="text-[#1A1A2E]/45 text-xs mt-1 leading-relaxed">
+                            {tr.auth.login.sub}
+                          </p>
+                        </div>
+                        <div className="px-5 pb-5 flex flex-col gap-2">
+                          <button
+                            onClick={() => {
+                              setAuthPopupOpen(false);
+                              openLogin();
+                            }}
+                            className="w-full py-2.5 text-sm font-semibold text-white bg-[#1A1A2E] hover:bg-[#1A1A2E]/90 rounded-lg transition-colors duration-150"
+                          >
+                            {tr.nav.signIn}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setAuthPopupOpen(false);
+                              openRegister();
+                            }}
+                            className="w-full py-2.5 text-sm font-semibold text-[#1A1A2E] border border-[#1A1A2E]/15 hover:border-[#C9A84C] hover:text-[#C9A84C] rounded-lg transition-colors duration-150"
+                          >
+                            {tr.nav.register}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
-              </MobileIconBtn>
+
+                {/* Wishlist — customers only */}
+                {user?.role === "customer" && (
+                  <NavIconBtn
+                    onClick={() => navigate("/wishlist")}
+                    badge={wishlistCount}
+                  >
+                    <FavoriteBorderIcon sx={{ fontSize: 26 }} />
+                  </NavIconBtn>
+                )}
+
+                {/* Cart */}
+                {user && (
+                  <NavIconBtn
+                    onClick={() => navigate("/cart")}
+                    badge={totalItems}
+                  >
+                    <LocalMallOutlinedIcon sx={{ fontSize: 26 }} />
+                  </NavIconBtn>
+                )}
+              </div>
+            </div>
+
+            {/* ── Desktop Row 2: Categories | Search ───────────────── */}
+            <div className="hidden lg:flex items-center justify-between h-11 border-t border-[#1A1A2E]/5">
+              {/* Category links */}
+              <div className="flex items-center gap-7">
+                {navLinks.map((link) => (
+                  <div key={link.label} className="relative group">
+                    <button
+                      onClick={() => handleNavLink(link.href)}
+                      className="text-[13px] font-semibold tracking-wide text-[#1A1A2E]/60 hover:text-[#C9A84C] transition-colors duration-200"
+                    >
+                      {link.label}
+                    </button>
+                    <span className="absolute -bottom-1 start-0 w-0 h-0.5 bg-[#C9A84C] transition-all duration-300 group-hover:w-full rounded-full" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Search bar */}
+              <div className="w-72 xl:w-80">
+                <SearchBar
+                  products={searchProducts}
+                  mobileOpen={mobileSearchOpen}
+                  onMobileClose={() => setMobileSearchOpen(false)}
+                />
+              </div>
+            </div>
+
+            {/* ── Mobile layout ────────────────────────────────────── */}
+            <div className="flex lg:hidden items-center justify-between h-14">
+              <a href="/" className="flex items-center shrink-0">
+                <img
+                  src={fodaLogo}
+                  alt="FODA"
+                  className="h-16 w-auto pt-2 object-contain"
+                />
+              </a>
+
+              <div className="flex items-center gap-1">
+                <MobileIconBtn onClick={() => setMobileSearchOpen(true)}>
+                  <SearchIcon sx={{ fontSize: 22 }} />
+                </MobileIconBtn>
+
+                {user?.role === "customer" && (
+                  <MobileIconBtn
+                    onClick={() => navigate("/wishlist")}
+                    badge={wishlistCount}
+                  >
+                    <FavoriteBorderIcon sx={{ fontSize: 22 }} />
+                  </MobileIconBtn>
+                )}
+
+                {user && (
+                  <MobileIconBtn
+                    onClick={() => navigate("/cart")}
+                    badge={totalItems}
+                  >
+                    <LocalMallOutlinedIcon sx={{ fontSize: 22 }} />
+                  </MobileIconBtn>
+                )}
+
+                <MobileIconBtn onClick={() => setMenuOpen(!menuOpen)}>
+                  {menuOpen ? (
+                    <CloseIcon sx={{ fontSize: 22 }} />
+                  ) : (
+                    <MenuIcon sx={{ fontSize: 22 }} />
+                  )}
+                </MobileIconBtn>
+              </div>
             </div>
           </div>
-        </div>
         </div>
       </nav>
 

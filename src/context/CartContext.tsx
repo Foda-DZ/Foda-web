@@ -15,7 +15,12 @@ import { cartService } from "../services/cartService";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface CartContextValue extends CartState {
-  addItem: (product: Product, size: string, color: string, quantity?: number) => void;
+  addItem: (
+    product: Product,
+    size: string,
+    color: string,
+    quantity?: number,
+  ) => void;
   removeItem: (key: string) => void;
   updateQty: (key: string, quantity: number) => void;
   clearCart: () => void;
@@ -62,7 +67,10 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           ...state,
           items: state.items.map((i) =>
             i.key === key
-              ? { ...i, quantity: Math.min(i.quantity + quantity, product.stock) }
+              ? {
+                  ...i,
+                  quantity: Math.min(i.quantity + quantity, product.stock),
+                }
               : i,
           ),
         };
@@ -73,7 +81,10 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       };
     }
     case "REMOVE_ITEM":
-      return { ...state, items: state.items.filter((i) => i.key !== action.payload) };
+      return {
+        ...state,
+        items: state.items.filter((i) => i.key !== action.payload),
+      };
     case "UPDATE_QTY": {
       const { key, quantity } = action.payload;
       if (quantity < 1)
@@ -138,8 +149,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (!isCustomer) return;
 
       // Optimistic update
-      dispatch({ type: "ADD_ITEM", payload: { product, size, color, quantity } });
-      dispatch({ type: "OPEN_CART" });
+      dispatch({
+        type: "ADD_ITEM",
+        payload: { product, size, color, quantity },
+      });
 
       // Backend sync
       (async () => {

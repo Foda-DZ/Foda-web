@@ -8,12 +8,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import SecurityIcon from "@mui/icons-material/Security";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import IconButton from "@mui/material/IconButton";
 import { useCart } from "../context/CartContext";
 import { useLang } from "../context/LangContext";
-
-const SHIPPING_THRESHOLD = 5000;
 
 export default function CartPage() {
   const navigate = useNavigate();
@@ -23,7 +20,7 @@ export default function CartPage() {
   const [discountCode, setDiscountCode] = useState("");
   const [discountError, setDiscountError] = useState("");
 
-  const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : 750;
+  const shipping = 750;
   const total = subtotal + shipping;
 
   const handleApplyDiscount = () => {
@@ -249,15 +246,7 @@ export default function CartPage() {
                 </div>
                 <div className="flex justify-between text-sm text-[#1A1A2E]/60">
                   <span>{tr.cart.shipping}</span>
-                  <span
-                    className={
-                      shipping === 0 ? "text-[#C9A84C] font-semibold" : ""
-                    }
-                  >
-                    {shipping === 0
-                      ? tr.cart.free
-                      : `${shipping.toLocaleString()} DZD`}
-                  </span>
+                  <span>{shipping.toLocaleString()} DZD</span>
                 </div>
                 <div className="h-px bg-[#1A1A2E]/8" />
                 <div className="flex justify-between font-bold">
@@ -267,26 +256,6 @@ export default function CartPage() {
                   </span>
                 </div>
               </div>
-
-              {/* Free shipping progress */}
-              {subtotal < SHIPPING_THRESHOLD && (
-                <div className="pt-2">
-                  <p className="text-xs text-[#1A1A2E]/40 mb-1.5">
-                    {tr.cart.addMore.replace(
-                      "{amount}",
-                      (SHIPPING_THRESHOLD - subtotal).toLocaleString(),
-                    )}
-                  </p>
-                  <div className="h-1 bg-[#1A1A2E]/8 rounded-full overflow-hidden">
-                    <div
-                      className="h-full gold-gradient rounded-full transition-all duration-500"
-                      style={{
-                        width: `${Math.min((subtotal / SHIPPING_THRESHOLD) * 100, 100)}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
 
               <button
                 onClick={() => navigate("/checkout")}
@@ -302,20 +271,12 @@ export default function CartPage() {
 
             {/* Trust signals */}
             <div className="space-y-2">
-              {[
-                { Icon: SecurityIcon, text: tr.cartPage.secureCheckout },
-                { Icon: LocalShippingIcon, text: tr.cartPage.freeShippingOver },
-              ].map(({ Icon, text }) => (
-                <div
-                  key={text}
-                  className="flex items-center gap-2 text-xs text-[#1A1A2E]/40"
-                >
-                  <Icon
-                    sx={{ fontSize: 13, color: "#C9A84C", flexShrink: 0 }}
-                  />
-                  {text}
-                </div>
-              ))}
+              <div className="flex items-center gap-2 text-xs text-[#1A1A2E]/40">
+                <SecurityIcon
+                  sx={{ fontSize: 13, color: "#C9A84C", flexShrink: 0 }}
+                />
+                {tr.cartPage.secureCheckout}
+              </div>
             </div>
           </div>
         </div>
