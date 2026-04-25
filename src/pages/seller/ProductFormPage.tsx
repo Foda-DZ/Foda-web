@@ -25,24 +25,24 @@ import type { SvgIconComponent } from "@mui/icons-material";
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SIZES_OPTIONS = ["XS", "S", "M", "L", "XL", "XXL", "One Size"];
 const COLORS_OPTIONS = [
-  { name: "Black",    hex: "#1a1a1a" },
-  { name: "White",    hex: "#f9f9f9" },
-  { name: "Beige",    hex: "#f5f0e1" },
-  { name: "Gray",     hex: "#9ca3af" },
-  { name: "Brown",    hex: "#7c3f1a" },
-  { name: "Navy",     hex: "#1e3a5f" },
-  { name: "Red",      hex: "#dc2626" },
+  { name: "Black", hex: "#1a1a1a" },
+  { name: "White", hex: "#f9f9f9" },
+  { name: "Beige", hex: "#f5f0e1" },
+  { name: "Gray", hex: "#9ca3af" },
+  { name: "Brown", hex: "#7c3f1a" },
+  { name: "Navy", hex: "#1e3a5f" },
+  { name: "Red", hex: "#dc2626" },
   { name: "Burgundy", hex: "#7f1d1d" },
-  { name: "Pink",     hex: "#f9a8d4" },
-  { name: "Orange",   hex: "#f97316" },
-  { name: "Yellow",   hex: "#fde047" },
-  { name: "Green",    hex: "#16a34a" },
-  { name: "Olive",    hex: "#6b7c2d" },
-  { name: "Blue",     hex: "#2563eb" },
-  { name: "Teal",     hex: "#0d9488" },
-  { name: "Purple",   hex: "#7c3aed" },
-  { name: "Gold",     hex: "#C9A84C" },
-  { name: "Khaki",    hex: "#c3b091" },
+  { name: "Pink", hex: "#f9a8d4" },
+  { name: "Orange", hex: "#f97316" },
+  { name: "Yellow", hex: "#fde047" },
+  { name: "Green", hex: "#16a34a" },
+  { name: "Olive", hex: "#6b7c2d" },
+  { name: "Blue", hex: "#2563eb" },
+  { name: "Teal", hex: "#0d9488" },
+  { name: "Purple", hex: "#7c3aed" },
+  { name: "Gold", hex: "#C9A84C" },
+  { name: "Khaki", hex: "#c3b091" },
 ];
 
 const inputSx = {
@@ -50,7 +50,13 @@ const inputSx = {
 };
 
 // ─── Section Header ──────────────────────────────────────────────────────────
-function SectionHeader({ title, Icon }: { title: string; Icon: SvgIconComponent }) {
+function SectionHeader({
+  title,
+  Icon,
+}: {
+  title: string;
+  Icon: SvgIconComponent;
+}) {
   return (
     <div className="flex items-center gap-2.5 mb-1">
       <div className="w-7 h-7 bg-[#C9A84C]/10 flex items-center justify-center">
@@ -135,7 +141,8 @@ function ImageUpload({
         >
           <ImageIcon sx={{ fontSize: 22, color: "rgba(26,26,46,0.25)" }} />
           <span className="text-xs font-semibold text-[#1A1A2E]/40">
-            {uploadLabel}{required ? " *" : ""}
+            {uploadLabel}
+            {required ? " *" : ""}
           </span>
           <span className="text-[10px] text-[#1A1A2E]/25">
             {fileTypesLabel}
@@ -148,11 +155,18 @@ function ImageUpload({
 
 // ─── Form state ───────────────────────────────────────────────────────────────
 type ImagePreviews = [string, string, string, string, string];
-type ImageFiles = [File | null, File | null, File | null, File | null, File | null];
+type ImageFiles = [
+  File | null,
+  File | null,
+  File | null,
+  File | null,
+  File | null,
+];
 
 interface FormState {
   name: string;
-  category: string;
+  mainCategory: string;
+  subCategory: string;
   price: string;
   stock: string;
   description: string;
@@ -164,7 +178,8 @@ interface FormState {
 
 const defaultForm: FormState = {
   name: "",
-  category: "Women",
+  mainCategory: "Women",
+  subCategory: "Dresses",
   price: "",
   stock: "",
   description: "",
@@ -182,14 +197,33 @@ export default function ProductFormPage() {
   const { tr } = useLang();
   const t = tr.seller.form;
   const isEdit = !!id;
-  const existingProduct = isEdit ? sellerProducts.find((p) => p.id === id) : null;
+  const existingProduct = isEdit
+    ? sellerProducts.find((p) => p.id === id)
+    : null;
 
-  const categories = [
-    { value: "Men", label: t.catMen },
-    { value: "Women", label: t.catWomen },
-    { value: "Kids", label: t.catKids },
-    { value: "Accessories", label: t.catAccessories },
-    { value: "Other", label: t.catOther },
+  const mainCategories = [
+    { value: "Men", label: "Men" },
+    { value: "Women", label: "Women" },
+    { value: "Kids", label: "Kids" },
+    { value: "Accessories", label: "Accessories" },
+    { value: "Other", label: "Other" },
+  ];
+
+  const subCategories = [
+    { value: "Shirts", label: "Shirts" },
+    { value: "Pants", label: "Pants" },
+    { value: "Dresses", label: "Dresses" },
+    { value: "Shoes", label: "Shoes" },
+    { value: "Jackets", label: "Jackets" },
+    { value: "Hoodies", label: "Hoodies" },
+    { value: "Jeans", label: "Jeans" },
+    { value: "Shorts", label: "Shorts" },
+    { value: "T-Shirts", label: "T-Shirts" },
+    { value: "Sweaters", label: "Sweaters" },
+    { value: "Coats", label: "Coats" },
+    { value: "Bags", label: "Bags" },
+    { value: "Hats", label: "Hats" },
+    { value: "Other", label: "Other" },
   ];
 
   const [form, setForm] = useState<FormState>(defaultForm);
@@ -204,7 +238,8 @@ export default function ProductFormPage() {
     if (isEdit && existingProduct) {
       setForm({
         name: existingProduct.name,
-        category: existingProduct.category,
+        mainCategory: existingProduct.category,
+        subCategory: existingProduct.subCategory || "Other",
         price: String(existingProduct.price),
         stock: String(existingProduct.stock),
         description: existingProduct.description || "",
@@ -281,7 +316,8 @@ export default function ProductFormPage() {
           name: form.name.trim(),
           price: Number(form.price),
           stock: Number(form.stock),
-          category: form.category,
+          mainCategory: form.mainCategory,
+          subCategory: form.subCategory,
           description: form.description.trim() || undefined,
           sizes: form.sizes,
           colors: form.colors,
@@ -291,7 +327,8 @@ export default function ProductFormPage() {
           name: form.name.trim(),
           price: Number(form.price),
           stock: Number(form.stock),
-          category: form.category,
+          mainCategory: form.mainCategory,
+          subCategory: form.subCategory,
           description: form.description.trim() || undefined,
           sizes: form.sizes,
           colors: form.colors,
@@ -303,7 +340,11 @@ export default function ProductFormPage() {
       setTimeout(() => navigate("/seller/products"), 900);
     } catch (err) {
       setApiError(
-        err instanceof Error ? err.message : isEdit ? t.failedUpdate : t.failedAdd,
+        err instanceof Error
+          ? err.message
+          : isEdit
+            ? t.failedUpdate
+            : t.failedAdd,
       );
     } finally {
       setSaving(false);
@@ -356,21 +397,38 @@ export default function ProductFormPage() {
                 fullWidth
                 sx={inputSx}
               />
-              <TextField
-                label={t.category}
-                value={form.category}
-                onChange={(e) => set("category", e.target.value)}
-                select
-                fullWidth
-                sx={inputSx}
-                slotProps={{ select: { native: true } }}
-              >
-                {categories.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
-              </TextField>
+              <div className="grid grid-cols-2 gap-4">
+                <TextField
+                  label="Main Category"
+                  value={form.mainCategory}
+                  onChange={(e) => set("mainCategory", e.target.value)}
+                  select
+                  fullWidth
+                  sx={inputSx}
+                  slotProps={{ select: { native: true } }}
+                >
+                  {mainCategories.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </TextField>
+                <TextField
+                  label="Sub Category"
+                  value={form.subCategory}
+                  onChange={(e) => set("subCategory", e.target.value)}
+                  select
+                  fullWidth
+                  sx={inputSx}
+                  slotProps={{ select: { native: true } }}
+                >
+                  {subCategories.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </TextField>
+              </div>
             </div>
             <TextField
               label={t.description}
@@ -415,7 +473,10 @@ export default function ProductFormPage() {
 
           {/* ── Images ────────────────────────────────────────────────── */}
           <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
-            <SectionHeader title={t.productImages} Icon={PhotoLibraryOutlinedIcon} />
+            <SectionHeader
+              title={t.productImages}
+              Icon={PhotoLibraryOutlinedIcon}
+            />
             {errors.images && (
               <Alert
                 severity="error"
@@ -430,14 +491,23 @@ export default function ProductFormPage() {
                   key={i}
                   draggable={!!form.imagePreviews[i]}
                   onDragStart={() => setDragIdx(i)}
-                  onDragOver={(e) => { e.preventDefault(); }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                  }}
                   onDrop={() => {
                     if (dragIdx !== null && dragIdx !== i) {
                       const previews = [...form.imagePreviews] as ImagePreviews;
                       const files = [...form.imageFiles] as ImageFiles;
-                      [previews[dragIdx], previews[i]] = [previews[i], previews[dragIdx]];
+                      [previews[dragIdx], previews[i]] = [
+                        previews[i],
+                        previews[dragIdx],
+                      ];
                       [files[dragIdx], files[i]] = [files[i], files[dragIdx]];
-                      setForm((f) => ({ ...f, imagePreviews: previews, imageFiles: files }));
+                      setForm((f) => ({
+                        ...f,
+                        imagePreviews: previews,
+                        imageFiles: files,
+                      }));
                     }
                     setDragIdx(null);
                   }}
@@ -446,11 +516,19 @@ export default function ProductFormPage() {
                 >
                   <div className="flex items-center gap-1 mb-1.5">
                     {form.imagePreviews[i] && (
-                      <DragIndicatorIcon sx={{ fontSize: 12, color: "rgba(26,26,46,0.25)", cursor: "grab" }} />
+                      <DragIndicatorIcon
+                        sx={{
+                          fontSize: 12,
+                          color: "rgba(26,26,46,0.25)",
+                          cursor: "grab",
+                        }}
+                      />
                     )}
                     <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/60">
                       {i === 0 ? t.mainImage : `${t.image} ${i + 1}`}
-                      {i === 0 && <span className="text-red-400 ms-0.5">*</span>}
+                      {i === 0 && (
+                        <span className="text-red-400 ms-0.5">*</span>
+                      )}
                     </p>
                   </div>
                   <ImageUpload
@@ -469,7 +547,10 @@ export default function ProductFormPage() {
           {/* ── Sizes ─────────────────────────────────────────────────── */}
           <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
             <div className="flex items-center justify-between">
-              <SectionHeader title={t.availableSizes} Icon={StraightenOutlinedIcon} />
+              <SectionHeader
+                title={t.availableSizes}
+                Icon={StraightenOutlinedIcon}
+              />
               {form.sizes.length > 0 && (
                 <span className="text-xs text-[#C9A84C] font-semibold animate-in">
                   {form.sizes.join(" · ")}
@@ -477,7 +558,10 @@ export default function ProductFormPage() {
               )}
             </div>
             {errors.sizes && (
-              <Alert severity="error" sx={{ borderRadius: 0, py: 0.5, fontSize: "0.75rem" }}>
+              <Alert
+                severity="error"
+                sx={{ borderRadius: 0, py: 0.5, fontSize: "0.75rem" }}
+              >
                 {errors.sizes}
               </Alert>
             )}
@@ -495,7 +579,11 @@ export default function ProductFormPage() {
                         : "border-[#1A1A2E]/20 text-[#1A1A2E]/60 hover:border-[#1A1A2E] hover:text-[#1A1A2E] hover:scale-105"
                     }`}
                   >
-                    {selected && <CheckIcon sx={{ fontSize: 11, mr: 0.5, verticalAlign: "middle" }} />}
+                    {selected && (
+                      <CheckIcon
+                        sx={{ fontSize: 11, mr: 0.5, verticalAlign: "middle" }}
+                      />
+                    )}
                     {size}
                   </button>
                 );
@@ -506,7 +594,10 @@ export default function ProductFormPage() {
           {/* ── Colors ────────────────────────────────────────────────── */}
           <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
             <div className="flex items-center justify-between">
-              <SectionHeader title={t.availableColors} Icon={PaletteOutlinedIcon} />
+              <SectionHeader
+                title={t.availableColors}
+                Icon={PaletteOutlinedIcon}
+              />
               {form.colors.length > 0 && (
                 <div className="flex items-center gap-1.5">
                   {form.colors.map((c) => {
@@ -524,7 +615,10 @@ export default function ProductFormPage() {
               )}
             </div>
             {errors.colors && (
-              <Alert severity="error" sx={{ borderRadius: 0, py: 0.5, fontSize: "0.75rem" }}>
+              <Alert
+                severity="error"
+                sx={{ borderRadius: 0, py: 0.5, fontSize: "0.75rem" }}
+              >
                 {errors.colors}
               </Alert>
             )}
@@ -544,7 +638,9 @@ export default function ProductFormPage() {
                   >
                     <span
                       className={`w-3.5 h-3.5 rounded-full border flex-shrink-0 transition-shadow duration-200 ${
-                        selected ? "border-white/40 shadow-sm" : "border-black/10"
+                        selected
+                          ? "border-white/40 shadow-sm"
+                          : "border-black/10"
                       }`}
                       style={{ backgroundColor: hex }}
                     />
@@ -585,8 +681,12 @@ export default function ProductFormPage() {
               sx={{ borderRadius: 0, minWidth: 160 }}
             >
               {saved
-                ? (isEdit ? t.productUpdated : t.productAdded)
-                : (isEdit ? t.saveChanges : t.publishProduct)}
+                ? isEdit
+                  ? t.productUpdated
+                  : t.productAdded
+                : isEdit
+                  ? t.saveChanges
+                  : t.publishProduct}
             </Button>
             <Button
               type="button"

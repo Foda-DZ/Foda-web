@@ -5,7 +5,8 @@ export interface AddProductPayload {
   name: string;
   price: number;
   stock: number;
-  category: string;
+  mainCategory: string;
+  subCategory: string;
   description?: string;
   sizes: string[];
   colors: string[];
@@ -16,7 +17,8 @@ export interface UpdateProductPayload {
   name: string;
   price: number;
   stock: number;
-  category: string;
+  mainCategory: string;
+  subCategory: string;
   description?: string;
   sizes: string[];
   colors: string[];
@@ -33,7 +35,8 @@ export const sellerService = {
     form.append("name", payload.name);
     form.append("price", String(payload.price));
     form.append("stock", String(payload.stock));
-    form.append("category", payload.category);
+    form.append("mainCategory", payload.mainCategory);
+    form.append("subCategory", payload.subCategory);
     if (payload.description) form.append("description", payload.description);
     payload.sizes.forEach((s) => form.append("sizes", s));
     payload.colors.forEach((c) => form.append("colors", c));

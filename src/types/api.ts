@@ -37,6 +37,22 @@ export type ApiCategory =
   | "Accessories"
   | "Other";
 
+export type ApiSubCategory =
+  | "Shirts"
+  | "Pants"
+  | "Dresses"
+  | "Shoes"
+  | "Jackets"
+  | "Hoodies"
+  | "Jeans"
+  | "Shorts"
+  | "T-Shirts"
+  | "Sweaters"
+  | "Coats"
+  | "Bags"
+  | "Hats"
+  | "Other";
+
 export interface ApiProduct {
   _id: string;
   sellerId: string;
@@ -48,7 +64,18 @@ export interface ApiProduct {
   stock: number;
   sizes: string[];
   colors: string[];
-  category: ApiCategory;
+  mainCategory: ApiCategory;
+  subCategory: ApiSubCategory;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiReview {
+  _id: string;
+  customerId: string;
+  productId: string;
+  rating: number;
+  comment: string;
   createdAt: string;
   updatedAt: string;
 }

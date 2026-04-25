@@ -17,7 +17,8 @@ export function apiProductToProduct(p: ApiProduct): Product {
   return {
     id: p._id,
     name: p.name,
-    category: p.category,
+    category: p.mainCategory,
+    subCategory: p.subCategory,
     price: p.price,
     originalPrice: (p as Record<string, unknown>).originalPrice as number | undefined,
     images: apiImages.map((img) => img.url),

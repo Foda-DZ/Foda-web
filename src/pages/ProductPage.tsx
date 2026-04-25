@@ -95,6 +95,12 @@ export default function ProductPage() {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
 
+  const [reviewRating, setReviewRating] = useState<number>(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState("");
+  const [reviewError, setReviewError] = useState("");
+
   useEffect(() => {
     if (!id) return;
     setLoading(true);
@@ -134,11 +140,17 @@ export default function ProductPage() {
   const isOutOfStock = product ? product.stock === 0 : false;
   const hasSizes = product ? product.sizes.length > 0 : false;
   const hasColors = product ? product.colors.length > 0 : false;
-  const canAdd = !isOutOfStock && (!hasSizes || selectedSize) && (!hasColors || selectedColor);
+  const canAdd =
+    !isOutOfStock &&
+    (!hasSizes || selectedSize) &&
+    (!hasColors || selectedColor);
 
   const handleAddToCart = () => {
     if (!product) return;
-    if (!user) { openLogin(); return; }
+    if (!user) {
+      openLogin();
+      return;
+    }
     const sizeToAdd = selectedSize ?? "One Size";
     const colorToAdd = selectedColor ?? "Default";
     addItem(product, sizeToAdd, colorToAdd, quantity);
@@ -157,6 +169,42 @@ export default function ProductPage() {
     }
     if (wishlisted) removeFromWishlist(product.id);
     else addToWishlist(product);
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product) return;
+    if (!user) {
+      openLogin();
+      return;
+    }
+    if (reviewRating < 1) {
+      setReviewError("Please select a rating.");
+      return;
+    }
+    if (!reviewComment.trim()) {
+      setReviewError("Please enter a comment.");
+      return;
+    }
+
+    setSubmittingReview(true);
+    setReviewError("");
+    setReviewSuccess("");
+    try {
+      await productsService.reviewProduct(product.id, {
+        rating: reviewRating,
+        comment: reviewComment,
+      });
+      setReviewSuccess("Your review has been submitted successfully!");
+      setReviewRating(0);
+      setReviewComment("");
+    } catch (err: any) {
+      setReviewError(
+        err?.response?.data?.message || "Failed to submit review.",
+      );
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   // ── Loading skeleton ──
@@ -443,6 +491,73 @@ export default function ProductPage() {
           </div>
         </div>
 
+        {/* ── Write a Review Section ── */}
+        {isCustomer && (
+          <section className="mt-14 max-w-2xl">
+            <div className="h-px bg-gradient-to-r from-transparent via-[#C9A84C]/20 to-transparent mb-10" />
+            <h3 className="font-display text-xl font-bold text-[#1A1A2E] mb-4">
+              Write a Review
+            </h3>
+
+            {reviewSuccess ? (
+              <div className="bg-[#C9A84C]/10 p-4 font-medium text-sm text-[#C9A84C]">
+                {reviewSuccess}
+              </div>
+            ) : (
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-[#1A1A2E] mb-2">
+                    Rating
+                  </label>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setReviewRating(star)}
+                        className="hover:scale-110 transition-transform"
+                      >
+                        {reviewRating >= star ? (
+                          <StarIcon sx={{ fontSize: 24, color: "#C9A84C" }} />
+                        ) : (
+                          <StarOutlineIcon
+                            sx={{ fontSize: 24, color: "#C9A84C33" }}
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-[#1A1A2E] mb-2">
+                    Comment
+                  </label>
+                  <textarea
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    placeholder="Share your thoughts about this product..."
+                    className="w-full bg-transparent border border-[#1A1A2E]/15 p-3 text-sm focus:outline-none focus:border-[#C9A84C] transition-colors resize-none rounded-none"
+                    rows={4}
+                  />
+                </div>
+
+                {reviewError && (
+                  <p className="text-red-500 text-sm">{reviewError}</p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className="btn-dark px-8 py-3 text-sm"
+                >
+                  {submittingReview ? "Submitting..." : "Submit Review"}
+                </button>
+              </form>
+            )}
+          </section>
+        )}
+
         {/* ── Related Products ── */}
         {related.length > 0 && (
           <section className="mt-14">
@@ -452,11 +567,7 @@ export default function ProductPage() {
             </h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {related.map((p, i) => (
-                <ProductCard
-                  key={p.id}
-                  product={p}
-                  delay={i * 100}
-                />
+                <ProductCard key={p.id} product={p} delay={i * 100} />
               ))}
             </div>
           </section>

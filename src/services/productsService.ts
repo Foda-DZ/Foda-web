@@ -1,9 +1,16 @@
 import api from "../lib/api";
-import type { ApiProduct } from "../types/api";
+import type { ApiProduct, ApiReview } from "../types/api";
 
 export interface GetProductsParams {
   search?: string;
-  category?: string;
+  mainCategory?: string;
+  subCategory?: string;
+  category?: string; // legacy support
+}
+
+export interface ReviewProductPayload {
+  rating: number;
+  comment: string;
 }
 
 // ── Simple in-memory cache with deduplication ────────────────────────────────
@@ -62,6 +69,11 @@ export const productsService = {
     api
       .get<{ message: string; product: ApiProduct }>(`/products/${id}`)
       .then((r) => r.data.product),
+
+  reviewProduct: (id: string, payload: ReviewProductPayload) =>
+    api
+      .post<{ message: string; review: ApiReview }>(`/products/${id}/review`, payload)
+      .then((r) => r.data),
 
   invalidateCache: () => {
     cache.clear();
