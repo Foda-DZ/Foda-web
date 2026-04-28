@@ -20,9 +20,6 @@ import { useWishlist } from "../context/WishlistContext";
 import LanguageSwitch from "./LanguageSwitch";
 import SearchBar from "./search/SearchBar";
 import fodaLogo from "../assets/Foda-Logo (1).png";
-import type { Product } from "../types";
-import { productsService } from "../services/productsService";
-import { apiProductToProduct } from "../lib/mappers";
 
 /* ── Clean icon button (no background) ─────────────────────────── */
 function NavIconBtn({
@@ -93,14 +90,6 @@ export default function Navbar() {
   const { user, openLogin, openRegister, logout } = useAuth();
   const { tr } = useLang();
   const { totalItems: wishlistCount } = useWishlist();
-  const [searchProducts, setSearchProducts] = useState<Product[]>([]);
-
-  useEffect(() => {
-    productsService
-      .getAll()
-      .then((ap) => setSearchProducts(ap.map(apiProductToProduct)))
-      .catch(() => {});
-  }, []);
 
   /* ── Category links only ─────────────────────────────────────── */
   const navLinks = [
@@ -373,25 +362,21 @@ export default function Navbar() {
                   </div>
                 )}
 
-                {/* Wishlist — customers only */}
-                {user?.role === "customer" && (
-                  <NavIconBtn
-                    onClick={() => navigate("/wishlist")}
-                    badge={wishlistCount}
-                  >
-                    <FavoriteBorderIcon sx={{ fontSize: 26 }} />
-                  </NavIconBtn>
-                )}
+                {/* Wishlist */}
+                <NavIconBtn
+                  onClick={() => navigate("/wishlist")}
+                  badge={user?.role === "customer" ? wishlistCount : 0}
+                >
+                  <FavoriteBorderIcon sx={{ fontSize: 26 }} />
+                </NavIconBtn>
 
                 {/* Cart */}
-                {user && (
-                  <NavIconBtn
-                    onClick={() => navigate("/cart")}
-                    badge={totalItems}
-                  >
-                    <LocalMallOutlinedIcon sx={{ fontSize: 26 }} />
-                  </NavIconBtn>
-                )}
+                <NavIconBtn
+                  onClick={() => navigate("/cart")}
+                  badge={user?.role === "customer" ? totalItems : 0}
+                >
+                  <LocalMallOutlinedIcon sx={{ fontSize: 26 }} />
+                </NavIconBtn>
               </div>
             </div>
 
@@ -415,7 +400,6 @@ export default function Navbar() {
               {/* Search bar */}
               <div className="w-72 xl:w-80">
                 <SearchBar
-                  products={searchProducts}
                   mobileOpen={mobileSearchOpen}
                   onMobileClose={() => setMobileSearchOpen(false)}
                 />
@@ -437,23 +421,19 @@ export default function Navbar() {
                   <SearchIcon sx={{ fontSize: 22 }} />
                 </MobileIconBtn>
 
-                {user?.role === "customer" && (
-                  <MobileIconBtn
-                    onClick={() => navigate("/wishlist")}
-                    badge={wishlistCount}
-                  >
-                    <FavoriteBorderIcon sx={{ fontSize: 22 }} />
-                  </MobileIconBtn>
-                )}
+                <MobileIconBtn
+                  onClick={() => navigate("/wishlist")}
+                  badge={user?.role === "customer" ? wishlistCount : 0}
+                >
+                  <FavoriteBorderIcon sx={{ fontSize: 22 }} />
+                </MobileIconBtn>
 
-                {user && (
-                  <MobileIconBtn
-                    onClick={() => navigate("/cart")}
-                    badge={totalItems}
-                  >
-                    <LocalMallOutlinedIcon sx={{ fontSize: 22 }} />
-                  </MobileIconBtn>
-                )}
+                <MobileIconBtn
+                  onClick={() => navigate("/cart")}
+                  badge={user?.role === "customer" ? totalItems : 0}
+                >
+                  <LocalMallOutlinedIcon sx={{ fontSize: 22 }} />
+                </MobileIconBtn>
 
                 <MobileIconBtn onClick={() => setMenuOpen(!menuOpen)}>
                   {menuOpen ? (

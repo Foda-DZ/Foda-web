@@ -20,26 +20,34 @@ interface CategoryData {
 const CATEGORY_DATA: CategoryData[] = [
   {
     key: "women",
-    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&q=80",
-    color: "from-[#722F37]/80",
+    image:
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&q=80",
+    // burgundy overlay
+    color: "rgba(114,47,55,0.8)",
     span: "lg:col-span-2 lg:row-span-2",
   },
   {
     key: "men",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80",
-    color: "from-[#0F3460]/80",
+    image:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80",
+    // deep blue overlay
+    color: "rgba(15,52,96,0.8)",
     span: "",
   },
   {
     key: "kids",
-    image: "https://images.unsplash.com/photo-1471286174890-9c112ffca5b4?w=600&q=80",
-    color: "from-[#C9A84C]/80",
+    image:
+      "https://images.unsplash.com/photo-1471286174890-9c112ffca5b4?w=600&q=80",
+    // gold overlay
+    color: "rgba(201,168,76,0.8)",
     span: "",
   },
   {
     key: "accessories",
-    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80",
-    color: "from-[#1A1A2E]/80",
+    image:
+      "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80",
+    // charcoal overlay
+    color: "rgba(26,26,46,0.8)",
     span: "lg:col-span-2",
   },
 ];
@@ -85,19 +93,22 @@ function CategoryCard({
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
       />
       <div
-        className={`absolute inset-0 bg-gradient-to-t ${data.color} to-transparent`}
+        className="absolute inset-0"
+        style={{
+          background: `linear-gradient(to top, ${data.color}, transparent)`,
+        }}
       />
-      <div className="absolute inset-0 bg-[#1A1A2E]/20 group-hover:bg-[#1A1A2E]/10 transition-colors duration-300" />
-      <div className="absolute bottom-0 start-0 end-0 p-6 text-white">
+      <div className="absolute inset-0 bg-charcoal/20 group-hover:bg-charcoal/10 transition-colors duration-300" />
+      <div className="absolute bottom-0 inset-x-0 p-6 text-white">
         {/* Show the opposite script as accent — the bilingual flavour */}
-        <p className="text-[#C9A84C] text-xs tracking-widest mb-1">
+        <p className="text-gold text-xs tracking-widest mb-1">
           {isRTL ? item.name : item.ar}
         </p>
         <h3 className="font-display text-2xl lg:text-3xl font-bold mb-1">
           {item.name}
         </h3>
         <p className="text-white/60 text-sm mb-4">{item.count}</p>
-        <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-white/80 group-hover:text-[#C9A84C] transition-colors duration-300">
+        <div className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-white/80 group-hover:text-gold transition-colors duration-300">
           {tr.categories.shopNow}
           <ArrowRight
             size={12}
@@ -105,8 +116,8 @@ function CategoryCard({
           />
         </div>
       </div>
-      <div className="absolute top-0 end-0 w-12 h-12 overflow-hidden">
-        <div className="absolute top-0 end-0 w-0 h-0 border-s-[48px] border-s-transparent border-t-[48px] border-t-[#C9A84C]/60 transition-all duration-300 group-hover:border-t-[#C9A84C]" />
+      <div className="absolute top-0 inset-e-0 w-12 h-12 overflow-hidden">
+        <div className="absolute top-0 inset-e-0 w-0 h-0 border-s-48 border-s-transparent border-t-48 border-t-gold-60 transition-all duration-300 group-hover:border-t-gold" />
       </div>
     </div>
   );
@@ -119,22 +130,27 @@ export default function Categories() {
   return (
     <section id="collections" className="py-24 px-6 lg:px-12 max-w-7xl mx-auto">
       <div className="text-center mb-16">
-        <span className="text-[#C9A84C] text-xs font-semibold tracking-widest uppercase">
+        <span className="text-gold text-xs font-semibold tracking-widest uppercase">
           {tr.categories.browsBy}
         </span>
         <div className="divider-gold" />
-        <h2 className="font-display text-5xl lg:text-6xl font-bold text-[#1A1A2E] mt-2">
+        <h2 className="font-display text-5xl lg:text-6xl font-bold text-charcoal mt-2">
           {tr.categories.shopBy}
           <br />
           <span className="gold-text">{tr.categories.category}</span>
         </h2>
-        <p className="text-[#1A1A2E]/50 mt-4 font-light max-w-md mx-auto">
+        <p className="text-charcoal/50 mt-4 font-light max-w-md mx-auto">
           {tr.categories.subtitle}
         </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[280px]">
         {CATEGORY_DATA.map((cat, i) => (
-          <CategoryCard key={cat.key} data={cat} delay={i * 150} onNavigate={() => navigate(CATEGORY_ROUTES[cat.key])} />
+          <CategoryCard
+            key={cat.key}
+            data={cat}
+            delay={i * 150}
+            onNavigate={() => navigate(CATEGORY_ROUTES[cat.key])}
+          />
         ))}
       </div>
     </section>

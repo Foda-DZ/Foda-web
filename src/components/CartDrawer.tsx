@@ -61,7 +61,7 @@ export default function CartDrawer() {
             {tr.cart.title}
           </h2>
           {totalItems > 0 && (
-            <span className="gold-gradient text-[#1A1A2E] text-xs font-black px-2 py-0.5 rounded-full">
+            <span className="gold-gradient text-charcoal text-xs font-black px-2 py-0.5 rounded-full">
               {totalItems}
             </span>
           )}
@@ -148,7 +148,7 @@ export default function CartDrawer() {
               closeCart();
               navigate("/cart");
             }}
-            className="w-full text-center text-[#C9A84C] hover:text-[#d4b85d] text-xs font-semibold transition-colors duration-200"
+            className="w-full text-center text-gold hover:text-gold-light text-xs font-semibold transition-colors duration-200"
           >
             {tr.cart.viewFullCart}
           </button>
@@ -191,7 +191,7 @@ function CartItemRow({
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-start gap-2">
           <div className="min-w-0">
-            <p className="text-[#C9A84C] text-[10px] uppercase tracking-widest truncate">
+            <p className="text-gold text-[10px] uppercase tracking-widest truncate">
               {product.category}
             </p>
             <p className="text-white font-semibold text-sm leading-tight truncate">

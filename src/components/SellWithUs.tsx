@@ -1,37 +1,95 @@
 import { useRef, useEffect, useState } from "react";
-import StorefrontIcon from "@mui/icons-material/Storefront";
-import PeopleIcon from "@mui/icons-material/People";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import { useNavigate } from "react-router-dom";
+import BoltIcon from "@mui/icons-material/Bolt";
+import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { useLang } from "../context/LangContext";
 import { useAuth } from "../context/AuthContext";
 
-const STEPS = [
+type SubscriptionPlan = {
+  id: "basic" | "pro" | "brand";
+  icon: typeof BoltIcon;
+  accent: string;
+  title: { en: string; ar: string };
+  subtitle: { en: string; ar: string };
+  price: { en: string; ar: string };
+  period: { en: string; ar: string };
+  highlight?: { en: string; ar: string };
+  features: Array<{ en: string; ar: string }>;
+  cta: { en: string; ar: string };
+};
+
+// TODO: Replace placeholder plans below with final pricing data when provided.
+const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
-    Icon: StorefrontIcon,
-    key: "step1" as const,
-    color: "#C9A84C",
+    id: "basic",
+    icon: BoltIcon,
+    accent: "#C9A84C",
+    title: { en: "Basic", ar: "أساسي" },
+    subtitle: {
+      en: "Best for new sellers starting out",
+      ar: "مناسب للبائعين الجدد",
+    },
+    price: { en: "Custom Price", ar: "سعر مخصص" },
+    period: { en: "per month", ar: "شهرياً" },
+    features: [
+      { en: "Store profile & product listing", ar: "ملف متجر وإدراج المنتجات" },
+      { en: "Order management dashboard", ar: "لوحة إدارة الطلبات" },
+      { en: "Marketplace visibility", ar: "ظهور داخل السوق" },
+    ],
+    cta: { en: "Choose Basic", ar: "اختر الأساسي" },
   },
   {
-    Icon: PeopleIcon,
-    key: "step2" as const,
-    color: "#C9A84C",
+    id: "pro",
+    icon: WorkspacePremiumIcon,
+    accent: "#E8C96B",
+    title: { en: "Pro", ar: "احترافي" },
+    subtitle: {
+      en: "For growing stores that need more reach",
+      ar: "للمتاجر المتنامية التي تحتاج انتشاراً أكبر",
+    },
+    price: { en: "Custom Price", ar: "سعر مخصص" },
+    period: { en: "per month", ar: "شهرياً" },
+    highlight: { en: "Most Popular", ar: "الأكثر اختياراً" },
+    features: [
+      { en: "Everything in Basic", ar: "كل ما في الخطة الأساسية" },
+      { en: "Priority placement opportunities", ar: "فرص ظهور أولوية" },
+      { en: "Advanced performance insights", ar: "تحليلات أداء متقدمة" },
+      { en: "Priority seller support", ar: "دعم بائعين بأولوية" },
+    ],
+    cta: { en: "Choose Pro", ar: "اختر الاحترافي" },
   },
   {
-    Icon: DashboardIcon,
-    key: "step3" as const,
-    color: "#C9A84C",
+    id: "brand",
+    icon: BusinessCenterIcon,
+    accent: "#A07830",
+    title: { en: "Brand", ar: "براند" },
+    subtitle: {
+      en: "For established brands and teams",
+      ar: "للعلامات التجارية والفرق المتقدمة",
+    },
+    price: { en: "Custom Price", ar: "سعر مخصص" },
+    period: { en: "per month", ar: "شهرياً" },
+    features: [
+      { en: "Everything in Pro", ar: "كل ما في الخطة الاحترافية" },
+      { en: "Dedicated account onboarding", ar: "تأهيل خاص للحساب" },
+      { en: "Campaign & growth support", ar: "دعم الحملات والنمو" },
+      {
+        en: "Brand-focused storefront options",
+        ar: "خيارات متجر مخصصة للعلامة",
+      },
+    ],
+    cta: { en: "Contact Sales", ar: "تواصل مع المبيعات" },
   },
 ];
 
 export default function SellWithUs() {
   const { tr } = useLang();
-  const { openRegister } = useAuth();
-  const navigate = useNavigate();
+  const { openLogin } = useAuth();
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLElement>(null);
+  const isArabic = tr.dir === "rtl";
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -47,21 +105,11 @@ export default function SellWithUs() {
     return () => observer.disconnect();
   }, []);
 
-  const stats = [
-    { value: tr.sellWithUs.stat1Value, label: tr.sellWithUs.stat1Label },
-    { value: tr.sellWithUs.stat2Value, label: tr.sellWithUs.stat2Label },
-    { value: tr.sellWithUs.stat3Value, label: tr.sellWithUs.stat3Label },
-  ];
-
-  const stepData = [
-    { title: tr.sellWithUs.step1Title, sub: tr.sellWithUs.step1Sub },
-    { title: tr.sellWithUs.step2Title, sub: tr.sellWithUs.step2Sub },
-    { title: tr.sellWithUs.step3Title, sub: tr.sellWithUs.step3Sub },
-  ];
-
   return (
-    <section ref={ref} className="py-28 bg-[#F5F0E8] relative overflow-hidden">
-      {/* Subtle background pattern */}
+    <section
+      ref={ref}
+      className="relative overflow-hidden bg-cream py-24 lg:py-28"
+    >
       <div
         className="absolute inset-0 opacity-[0.025] pointer-events-none"
         style={{
@@ -70,127 +118,124 @@ export default function SellWithUs() {
           backgroundSize: "48px 48px",
         }}
       />
-      <div className="absolute top-0 end-0 w-[500px] h-[500px] bg-[#C9A84C]/6 rounded-full blur-3xl translate-x-1/3 -translate-y-1/4 pointer-events-none" />
+      <div className="absolute top-0 inset-e-0 w-125 h-125 bg-gold/6 rounded-full blur-3xl translate-x-1/3 -translate-y-1/4 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
-        {/* Header */}
         <div
           className={`text-center mb-16 opacity-0-start ${visible ? "anim-scale-in" : ""}`}
         >
-          <span className="text-[#C9A84C] text-xs font-bold tracking-widest uppercase">
-            {tr.sellWithUs.tag}
+          <span className="inline-flex items-center gap-2 rounded-full border border-gold/25 bg-white px-3 py-1 text-[10px] font-bold tracking-[0.2em] uppercase text-gold shadow-sm">
+            {isArabic ? "خطط الاشتراك" : "Subscription Plans"}
           </span>
           <div
             className="divider-gold mx-auto"
             style={{ margin: "0.75rem auto", width: "3rem" }}
           />
-          <h2 className="font-display text-5xl lg:text-6xl font-bold text-[#1A1A2E] leading-tight mb-4">
-            {tr.sellWithUs.title1}
+          <h2 className="font-display text-4xl lg:text-6xl font-bold text-charcoal leading-tight mb-4">
+            {isArabic ? "اختر الخطة المناسبة" : "Choose Your Growth"}
             <br />
-            <span className="gold-text">{tr.sellWithUs.title2}</span>
+            <span className="gold-text">
+              {isArabic ? "لمتجرك" : "Subscription Plan"}
+            </span>
           </h2>
-          <p className="text-[#1A1A2E]/55 font-light text-lg max-w-2xl mx-auto">
-            {tr.sellWithUs.subtitle}
+          <p className="text-charcoal/55 font-light text-base lg:text-lg max-w-2xl mx-auto">
+            {isArabic
+              ? "جهزنا 3 باقات احترافية: أساسي، احترافي، وبراند. سنقوم بتحديث الأسعار والتفاصيل النهائية فور تزويدنا بها."
+              : "We prepared 3 professional plans: Basic, Pro, and Brand. Final pricing and details can be dropped in as soon as you share them."}
           </p>
         </div>
 
-        {/* 3 Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-          {STEPS.map(({ Icon, key }, i) => (
-            <div
-              key={key}
-              className={`group relative bg-white border border-[#1A1A2E]/8 p-8 hover:border-[#C9A84C]/40 hover:shadow-lg transition-all duration-400 opacity-0-start ${visible ? `anim-fade-up delay-${(i + 1) * 100}` : ""}`}
-            >
-              {/* Step number */}
-              <div className="absolute top-5 end-6 text-[#1A1A2E]/8 font-display text-5xl font-black select-none">
-                0{i + 1}
-              </div>
-
-              <div className="w-14 h-14 gold-gradient flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Icon sx={{ fontSize: 26, color: "#1A1A2E" }} />
-              </div>
-
-              <h3 className="font-display text-xl font-bold text-[#1A1A2E] mb-3 group-hover:text-[#C9A84C] transition-colors duration-200">
-                {stepData[i].title}
-              </h3>
-              <p className="text-[#1A1A2E]/55 text-sm font-light leading-relaxed">
-                {stepData[i].sub}
-              </p>
-
-              {/* Gold accent line on hover */}
-              <div className="absolute bottom-0 start-0 end-0 h-0.5 bg-[#C9A84C] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-start" />
-            </div>
-          ))}
-        </div>
-
-        {/* Stats + CTA dark card */}
-        <div
-          className={`dark-gradient rounded-none overflow-hidden opacity-0-start ${visible ? "anim-fade-up delay-400" : ""}`}
-        >
-          <div className="absolute top-0 start-1/2 -translate-x-1/2 w-80 h-px bg-gradient-to-r from-transparent via-[#C9A84C]/50 to-transparent" />
-
-          <div className="grid lg:grid-cols-2 items-center">
-            {/* Stats side */}
-            <div className="p-10 lg:p-14 border-b lg:border-b-0 lg:border-e border-white/8">
-              <p className="text-[#C9A84C] text-xs font-bold tracking-widest uppercase mb-8">
-                Platform at a Glance
-              </p>
-              <div className="grid grid-cols-3 gap-6">
-                {stats.map((s, i) => (
-                  <div key={i} className="text-center group">
-                    <div className="gold-text font-display text-4xl font-black mb-1 group-hover:scale-105 transition-transform duration-300 inline-block">
-                      {s.value}
-                    </div>
-                    <p className="text-white/45 text-xs tracking-wider uppercase leading-tight">
-                      {s.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-10 space-y-3">
-                {[
-                  "No monthly fees — pay only on sales",
-                  "Fast approval & onboarding",
-                  "Dedicated seller support",
-                ].map((item) => (
-                  <div key={item} className="flex items-center gap-2.5">
-                    <CheckCircleIcon
-                      sx={{ fontSize: 15, color: "#C9A84C", flexShrink: 0 }}
-                    />
-                    <span className="text-white/60 text-sm">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* CTA side */}
-            <div className="p-10 lg:p-14 text-center lg:text-start relative">
-              <div className="absolute top-0 start-0 end-0 lg:top-0 lg:start-0 lg:bottom-0 lg:end-auto w-full lg:w-px h-px lg:h-auto bg-white/8" />
-              <h3 className="font-display text-3xl lg:text-4xl font-bold text-white mb-3 leading-tight">
-                Ready to grow
-                <br />
-                <span className="animated-gold-text">your brand?</span>
-              </h3>
-              <p className="text-white/50 font-light text-sm leading-relaxed mb-8 max-w-sm">
-                Create your seller account for free and reach thousands of
-                fashion shoppers across Algeria.
-              </p>
-              <button
-                onClick={openRegister}
-                className="btn-gold flex items-center gap-2 group w-full lg:w-auto justify-center lg:justify-start"
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+          {SUBSCRIPTION_PLANS.map((plan, i) => {
+            const Icon = plan.icon;
+            const isPro = plan.id === "pro";
+            return (
+              <div
+                key={plan.id}
+                className={`group relative overflow-hidden border p-8 transition-all duration-400 opacity-0-start ${
+                  isPro
+                    ? "bg-charcoal border-gold/45 shadow-[0_20px_50px_rgba(26,26,46,0.25)]"
+                    : "bg-white border-charcoal/8 hover:border-gold/40 hover:shadow-lg"
+                } ${visible ? `anim-fade-up delay-${(i + 1) * 100}` : ""}`}
               >
-                {tr.sellWithUs.cta}
-                <ArrowForwardIcon
-                  sx={{ fontSize: 16 }}
-                  className="transition-transform duration-300 group-hover:translate-x-1 rtl:rotate-180"
-                />
-              </button>
-              <p className="text-white/30 text-xs mt-4">
-                {tr.sellWithUs.ctaSub}
-              </p>
-            </div>
-          </div>
+                {plan.highlight && (
+                  <span className="absolute top-4 inset-e-4 rounded-full bg-gold px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-charcoal">
+                    {isArabic ? plan.highlight.ar : plan.highlight.en}
+                  </span>
+                )}
+
+                <div className="w-14 h-14 gold-gradient flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Icon sx={{ fontSize: 24 }} />
+                </div>
+
+                <h3
+                  className={`font-display text-2xl font-bold mb-1 transition-colors duration-200 ${
+                    isPro
+                      ? "text-white group-hover:text-gold"
+                      : "text-charcoal group-hover:text-gold"
+                  }`}
+                >
+                  {isArabic ? plan.title.ar : plan.title.en}
+                </h3>
+
+                <p
+                  className={`text-sm font-light mb-6 ${isPro ? "text-white/65" : "text-charcoal/55"}`}
+                >
+                  {isArabic ? plan.subtitle.ar : plan.subtitle.en}
+                </p>
+
+                <div className="mb-6">
+                  <div
+                    className={`font-display text-4xl font-black ${isPro ? "text-white" : "text-charcoal"}`}
+                  >
+                    {isArabic ? plan.price.ar : plan.price.en}
+                  </div>
+                  <p
+                    className={`text-xs tracking-widest uppercase mt-1 ${isPro ? "text-white/45" : "text-charcoal/35"}`}
+                  >
+                    {isArabic ? plan.period.ar : plan.period.en}
+                  </p>
+                </div>
+
+                <div className="space-y-3 mb-8">
+                  {plan.features.map((feature) => (
+                    <div key={feature.en} className="flex items-start gap-2.5">
+                      <CheckCircleIcon
+                        sx={{
+                          fontSize: 16,
+                          color: isPro ? undefined : plan.accent,
+                          marginTop: "2px",
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span
+                        className={`text-sm leading-relaxed ${isPro ? "text-white/70" : "text-charcoal/65"}`}
+                      >
+                        {isArabic ? feature.ar : feature.en}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => openLogin({ redirectTo: "/seller/dashboard" })}
+                  className={`w-full flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-widest transition-all duration-300 ${
+                    isPro
+                      ? "bg-[#C9A84C] text-[#1A1A2E] hover:brightness-105"
+                      : "border border-[#1A1A2E]/20 text-[#1A1A2E] hover:border-[#C9A84C] hover:text-[#C9A84C]"
+                  }`}
+                >
+                  {isArabic ? plan.cta.ar : plan.cta.en}
+                  <ArrowForwardIcon
+                    sx={{ fontSize: 14 }}
+                    className="rtl:rotate-180"
+                  />
+                </button>
+
+                <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

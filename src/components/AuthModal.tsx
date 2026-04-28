@@ -77,7 +77,7 @@ function LoginForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Role toggle */}
       {!customerOnly && (
-        <div className="flex gap-1 bg-[#1A1A2E]/5 p-1">
+        <div className="flex gap-1 bg-charcoal/5 p-1">
           {[
             {
               value: "customer" as UserRole,
@@ -96,8 +96,8 @@ function LoginForm({
               onClick={() => setRole(value)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 ${
                 role === value
-                  ? "gold-gradient text-[#1A1A2E]"
-                  : "text-[#1A1A2E]/40 hover:text-[#1A1A2E]/70"
+                  ? "gold-gradient text-charcoal"
+                  : "text-charcoal/40 hover:text-charcoal/70"
               }`}
             >
               <Icon sx={{ fontSize: 13 }} /> {label}
@@ -142,12 +142,12 @@ function LoginForm({
         <ArrowForwardIcon sx={{ fontSize: 15 }} />
       </Button>
 
-      <p className="text-center text-xs text-[#1A1A2E]/50">
+      <p className="text-center text-xs text-charcoal/50">
         {tr.auth.login.noAccount}{" "}
         <button
           type="button"
           onClick={() => switchTo("register")}
-          className="text-[#C9A84C] font-semibold hover:underline"
+          className="text-gold font-semibold hover:underline"
         >
           {tr.auth.login.createOne}
         </button>
@@ -257,7 +257,7 @@ function RegisterForm({
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Role toggle */}
       {!customerOnly && (
-        <div className="flex gap-1 bg-[#1A1A2E]/5 p-1">
+        <div className="flex gap-1 bg-charcoal/5 p-1">
           {[
             {
               value: "customer" as UserRole,
@@ -276,8 +276,8 @@ function RegisterForm({
               onClick={() => setRole(value)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold tracking-wide transition-all duration-200 ${
                 role === value
-                  ? "gold-gradient text-[#1A1A2E]"
-                  : "text-[#1A1A2E]/40 hover:text-[#1A1A2E]/70"
+                  ? "gold-gradient text-charcoal"
+                  : "text-charcoal/40 hover:text-charcoal/70"
               }`}
             >
               <Icon sx={{ fontSize: 13 }} /> {label}
@@ -312,24 +312,6 @@ function RegisterForm({
       </div>
 
       <div>
-        <TextInput
-          type="email"
-          value={fields.email}
-          onChange={set("email")}
-          placeholder={tr.auth.register.emailPlaceholder}
-          error={errors.email}
-          icon={
-            <MailOutlineIcon
-              sx={{ fontSize: 15, color: "rgba(26,26,46,0.4)" }}
-            />
-          }
-        />
-        {errors.email && (
-          <p className="mt-1.5 text-xs text-red-500">{errors.email}</p>
-        )}
-      </div>
-
-      <div>
         <PasswordInput
           value={fields.password}
           onChange={set("password")}
@@ -342,11 +324,11 @@ function RegisterForm({
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= strength ? strengthColor : "bg-[#1A1A2E]/10"}`}
+                  className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= strength ? strengthColor : "bg-charcoal/10"}`}
                 />
               ))}
             </div>
-            <p className="text-[10px] text-[#1A1A2E]/50">
+            <p className="text-[10px] text-charcoal/50">
               {strengthLabels[strength]}
             </p>
           </div>
@@ -371,12 +353,12 @@ function RegisterForm({
         <ArrowForwardIcon sx={{ fontSize: 15 }} />
       </Button>
 
-      <p className="text-center text-xs text-[#1A1A2E]/50">
+      <p className="text-center text-xs text-charcoal/50">
         {tr.auth.register.hasAccount}{" "}
         <button
           type="button"
           onClick={() => switchTo("login")}
-          className="text-[#C9A84C] font-semibold hover:underline"
+          className="text-gold font-semibold hover:underline"
         >
           {tr.auth.register.signIn}
         </button>
@@ -432,19 +414,19 @@ function VerifyForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <p className="text-sm text-[#1A1A2E]/60 leading-relaxed">
+      <p className="text-sm text-charcoal/60 leading-relaxed">
         {tr.auth.verify.codeSent}{" "}
-        <span className="font-semibold text-[#1A1A2E]">{pendingEmail}</span>
+        <span className="font-semibold text-charcoal">{pendingEmail}</span>
       </p>
-      <div className="flex items-center gap-4 bg-[#C9A84C]/8 border border-[#C9A84C]/25 px-4 py-3">
-        <div className="w-9 h-9 gold-gradient flex items-center justify-center flex-shrink-0">
+      <div className="flex items-center gap-4 bg-gold/8 border border-gold/25 px-4 py-3">
+        <div className="w-9 h-9 gold-gradient flex items-center justify-center shrink-0">
           <MailOutlineIcon sx={{ fontSize: 16, color: "#1A1A2E" }} />
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-widest text-[#1A1A2E]/40 mb-0.5">
+          <p className="text-[10px] uppercase tracking-widest text-charcoal/40 mb-0.5">
             Check your inbox
           </p>
-          <p className="text-sm text-[#1A1A2E]/70">
+          <p className="text-sm text-charcoal/70">
             A 6-digit verification code was sent to your email address.
           </p>
         </div>
@@ -461,9 +443,7 @@ function VerifyForm({
           }
           placeholder={tr.auth.verify.codePlaceholder}
           className={`w-full border bg-white h-14 text-center text-3xl font-bold tracking-[0.5em] focus:outline-none transition-colors ${
-            error
-              ? "border-red-400"
-              : "border-[#1A1A2E]/15 focus:border-[#C9A84C]"
+            error ? "border-red-400" : "border-charcoal/15 focus:border-gold"
           }`}
         />
         {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
@@ -480,7 +460,7 @@ function VerifyForm({
         {tr.auth.verify.submit}
       </Button>
 
-      <p className="text-center text-xs text-[#1A1A2E]/40">
+      <p className="text-center text-xs text-charcoal/40">
         Didn&apos;t receive the email? Check your spam folder.
       </p>
     </form>
@@ -516,10 +496,10 @@ function ResetForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
           <CheckIcon sx={{ fontSize: 24, color: "#16a34a" }} />
         </div>
         <div>
-          <p className="font-display font-bold text-[#1A1A2E] text-lg">
+          <p className="font-display font-bold text-charcoal text-lg">
             {tr.auth.reset.checkEmail}
           </p>
-          <p className="text-[#1A1A2E]/50 text-sm mt-1">
+          <p className="text-charcoal/50 text-sm mt-1">
             {tr.auth.reset.sentMessage.replace("{email}", email)}
           </p>
         </div>
@@ -533,7 +513,7 @@ function ResetForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <p className="text-[#1A1A2E]/60 text-sm leading-relaxed">
+      <p className="text-charcoal/60 text-sm leading-relaxed">
         {tr.auth.reset.description}
       </p>
 
@@ -558,12 +538,12 @@ function ResetForm({ switchTo }: { switchTo: (v: ModalView) => void }) {
         <ArrowForwardIcon sx={{ fontSize: 15 }} />
       </Button>
 
-      <p className="text-center text-xs text-[#1A1A2E]/50">
+      <p className="text-center text-xs text-charcoal/50">
         {tr.auth.reset.hasPassword}{" "}
         <button
           type="button"
           onClick={() => switchTo("login")}
-          className="text-[#C9A84C] font-semibold hover:underline"
+          className="text-gold font-semibold hover:underline"
         >
           {tr.auth.reset.signIn}
         </button>
@@ -617,12 +597,12 @@ export default function AuthModal() {
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm pointer-events-none" />
       {/* Panel */}
       <div
-        className="relative z-10 w-full max-w-md bg-[#FAF7F2] shadow-[0_25px_50px_rgba(0,0,0,0.4)] overflow-hidden max-h-[90vh] flex flex-col"
+        className="relative z-10 w-full max-w-md bg-cream shadow-[0_25px_50px_rgba(0,0,0,0.4)] overflow-hidden max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="relative dark-gradient px-8 py-7 flex-shrink-0">
-          <div className="absolute top-0 end-0 w-32 h-32 bg-[#C9A84C]/10 rounded-full blur-2xl" />
+        <div className="relative dark-gradient px-8 py-7 shrink-0">
+          <div className="absolute top-0 end-0 w-32 h-32 bg-gold/10 rounded-full blur-2xl" />
           <div className="relative z-10 flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2 mb-3">
@@ -639,7 +619,7 @@ export default function AuthModal() {
             </div>
             <button
               onClick={closeAuth}
-              className="flex-shrink-0 w-8 h-8 border border-white/15 flex items-center justify-center text-white/50 hover:border-white/40 hover:text-white transition-colors"
+              className="shrink-0 w-8 h-8 border border-white/15 flex items-center justify-center text-white/50 hover:border-white/40 hover:text-white transition-colors"
             >
               <CloseIcon sx={{ fontSize: 15 }} />
             </button>
@@ -652,7 +632,7 @@ export default function AuthModal() {
                   onClick={() => setView(id)}
                   className={`flex-1 py-2 text-xs font-semibold tracking-widest uppercase transition-all duration-200 ${
                     view === id
-                      ? "gold-gradient text-[#1A1A2E]"
+                      ? "gold-gradient text-charcoal"
                       : "text-white/40 hover:text-white/70"
                   }`}
                 >

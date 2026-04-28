@@ -241,6 +241,13 @@ body {
   margin: 1rem auto;
 }
 
+/* Small additional design token utilities used across components */
+.text-burgundy { color: var(--color-burgundy); }
+.bg-burgundy-10 { background-color: rgba(114,47,55,0.10); }
+.border-gold-20 { border: 1px solid rgba(201,168,76,0.2); }
+.border-t-gold-60 { border-top-color: rgba(201,168,76,0.6); }
+.border-t-gold { border-top-color: var(--color-gold); }
+
 /* ─── Scrollbar ─────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: #1A1A2E; }

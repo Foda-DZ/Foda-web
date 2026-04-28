@@ -1,16 +1,20 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import DeleteIcon from "@mui/icons-material/Delete";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
-import FavoriteIcon from "@mui/icons-material/Favorite";
 import CloseIcon from "@mui/icons-material/Close";
-import PersonIcon from "@mui/icons-material/Person";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import IconButton from "@mui/material/IconButton";
 import Footer from "../components/Footer";
 import { useWishlist } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import type { Product } from "../types";
+import AuthRequiredEmptyState from "../components/ui/AuthRequiredEmptyState";
 
 const COLOR_HEX: Record<string, string> = {
   black: "#1a1a1a",
@@ -64,22 +68,22 @@ function MoveToCartModal({
       <div className="bg-white w-full max-w-sm p-6 relative">
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-[#1A1A2E]/40 hover:text-[#1A1A2E]"
+          className="absolute top-3 right-3 text-charcoal/40 hover:text-charcoal"
         >
           <CloseIcon sx={{ fontSize: 20 }} />
         </button>
 
-        <h3 className="font-display text-lg font-bold text-[#1A1A2E] mb-1">
+        <h3 className="font-display text-lg font-bold text-charcoal mb-1">
           {product.name}
         </h3>
-        <p className="text-sm text-[#1A1A2E]/50 mb-5">
+        <p className="text-sm text-charcoal/50 mb-5">
           {product.price.toLocaleString()} {tr.common.dzd}
         </p>
 
         {/* Size */}
         {product.sizes.length > 0 && (
           <div className="mb-4">
-            <p className="text-xs font-bold tracking-widest uppercase text-[#1A1A2E]/60 mb-2">
+            <p className="text-xs font-bold tracking-widest uppercase text-charcoal/60 mb-2">
               {tr.shop.size}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -89,8 +93,8 @@ function MoveToCartModal({
                   onClick={() => setSize(s)}
                   className={`px-3 py-1.5 text-xs font-semibold border-2 transition-all ${
                     size === s
-                      ? "border-[#C9A84C] text-[#C9A84C] bg-[#C9A84C]/5"
-                      : "border-[#1A1A2E]/12 text-[#1A1A2E]/60"
+                      ? "border-gold text-gold bg-gold/5"
+                      : "border-charcoal/12 text-charcoal/60"
                   }`}
                 >
                   {s}
@@ -103,7 +107,7 @@ function MoveToCartModal({
         {/* Color */}
         {product.colors.length > 0 && (
           <div className="mb-5">
-            <p className="text-xs font-bold tracking-widest uppercase text-[#1A1A2E]/60 mb-2">
+            <p className="text-xs font-bold tracking-widest uppercase text-charcoal/60 mb-2">
               {tr.shop.color}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -114,7 +118,7 @@ function MoveToCartModal({
                   title={c}
                   className={`w-7 h-7 rounded-full transition-all ${
                     color === c
-                      ? "ring-2 ring-[#C9A84C] ring-offset-2"
+                      ? "ring-2 ring-gold ring-offset-2"
                       : "ring-1 ring-inset ring-black/15"
                   }`}
                   style={{ backgroundColor: colorToHex(c) }}
@@ -166,154 +170,231 @@ export default function WishlistPage() {
   // Non-authenticated users see a sign-in prompt
   if (!isCustomer) {
     return (
-      <>
-        <div className="pt-32 pb-20 px-6 lg:px-12 max-w-7xl mx-auto min-h-screen">
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-20 h-20 flex items-center justify-center bg-[#FAF7F2] border border-[#C9A84C]/20 mb-6">
-              <PersonIcon sx={{ fontSize: 32, color: "#C9A84C33" }} />
-            </div>
-            <h2 className="font-display text-xl font-bold text-[#1A1A2E] mb-2">
-              {tr.wishlist.signInTitle}
-            </h2>
-            <p className="text-sm text-[#1A1A2E]/50 mb-6 max-w-sm">
-              {tr.wishlist.signInSub}
-            </p>
-            <button
-              onClick={openLogin}
-              className="btn-dark px-8 py-3 text-sm font-semibold tracking-wider"
-            >
-              {tr.nav.signIn}
-            </button>
+      <div className="min-h-screen bg-cream">
+        {/* Header - matching CartPage style */}
+        <div className="dark-gradient pt-24 pb-8 px-6 lg:px-12">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="font-display text-3xl font-bold text-white">
+              {tr.wishlist.title}
+            </h1>
           </div>
         </div>
+
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-16 sm:py-20">
+          <AuthRequiredEmptyState
+            icon={
+              <FavoriteBorderIcon sx={{ fontSize: 42, color: "#C9A84C" }} />
+            }
+            title={tr.wishlist.signInTitle}
+            subtitle={tr.wishlist.signInSub}
+            helperText={tr.auth.login.sub}
+            ctaLabel={tr.nav.signIn}
+            onCta={() =>
+              openLogin({ customerOnly: true, redirectTo: "/wishlist" })
+            }
+          />
+        </div>
         <Footer />
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <div className="pt-32 pb-20 px-6 lg:px-12 max-w-7xl mx-auto min-h-screen">
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="font-display text-4xl lg:text-5xl font-bold text-[#1A1A2E]">
-            {tr.wishlist.title}
-          </h1>
-          {!loading && items.length > 0 && (
-            <p className="text-sm text-[#1A1A2E]/50 mt-2">
-              {items.length} {items.length === 1 ? tr.wishlist.item : tr.wishlist.items}
-            </p>
-          )}
+    <div className="min-h-screen bg-cream">
+      {/* Header - matching CartPage dark gradient style */}
+      <div className="dark-gradient pt-24 pb-8 px-6 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          <button
+            onClick={() => navigate("/shop")}
+            className="flex items-center gap-2 text-white/50 hover:text-gold transition-colors duration-200 mb-4 text-sm group"
+          >
+            <ArrowBackIcon
+              sx={{ fontSize: 15 }}
+              className="rtl:rotate-180 group-hover:-translate-x-0.5 transition-transform"
+            />
+            {tr.cartPage.continueShopping}
+          </button>
+          <div className="flex items-center justify-between">
+            <h1 className="font-display text-3xl font-bold text-white">
+              {tr.wishlist.title}
+            </h1>
+            {!loading && items.length > 0 && (
+              <span className="gold-gradient text-charcoal text-xs font-black px-3 py-1 rounded-full">
+                {items.length}{" "}
+                {items.length === 1 ? tr.wishlist.item : tr.wishlist.items}
+              </span>
+            )}
+          </div>
         </div>
+      </div>
 
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-10">
         {loading ? (
           /* ── Loading state ── */
-          <div className="flex flex-col items-center justify-center py-24">
-            <div className="w-8 h-8 border-2 border-[#C9A84C] border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-[#1A1A2E]/40 mt-4">{tr.wishlist.loading}</p>
+          <div className="flex flex-col items-center justify-center py-24 gap-4">
+            <div className="relative">
+              <div className="w-12 h-12 border-2 border-gold/20 border-t-gold rounded-full animate-spin" />
+              <div
+                className="absolute inset-0 w-12 h-12 border-2 border-transparent border-b-gold/30 rounded-full animate-spin"
+                style={{
+                  animationDirection: "reverse",
+                  animationDuration: "1.5s",
+                }}
+              />
+            </div>
+            <p className="text-sm text-charcoal/50">{tr.wishlist.loading}</p>
           </div>
         ) : items.length === 0 ? (
           /* ── Empty state ── */
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-20 h-20 flex items-center justify-center bg-[#FAF7F2] border border-[#C9A84C]/20 mb-6">
-              <FavoriteIcon sx={{ fontSize: 32, color: "#C9A84C33" }} />
+          <div className="flex flex-col items-center justify-center py-20 text-center bg-white/50 backdrop-blur-sm border border-charcoal/10 rounded-2xl">
+            <div className="w-20 h-20 bg-gold/10 rounded-full flex items-center justify-center mb-6">
+              <FavoriteBorderIcon sx={{ fontSize: 42, color: "#C9A84C" }} />
             </div>
-            <h2 className="font-display text-xl font-bold text-[#1A1A2E] mb-2">
+            <h2 className="font-display text-2xl font-bold text-charcoal mb-2">
               {tr.wishlist.emptyTitle}
             </h2>
-            <p className="text-sm text-[#1A1A2E]/50 mb-6 max-w-sm">
+            <p className="text-charcoal/50 text-sm mb-8 max-w-sm">
               {tr.wishlist.emptySub}
             </p>
             <button
               onClick={() => navigate("/shop")}
-              className="btn-dark px-8 py-3 text-sm font-semibold tracking-wider"
+              className="btn-gold flex items-center gap-2 group"
             >
               {tr.nav.shop}
+              <ArrowForwardIcon
+                sx={{ fontSize: 16 }}
+                className="transition-transform duration-300 group-hover:translate-x-1"
+              />
             </button>
           </div>
         ) : (
-          /* ── Wishlist grid ── */
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          /* ── Wishlist items - styled like CartPage ── */
+          <div className="space-y-4">
             {items.map((product) => {
               const hasDiscount =
                 product.originalPrice && product.originalPrice > product.price;
               return (
-                <div key={product.id} className="relative group bg-white">
+                <div
+                  key={product.id}
+                  className="bg-white border border-charcoal/8 p-4 sm:p-5 flex gap-4 sm:gap-5 rounded-xl"
+                >
                   {/* Image */}
-                  <div
-                    className="relative overflow-hidden bg-[#F0EBE3] aspect-[3/4] cursor-pointer"
-                    onClick={() => navigate(`/product/${product.id}`)}
+                  <Link
+                    to={`/product/${product.id}`}
+                    className="w-24 h-28 sm:w-28 sm:h-32 flex-shrink-0 overflow-hidden bg-cream rounded-lg"
                   >
                     <img
                       src={product.images[0]}
                       alt={product.name}
-                      loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
-                    {hasDiscount && (
-                      <span className="absolute top-2.5 left-2.5 text-white bg-red-500 text-[9px] font-black tracking-[0.08em] px-2 py-0.5 uppercase">
-                        -
-                        {Math.round(
-                          ((product.originalPrice! - product.price) /
-                            product.originalPrice!) *
-                            100,
-                        )}
-                        %
-                      </span>
-                    )}
-                    {product.stock === 0 && (
-                      <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-                        <span className="text-sm font-bold text-[#1A1A2E]/60 tracking-widest uppercase">
-                          {tr.shop.soldOut}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  </Link>
 
-                  {/* Body */}
-                  <div className="p-3">
-                    <p className="text-[9px] font-bold tracking-[0.14em] uppercase text-[#C9A84C] mb-1">
-                      {product.category}
-                    </p>
-                    <p
-                      onClick={() => navigate(`/product/${product.id}`)}
-                      className="text-sm font-bold text-[#1A1A2E] leading-snug line-clamp-2 cursor-pointer hover:text-[#C9A84C] transition-colors"
-                    >
-                      {product.name}
-                    </p>
-                    <div className="flex items-baseline gap-2 mt-1.5">
-                      <span className="text-base font-bold text-[#1A1A2E]">
-                        {product.price.toLocaleString()}
-                        <span className="text-[10px] font-normal text-[#1A1A2E]/45 ml-1">
-                          {tr.common.dzd}
-                        </span>
-                      </span>
-                      {hasDiscount && (
-                        <span className="text-xs text-[#1A1A2E]/30 line-through">
-                          {product.originalPrice!.toLocaleString()}
-                        </span>
-                      )}
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 flex flex-col">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="min-w-0">
+                        <p className="text-gold text-[10px] uppercase tracking-widest">
+                          {product.category}
+                        </p>
+                        <Link
+                          to={`/product/${product.id}`}
+                          className="text-charcoal font-semibold text-sm leading-tight hover:text-gold transition-colors truncate block"
+                        >
+                          {product.name}
+                        </Link>
+                        {/* Colors available */}
+                        {product.colors.length > 0 && (
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="text-charcoal/50 text-xs">
+                              Colors:
+                            </span>
+                            <div className="flex items-center gap-1">
+                              {product.colors.slice(0, 4).map((color, idx) => (
+                                <span
+                                  key={idx}
+                                  className="w-3 h-3 rounded-full border border-black/10"
+                                  style={{ backgroundColor: colorToHex(color) }}
+                                  title={color}
+                                />
+                              ))}
+                              {product.colors.length > 4 && (
+                                <span className="text-[9px] text-charcoal/40">
+                                  +{product.colors.length - 4}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {/* Sizes available */}
+                        {product.sizes.length > 0 && (
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="text-charcoal/50 text-xs">
+                              Sizes:
+                            </span>
+                            <span className="text-charcoal/50 text-xs">
+                              {product.sizes.slice(0, 4).join(", ")}
+                              {product.sizes.length > 4 &&
+                                ` +${product.sizes.length - 4}`}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <IconButton
+                        onClick={() => removeFromWishlist(product.id)}
+                        size="small"
+                        sx={{
+                          borderRadius: 0,
+                          color: "rgba(26,26,46,0.3)",
+                          "&:hover": {
+                            color: "#ef4444",
+                            bgcolor: "transparent",
+                          },
+                          flexShrink: 0,
+                        }}
+                      >
+                        <DeleteIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex items-center justify-between mt-auto pt-3">
+                      {/* Price */}
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-bold text-charcoal">
+                          {product.price.toLocaleString()}{" "}
+                          <span className="text-[10px] font-normal text-charcoal/50">
+                            {tr.common.dzd}
+                          </span>
+                        </span>
+                        {hasDiscount && (
+                          <span className="text-sm text-charcoal/30 line-through">
+                            {product.originalPrice!.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Move to Cart Button */}
                       <button
                         onClick={() => handleMoveToCart(product)}
                         disabled={product.stock === 0}
-                        className="flex-1 flex items-center justify-center gap-1.5 btn-dark py-2 text-[11px] font-semibold tracking-wider disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="flex items-center gap-1.5 btn-dark py-2 px-4 text-xs font-semibold tracking-wider disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <ShoppingBagIcon sx={{ fontSize: 14 }} />
                         {tr.wishlist.moveToCart}
                       </button>
-                      <button
-                        onClick={() => removeFromWishlist(product.id)}
-                        className="w-9 h-9 flex items-center justify-center border border-[#1A1A2E]/12 hover:border-red-300 hover:bg-red-50 transition-all"
-                      >
-                        <DeleteOutlineIcon
-                          sx={{ fontSize: 16, color: "#ef4444" }}
-                        />
-                      </button>
                     </div>
+
+                    {product.stock === 0 && (
+                      <p className="text-xs text-red-500 mt-2">
+                        {tr.shop.soldOut}
+                      </p>
+                    )}
+                    {product.stock > 0 && product.stock <= 5 && (
+                      <p className="text-xs text-orange-500 mt-2">
+                        {product.stock} left
+                      </p>
+                    )}
                   </div>
                 </div>
               );
@@ -332,6 +413,6 @@ export default function WishlistPage() {
       )}
 
       <Footer />
-    </>
+    </div>
   );
 }

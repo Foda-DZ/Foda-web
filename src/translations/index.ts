@@ -628,8 +628,8 @@ export interface Translations {
 export const ar: Translations = {
   dir: "rtl",
   nav: {
-    announcement: "مجموعة جديدة: ربيع 2024",
-    promoBar: { shipping: "توصيل سريع", returns: "إرجاع مجاني خلال 30 يوم", support: "دعم على مدار الساعة" },
+    announcement: "مجموعة جديدة: ربيع 2026",
+    promoBar: { shipping: "توصيل سريع", returns: "بائعين موثوقين", support: "دعم على مدار الساعة" },
     collections: "المجموعات",
     women: "نساء",
     men: "رجال",
@@ -650,11 +650,11 @@ export const ar: Translations = {
   },
   hero: {
     slide1: {
-      badge: "مجموعة 2024 الجديدة",
-      line1: "الأزياء",
-      line2: "الجزائرية،",
-      line3: "بأسلوب عصري",
-      subtitle: "اكتشف أين تلتقي التقاليد بالأناقة العصرية. مصممون جزائريون حصريون، مختارون بعناية لك.",
+      badge: "مجموعة 2026 الجديدة",
+      line1: "ارتدي",
+      line2: "الملابس",
+      line3: "التي تريدها",
+      subtitle: "اكتشف قطعاً فريدة من نوعها من بائعين جزائريين يفهمون ذوقك.",
       cta1: "استكشف المجموعة",
       cta2: "شاهد الفيلم",
       statDesigners: "بائع نشط",
@@ -687,10 +687,10 @@ export const ar: Translations = {
     subtitle: "اكتشف مجموعات مختارة بعناية من أمهر المصممين الجزائريين والحرفيين التقليديين.",
     shopNow: "تسوق الآن",
     items: {
-      women: { name: "نساء", ar: "نساء", count: "أكثر من 1,240 تصميم" },
-      men: { name: "رجال", ar: "رجال", count: "أكثر من 820 تصميم" },
-      kids: { name: "أطفال", ar: "أطفال", count: "أكثر من 320 تصميم" },
-      accessories: { name: "إكسسوارات", ar: "إكسسوارات", count: "أكثر من 340 قطعة" },
+      women: { name: "نساء", ar: "نساء", count: "" },
+      men: { name: "رجال", ar: "رجال", count: "" },
+      kids: { name: "أطفال", ar: "أطفال", count: "" },
+      accessories: { name: "إكسسوارات", ar: "إكسسوارات", count: "" },
     },
   },
   products: {
@@ -746,7 +746,7 @@ export const ar: Translations = {
   sellWithUs: {
     tag: "انضم كبائع",
     title1: "ابدأ البيع على",
-    title2: "فودة اليوم",
+    title2: "Foda اليوم",
     subtitle: "انضم إلى أكثر من 500 بائع يُنمّون أعمالهم على أول سوق أزياء في الجزائر.",
     step1Title: "إعداد سهل وسريع",
     step1Sub: "أنشئ متجرك في دقائق. أدرج منتجاتك وابدأ البيع فوراً.",
@@ -764,21 +764,21 @@ export const ar: Translations = {
     ctaSub: "مجاني تماماً — ابدأ اليوم",
   },
   footer: {
-    tagline: "وجهة الأزياء الجزائرية الأولى. نربطك بأفضل المصممين المحليين، من القصبة التاريخية إلى شوارع الجزائر الحديثة.",
+    tagline: "ارتدي الملابس بالطريقة التي لطالما تخيلتها.",
     shopTitle: "المتجر",
     companyTitle: "الشركة",
     helpTitle: "المساعدة",
     shopLinks: ["وصل حديثاً", "مجموعة النساء", "مجموعة الرجال", "أطفال", "إكسسوارات", "تخفيضات"],
-    companyLinks: ["عن فودة", "الاستدامة", "الصحافة", "وظائف", "المدونة"],
+    companyLinks: ["عن Foda", "الاستدامة", "الصحافة", "وظائف", "المدونة"],
     helpLinks: ["الأسئلة الشائعة", "الشحن والإرجاع", "دليل المقاسات", "تتبع الطلب", "تواصل معنا", "بطاقات الهدايا"],
     address: "15 شارع ديدوش مراد، وسط الجزائر، الجزائر",
     phone: "+213 (0) 21 XX XX XX",
     email: "support@foda.foo",
-    copyright: "© {year} فودة. جميع الحقوق محفوظة. صُنع بـ ❤️ في الجزائر.",
+    copyright: "© {year} Foda. جميع الحقوق محفوظة.",
     privacy: "سياسة الخصوصية",
     terms: "شروط الخدمة",
     cookies: "سياسة ملفات تعريف الارتباط",
-    app: { title: "حمّل تطبيق فودة", subtitle: "تسوّق بسهولة من هاتفك", scanText: "امسح الرمز للتحميل" },
+    app: { title: "حمّل تطبيق Foda", subtitle: "تسوّق بسهولة من هاتفك", scanText: "امسح الرمز للتحميل" },
   },
   cart: {
     title: "سلة التسوق",
@@ -814,7 +814,7 @@ export const ar: Translations = {
   auth: {
     login: {
       heading: "مرحباً بعودتك",
-      sub: "سجل الدخول إلى حساب فودة الخاص بك",
+      sub: "سجل الدخول إلى حسابك",
       tab: "تسجيل الدخول",
       emailPlaceholder: "example@email.com",
       passwordPlaceholder: "كلمة المرور",
@@ -824,7 +824,7 @@ export const ar: Translations = {
       createOne: "أنشئ واحداً",
     },
     register: {
-      heading: "انضم إلى فودة",
+      heading: "انضم إلى Foda",
       sub: "أنشئ حسابك — مجاناً تماماً",
       tab: "إنشاء حساب",
       fullNamePlaceholder: "الاسم الكامل",

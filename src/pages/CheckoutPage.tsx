@@ -87,14 +87,14 @@ function OrderSummary({
 }) {
   const { tr } = useLang();
   return (
-    <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-5 lg:sticky lg:top-28">
-      <h3 className="font-display font-bold text-[#1A1A2E] text-lg">
+    <div className="bg-white border border-charcoal/8 p-6 space-y-5 lg:sticky lg:top-28">
+      <h3 className="font-display font-bold text-charcoal text-lg">
         {tr.checkout.orderSummary}
       </h3>
       <div className="space-y-3 max-h-60 overflow-y-auto pe-1">
         {items.map((item) => (
           <div key={item.key} className="flex gap-3">
-            <div className="w-14 h-16 flex-shrink-0 bg-[#F0EBE3] overflow-hidden">
+            <div className="w-14 h-16 shrink-0 bg-cream overflow-hidden">
               <img
                 src={item.product.images[0]}
                 alt={item.product.name}
@@ -102,30 +102,30 @@ function OrderSummary({
               />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[#1A1A2E]/40 text-[10px] uppercase tracking-wider">
+              <p className="text-charcoal/40 text-[10px] uppercase tracking-wider">
                 {item.product.category}
               </p>
-              <p className="text-[#1A1A2E] text-sm font-semibold leading-tight truncate">
+              <p className="text-charcoal text-sm font-semibold leading-tight truncate">
                 {item.product.name}
               </p>
-              <p className="text-[#1A1A2E]/50 text-xs mt-0.5">
+              <p className="text-charcoal/50 text-xs mt-0.5">
                 {item.size} · ×{item.quantity}
               </p>
             </div>
-            <p className="text-[#1A1A2E] font-bold text-sm flex-shrink-0">
+            <p className="text-charcoal font-bold text-sm shrink-0">
               {(item.product.price * item.quantity).toLocaleString()}
             </p>
           </div>
         ))}
       </div>
-      <div className="border-t border-[#1A1A2E]/8 pt-4 space-y-2">
-        <div className="flex justify-between text-sm text-[#1A1A2E]/60">
+      <div className="border-t border-charcoal/8 pt-4 space-y-2">
+        <div className="flex justify-between text-sm text-charcoal/60">
           <span>{tr.checkout.subtotal}</span>
           <span>
             {subtotal.toLocaleString()} {tr.common.dzd}
           </span>
         </div>
-        <div className="flex justify-between text-sm text-[#1A1A2E]/60">
+        <div className="flex justify-between text-sm text-charcoal/60">
           <span>{tr.checkout.shipping}</span>
           <span
             className={shipping === 0 ? "text-[#C9A84C] font-semibold" : ""}
@@ -135,9 +135,9 @@ function OrderSummary({
               : `${shipping.toLocaleString()} ${tr.common.dzd}`}
           </span>
         </div>
-        <div className="h-px bg-[#1A1A2E]/8" />
+        <div className="h-px bg-charcoal/8" />
         <div className="flex justify-between font-bold">
-          <span className="text-[#1A1A2E]">{tr.checkout.total}</span>
+          <span className="text-charcoal">{tr.checkout.total}</span>
           <span className="gold-text font-display text-xl">
             {total.toLocaleString()} {tr.common.dzd}
           </span>
@@ -150,7 +150,7 @@ function OrderSummary({
         ].map(({ Icon, text }) => (
           <div
             key={text}
-            className="flex items-center gap-2 text-xs text-[#1A1A2E]/40"
+            className="flex items-center gap-2 text-xs text-charcoal/40"
           >
             <Icon sx={{ fontSize: 13, color: "#C9A84C", flexShrink: 0 }} />{" "}
             {text}
