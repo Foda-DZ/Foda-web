@@ -60,9 +60,13 @@ function LoginForm({
     setLoading(true);
     try {
       const redirectTarget = redirectTo;
-      const session = await login({ email, password, role });
+      const session = await login({
+        email: email.trim().toLowerCase(),
+        password,
+        role,
+      });
       if (session.role === "seller") {
-        navigate("/seller/dashboard");
+        navigate(session.isActive ? "/seller/dashboard" : "/seller/pending");
       } else if (redirectTarget) {
         navigate(redirectTarget);
       }
@@ -233,16 +237,17 @@ function RegisterForm({
     setApiError("");
     setLoading(true);
     try {
+      const normalizedEmail = fields.email.trim().toLowerCase();
       if (role === "seller") {
         await registerSeller({
           shopName: fields.fullName.trim(),
-          email: fields.email.trim(),
+          email: normalizedEmail,
           password: fields.password,
         });
       } else {
         await registerCustomer({
           fullName: fields.fullName.trim(),
-          email: fields.email.trim(),
+          email: normalizedEmail,
           password: fields.password,
         });
       }
@@ -308,6 +313,24 @@ function RegisterForm({
         />
         {errors.fullName && (
           <p className="mt-1.5 text-xs text-red-500">{errors.fullName}</p>
+        )}
+      </div>
+
+      <div>
+        <TextInput
+          type="email"
+          value={fields.email}
+          onChange={set("email")}
+          placeholder={tr.auth.register.emailPlaceholder}
+          error={errors.email}
+          icon={
+            <MailOutlineIcon
+              sx={{ fontSize: 15, color: "rgba(26,26,46,0.4)" }}
+            />
+          }
+        />
+        {errors.email && (
+          <p className="mt-1.5 text-xs text-red-500">{errors.email}</p>
         )}
       </div>
 
@@ -397,11 +420,11 @@ function VerifyForm({
     try {
       const redirectTarget = redirectTo;
       const session = await verifyEmail({
-        email: pendingEmail,
+        email: pendingEmail.trim().toLowerCase(),
         verificationCode: parseInt(code, 10),
       });
       if (session.role === "seller") {
-        navigate("/seller/dashboard");
+        navigate(session.isActive ? "/seller/dashboard" : "/seller/pending");
       } else if (customerOnly && redirectTarget) {
         navigate(redirectTarget);
       }
@@ -590,7 +613,7 @@ export default function AuthModal() {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      className="fixed inset-0 z-9999 flex items-center justify-center p-4"
       onClick={closeAuth}
     >
       {/* Backdrop */}
@@ -602,14 +625,14 @@ export default function AuthModal() {
       >
         {/* Header */}
         <div className="relative dark-gradient px-8 py-7 shrink-0">
-          <div className="absolute top-0 end-0 w-32 h-32 bg-gold/10 rounded-full blur-2xl" />
+          <div className="absolute top-0 inset-e-0 w-32 h-32 bg-gold/10 rounded-full blur-2xl" />
           <div className="relative z-10 flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <img
                   src={fodaLogo}
                   alt="FODA"
-                  className="h-10 w-auto object-contain [filter:invert(1)_hue-rotate(180deg)]"
+                  className="h-10 w-auto object-contain filter-[invert(1)_hue-rotate(180deg)]"
                 />
               </div>
               <h2 className="font-display text-2xl font-bold text-white">
