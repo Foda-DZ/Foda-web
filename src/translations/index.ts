@@ -421,6 +421,43 @@ export interface Translations {
     loading: string;
   };
   seller: {
+    setup: {
+      sellerSetup: string;
+      finishSetup: string;
+      setupDescription: string;
+      deliveryCompanyTitle: string;
+      deliveryCompanySub: string;
+      shippingAreaTitle: string;
+      shippingAreaSub: string;
+      addTokenTitle: string;
+      addTokenSub: string;
+      onboardingRequired: string;
+      deliverySetupDetails: string;
+      setupDescription2: string;
+      deliveryCompanyLabel: string;
+      selectDeliveryCompany: string;
+      wilayaLabel: string;
+      selectWilaya: string;
+      communeLabel: string;
+      selectCommune: string;
+      chooseWilayaFirst: string;
+      tokenLabel: string;
+      tokenPlaceholder: string;
+      tokenHint: string;
+      errorDeliveryCompany: string;
+      errorWilaya: string;
+      errorCommune: string;
+      errorToken: string;
+      errorSubmit: string;
+      saveSetup: string;
+      companies: {
+        yalidine: string;
+        zrExpress: string;
+        dhl: string;
+        algieriePoste: string;
+        other: string;
+      };
+    };
     layout: {
       portal: string;
       dashboard: string;
@@ -1044,6 +1081,43 @@ export const ar: Translations = {
     loading: "جاري تحميل قائمة الأمنيات…",
   },
   seller: {
+    setup: {
+      sellerSetup: "إعداد البائع",
+      finishSetup: "أكمل إعداد متجرك",
+      setupDescription: "أضف شركة التوصيل والمنطقة الجغرافية ليكون متجرك جاهزاً لاستقبال الطلبات.",
+      deliveryCompanyTitle: "اختر شركة التوصيل",
+      deliveryCompanySub: "اختر شركة التوصيل التي تفضل التعامل معها.",
+      shippingAreaTitle: "حدّد منطقة التوصيل",
+      shippingAreaSub: "اختر الولاية والبلدية لتغطية التوصيل.",
+      addTokenTitle: "أضف رمز التحقق",
+      addTokenSub: "سنربط تكاملك مع شركة التوصيل لاحقاً.",
+      onboardingRequired: "مطلوب الإعداد",
+      deliverySetupDetails: "تفاصيل إعداد التوصيل",
+      setupDescription2: "سيتم حفظ هذه البيانات لاستخدامها عند تكامل API لاحقاً.",
+      deliveryCompanyLabel: "شركة التوصيل",
+      selectDeliveryCompany: "اختر شركة توصيل",
+      wilayaLabel: "الولاية",
+      selectWilaya: "اختر الولاية",
+      communeLabel: "البلدية",
+      selectCommune: "اختر البلدية",
+      chooseWilayaFirst: "اختر الولاية أولاً",
+      tokenLabel: "رمز التحقق",
+      tokenPlaceholder: "أدخل رمز التحقق من شركة التوصيل",
+      tokenHint: "سيُستخدم هذا الرمز لتكامل شركة التوصيل لاحقاً.",
+      errorDeliveryCompany: "اختر شركة توصيل.",
+      errorWilaya: "اختر الولاية.",
+      errorCommune: "اختر البلدية.",
+      errorToken: "أدخل رمز التحقق من شركة التوصيل.",
+      errorSubmit: "تعذّر حفظ إعدادك. يرجى المحاولة مجدداً.",
+      saveSetup: "حفظ الإعداد والمتابعة",
+      companies: {
+        yalidine: "ياليدين",
+        zrExpress: "زد آر إكسبريس",
+        dhl: "دي إتش إل",
+        algieriePoste: "بريد الجزائر",
+        other: "أخرى",
+      },
+    },
     layout: {
       portal: "بوابة البائع",
       dashboard: "لوحة التحكم",
@@ -1667,6 +1741,43 @@ export const en: Translations = {
     loading: "Loading your wishlist…",
   },
   seller: {
+    setup: {
+      sellerSetup: "Seller setup",
+      finishSetup: "Finish your store setup",
+      setupDescription: "Add your delivery partner and shipping area so your store is ready for order fulfillment.",
+      deliveryCompanyTitle: "Choose delivery company",
+      deliveryCompanySub: "Select the courier you work with most.",
+      shippingAreaTitle: "Set your shipping area",
+      shippingAreaSub: "Pick your wilaya and commune for delivery coverage.",
+      addTokenTitle: "Add your token",
+      addTokenSub: "We'll connect your provider integration later.",
+      onboardingRequired: "Onboarding required",
+      deliverySetupDetails: "Delivery setup details",
+      setupDescription2: "Fill these details once and we'll keep them ready for the API integration that comes next.",
+      deliveryCompanyLabel: "Delivery company",
+      selectDeliveryCompany: "Select a delivery company",
+      wilayaLabel: "Wilaya",
+      selectWilaya: "Select a wilaya",
+      communeLabel: "Commune",
+      selectCommune: "Select a commune",
+      chooseWilayaFirst: "Choose a wilaya first",
+      tokenLabel: "Delivery token",
+      tokenPlaceholder: "Enter delivery company token",
+      tokenHint: "The token will be used for the courier integration later.",
+      errorDeliveryCompany: "Select a delivery company.",
+      errorWilaya: "Select a wilaya.",
+      errorCommune: "Select a commune.",
+      errorToken: "Enter the delivery company token.",
+      errorSubmit: "We couldn't save your setup. Please try again.",
+      saveSetup: "Save setup & continue",
+      companies: {
+        yalidine: "Yalidine",
+        zrExpress: "ZR Express",
+        dhl: "DHL",
+        algieriePoste: "Algérie Poste",
+        other: "Other",
+      },
+    },
     layout: {
       portal: "Seller Portal",
       dashboard: "Dashboard",

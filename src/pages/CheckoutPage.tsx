@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -18,7 +18,11 @@ import { useLang } from "../context/LangContext";
 import wilayasData from "../data/wilayas.json";
 import { cartService } from "../services/cartService";
 import type { CartItem } from "../types";
-import type { ApiShippingDetails, ApiOrder } from "../types/api";
+import type {
+  ApiShippingDetails,
+  ApiOrder,
+  ApiCheckoutShippingFeesResponse,
+} from "../types/api";
 import Field from "../components/ui/Field";
 import TextInput from "../components/ui/TextInput";
 import Button from "../components/ui/Button";
@@ -43,15 +47,53 @@ const WILAYAS = WILAYAS_DATA.slice()
     code: wilaya.wilayaCode,
     nameFr: wilaya.nameFr,
     nameAr: wilaya.nameAr,
-    value: `${String(wilaya.wilayaCode).padStart(2, "0")} - ${wilaya.nameFr}`,
   }));
 
-function getWilayaCode(wilayaLabel: string): number {
-  const code = Number(wilayaLabel.split("-")[0]?.trim());
-  return Number.isFinite(code) ? code : 0;
+function getWilayaByName(
+  wilayaName: string,
+): (typeof WILAYAS)[number] | undefined {
+  return WILAYAS.find((w) => w.nameFr === wilayaName);
 }
 
-const SHIPPING_THRESHOLD = 5000;
+function getCommunesByWilaya(wilayaName: string) {
+  const wilaya = WILAYAS_DATA.find((w) => w.nameFr === wilayaName);
+  return wilaya?.communes ?? [];
+}
+
+function getCommuneArName(wilayaName: string, communeName: string): string {
+  const communes = getCommunesByWilaya(wilayaName);
+  const commune = communes.find((c) => c.nameFr === communeName);
+  return commune?.nameAr || communeName;
+}
+
+function getWilayaArName(wilayaName: string): string {
+  const wilaya = getWilayaByName(wilayaName);
+  return wilaya?.nameAr || wilayaName;
+}
+
+function getWilayaCodeByName(wilayaName: string): number {
+  const wilaya = getWilayaByName(wilayaName);
+  return wilaya?.code ?? 0;
+}
+
+function getShippingFeeAmount(
+  shippingFees: ApiCheckoutShippingFeesResponse["shippingFees"] | null,
+  wilayaCode: number,
+  shippingType: DeliveryInfo["shippingType"],
+) {
+  if (!shippingFees?.data?.length) return null;
+
+  const matchedFee =
+    shippingFees.data.find((entry) => entry.wilaya_id === wilayaCode) ??
+    shippingFees.data[0];
+
+  if (!matchedFee) return null;
+
+  return shippingType === "desk_pickup"
+    ? (matchedFee.fees.desk ?? matchedFee.fees.home ?? null)
+    : (matchedFee.fees.home ?? matchedFee.fees.desk ?? null);
+}
+
 const STEPS = ["Shipping", "Payment", "Review"] as const;
 type Step = (typeof STEPS)[number] | "Success";
 type PaymentMethod = "cod" | "cib" | "baridimob";
@@ -79,11 +121,15 @@ function OrderSummary({
   subtotal,
   shipping,
   total,
+  shippingLoading,
+  shippingError,
 }: {
   items: CartItem[];
   subtotal: number;
   shipping: number;
   total: number;
+  shippingLoading: boolean;
+  shippingError: string;
 }) {
   const { tr } = useLang();
   return (
@@ -127,12 +173,12 @@ function OrderSummary({
         </div>
         <div className="flex justify-between text-sm text-charcoal/60">
           <span>{tr.checkout.shipping}</span>
-          <span
-            className={shipping === 0 ? "text-[#C9A84C] font-semibold" : ""}
-          >
-            {shipping === 0
-              ? tr.checkout.freeShipping
-              : `${shipping.toLocaleString()} ${tr.common.dzd}`}
+          <span className="text-gold font-semibold">
+            {shippingLoading
+              ? "Calculating..."
+              : shippingError
+                ? "Unavailable"
+                : `${shipping.toLocaleString()} ${tr.common.dzd}`}
           </span>
         </div>
         <div className="h-px bg-charcoal/8" />
@@ -143,7 +189,7 @@ function OrderSummary({
           </span>
         </div>
       </div>
-      <div className="border-t border-[#1A1A2E]/8 pt-4 space-y-2">
+      <div className="border-t border-charcoal/8 pt-4 space-y-2">
         {[
           { Icon: SecurityIcon, text: "Secure checkout" },
           { Icon: LocalShippingIcon, text: "Delivery across all 58 wilayas" },
@@ -174,24 +220,20 @@ function DeliveryForm({
   onNext: () => void;
 }) {
   const { tr } = useLang();
+  const isRtl = tr.dir === "rtl";
   const set = (key: keyof DeliveryInfo) => (val: string) =>
     setInfo((f) => ({ ...f, [key]: val }));
 
   const wilayaOptions = WILAYAS.map((wilaya) => ({
-    code: wilaya.code,
-    value: wilaya.value,
-    label: `${String(wilaya.code).padStart(2, "0")} - ${tr.dir === "rtl" ? wilaya.nameAr || wilaya.nameFr : wilaya.nameFr}`,
+    value: wilaya.nameFr,
+    label: `${String(wilaya.code).padStart(2, "0")} - ${isRtl ? wilaya.nameAr || wilaya.nameFr : wilaya.nameFr}`,
   }));
 
-  const selectedWilayaCode = getWilayaCode(info.wilaya);
-  const selectedWilaya = WILAYAS_DATA.find(
-    (wilaya) => wilaya.wilayaCode === selectedWilayaCode,
-  );
-  const communeOptions = selectedWilaya
-    ? selectedWilaya.communes.map((commune) =>
-        tr.dir === "rtl" ? commune.nameAr || commune.nameFr : commune.nameFr,
-      )
-    : [];
+  const communes = getCommunesByWilaya(info.wilaya);
+  const communeOptions = communes.map((commune) => ({
+    value: commune.nameFr,
+    label: isRtl ? commune.nameAr || commune.nameFr : commune.nameFr,
+  }));
 
   const handleWilayaChange = (nextWilaya: string) => {
     setInfo((f) => ({
@@ -204,15 +246,15 @@ function DeliveryForm({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-2xl font-bold text-[#1A1A2E] mb-1">
+        <h2 className="font-display text-2xl font-bold text-charcoal mb-1">
           {tr.checkout.deliveryTitle}
         </h2>
-        <p className="text-[#1A1A2E]/50 text-sm">{tr.checkout.deliverySub}</p>
+        <p className="text-charcoal/50 text-sm">{tr.checkout.deliverySub}</p>
       </div>
 
       {/* Shipping type */}
       <div className="space-y-3">
-        <p className="text-xs font-semibold tracking-widest uppercase text-[#C9A84C]">
+        <p className="text-xs font-semibold tracking-widest uppercase text-gold">
           Shipping Method
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -236,12 +278,12 @@ function DeliveryForm({
               onClick={() => setInfo((f) => ({ ...f, shippingType: value }))}
               className={`flex items-center gap-3 p-4 border-2 transition-all duration-200 text-start ${
                 info.shippingType === value
-                  ? "border-[#C9A84C] bg-[#C9A84C]/5"
-                  : "border-[#1A1A2E]/10 hover:border-[#C9A84C]/40"
+                  ? "border-gold bg-gold/5"
+                  : "border-charcoal/10 hover:border-gold/40"
               }`}
             >
               <div
-                className={`w-9 h-9 flex items-center justify-center flex-shrink-0 ${info.shippingType === value ? "gold-gradient" : "bg-[#F0EBE3]"}`}
+                className={`w-9 h-9 flex items-center justify-center shrink-0 ${info.shippingType === value ? "gold-gradient" : "bg-[#F0EBE3]"}`}
               >
                 <Icon
                   sx={{
@@ -255,11 +297,11 @@ function DeliveryForm({
               </div>
               <div>
                 <p
-                  className={`font-semibold text-sm ${info.shippingType === value ? "text-[#1A1A2E]" : "text-[#1A1A2E]/60"}`}
+                  className={`font-semibold text-sm ${info.shippingType === value ? "text-charcoal" : "text-charcoal/60"}`}
                 >
                   {label}
                 </p>
-                <p className="text-[#1A1A2E]/40 text-xs">{sub}</p>
+                <p className="text-charcoal/40 text-xs">{sub}</p>
               </div>
             </button>
           ))}
@@ -268,7 +310,7 @@ function DeliveryForm({
 
       {/* Contact */}
       <div className="space-y-4">
-        <p className="text-xs font-semibold tracking-widest uppercase text-[#C9A84C]">
+        <p className="text-xs font-semibold tracking-widest uppercase text-gold">
           Contact
         </p>
         <Field label={tr.checkout.phone} error={errors.phone}>
@@ -284,29 +326,29 @@ function DeliveryForm({
 
       {/* Address */}
       <div className="space-y-4">
-        <p className="text-xs font-semibold tracking-widest uppercase text-[#C9A84C]">
+        <p className="text-xs font-semibold tracking-widest uppercase text-gold">
           Shipping Address
         </p>
         <div>
-          <label className="block text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/60 mb-1.5">
+          <label className="block text-xs font-semibold tracking-widest uppercase text-charcoal/60 mb-1.5">
             {tr.checkout.wilaya}
           </label>
           <select
             value={info.wilaya}
             onChange={(e) => handleWilayaChange(e.target.value)}
-            className={`w-full border bg-white py-2.5 px-3 text-sm text-[#1A1A2E] focus:outline-none transition-colors appearance-none cursor-pointer ${
+            className={`w-full border bg-white py-2.5 px-3 text-sm text-charcoal focus:outline-none transition-colors appearance-none cursor-pointer ${
               errors.wilaya
                 ? "border-red-400"
-                : "border-[#1A1A2E]/15 focus:border-[#C9A84C]"
+                : "border-charcoal/15 focus:border-gold"
             } ${
               !info.wilaya
-                ? "text-[#1A1A2E]/70 font-medium"
-                : "text-[#1A1A2E] font-semibold"
+                ? "text-charcoal/70 font-medium"
+                : "text-charcoal font-semibold"
             }`}
           >
             <option value="">{tr.checkout.selectWilaya}</option>
             {wilayaOptions.map((wilaya) => (
-              <option key={wilaya.code} value={wilaya.value}>
+              <option key={wilaya.value} value={wilaya.value}>
                 {wilaya.label}
               </option>
             ))}
@@ -321,18 +363,18 @@ function DeliveryForm({
               value={info.commune}
               onChange={(e) => set("commune")(e.target.value)}
               disabled={!info.wilaya}
-              className={`w-full border bg-white py-2.5 px-3 text-sm text-[#1A1A2E] focus:outline-none transition-colors appearance-none cursor-pointer ${
+              className={`w-full border bg-white py-2.5 px-3 text-sm text-charcoal focus:outline-none transition-colors appearance-none cursor-pointer ${
                 errors.commune
                   ? "border-red-400"
-                  : "border-[#1A1A2E]/15 focus:border-[#C9A84C]"
+                  : "border-charcoal/15 focus:border-gold"
               } ${!info.wilaya ? "opacity-60 cursor-not-allowed" : ""}`}
             >
               <option value="">
-                {tr.dir === "rtl" ? "اختر البلدية" : "Select commune"}
+                {isRtl ? "اختر البلدية" : "Select commune"}
               </option>
               {communeOptions.map((commune) => (
-                <option key={commune} value={commune}>
-                  {commune}
+                <option key={commune.value} value={commune.value}>
+                  {commune.label}
                 </option>
               ))}
             </select>
@@ -354,23 +396,10 @@ function DeliveryForm({
   );
 }
 
-// ─── Payment Form ──────────────────────────────────────────────────────────────
-function formatCard(val: string) {
-  return val
-    .replace(/\D/g, "")
-    .slice(0, 16)
-    .replace(/(.{4})/g, "$1 ")
-    .trim();
-}
-function formatExpiry(val: string) {
-  const d = val.replace(/\D/g, "").slice(0, 4);
-  return d.length >= 3 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
-}
-
 function PaymentForm({
   payment,
   setPayment,
-  errors,
+  errors: _errors,
   onNext,
   onBack,
 }: {
@@ -411,10 +440,10 @@ function PaymentForm({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-2xl font-bold text-[#1A1A2E] mb-1">
+        <h2 className="font-display text-2xl font-bold text-charcoal mb-1">
           {tr.checkout.paymentTitle}
         </h2>
-        <p className="text-[#1A1A2E]/50 text-sm">{tr.checkout.paymentSub}</p>
+        <p className="text-charcoal/50 text-sm">{tr.checkout.paymentSub}</p>
       </div>
       <div className="space-y-3">
         {paymentMethods.map(({ id, label, sub, Icon, disabled }) => (
@@ -424,14 +453,14 @@ function PaymentForm({
             disabled={disabled}
             className={`w-full flex items-center gap-4 p-4 border-2 transition-all duration-200 text-start ${
               disabled
-                ? "border-[#1A1A2E]/5 bg-[#F0EBE3]/50 opacity-60 cursor-not-allowed"
+                ? "border-charcoal/5 bg-[#F0EBE3]/50 opacity-60 cursor-not-allowed"
                 : payment.method === id
-                  ? "border-[#C9A84C] bg-[#C9A84C]/5"
-                  : "border-[#1A1A2E]/10 hover:border-[#C9A84C]/40"
+                  ? "border-gold bg-gold/5"
+                  : "border-charcoal/10 hover:border-gold/40"
             }`}
           >
             <div
-              className={`w-10 h-10 flex items-center justify-center flex-shrink-0 ${!disabled && payment.method === id ? "gold-gradient" : "bg-[#F0EBE3]"}`}
+              className={`w-10 h-10 flex items-center justify-center shrink-0 ${!disabled && payment.method === id ? "gold-gradient" : "bg-[#F0EBE3]"}`}
             >
               <Icon
                 sx={{
@@ -445,28 +474,28 @@ function PaymentForm({
             </div>
             <div className="flex-1">
               <p
-                className={`font-semibold text-sm ${!disabled && payment.method === id ? "text-[#1A1A2E]" : "text-[#1A1A2E]/70"}`}
+                className={`font-semibold text-sm ${!disabled && payment.method === id ? "text-charcoal" : "text-charcoal/70"}`}
               >
                 {label}
                 {disabled && (
-                  <span className="ms-2 text-[10px] font-bold tracking-widest uppercase text-[#C9A84C] bg-[#C9A84C]/10 px-2 py-0.5">
+                  <span className="ms-2 text-[10px] font-bold tracking-widest uppercase text-gold bg-gold/10 px-2 py-0.5">
                     {tr.checkout.comingSoon}
                   </span>
                 )}
               </p>
-              {!disabled && <p className="text-[#1A1A2E]/40 text-xs">{sub}</p>}
+              {!disabled && <p className="text-charcoal/40 text-xs">{sub}</p>}
             </div>
             <div
-              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
                 disabled
-                  ? "border-[#1A1A2E]/10"
+                  ? "border-charcoal/10"
                   : payment.method === id
-                    ? "border-[#C9A84C] bg-[#C9A84C]"
-                    : "border-[#1A1A2E]/20"
+                    ? "border-gold bg-gold"
+                    : "border-charcoal/20"
               }`}
             >
               {!disabled && payment.method === id && (
-                <div className="w-2 h-2 rounded-full bg-[#1A1A2E]" />
+                <div className="w-2 h-2 rounded-full bg-charcoal" />
               )}
             </div>
           </button>
@@ -474,8 +503,8 @@ function PaymentForm({
       </div>
 
       {payment.method === "cod" && (
-        <div className="bg-[#F5F0E8] p-4 border border-[#C9A84C]/20">
-          <p className="text-sm text-[#1A1A2E]/60 leading-relaxed">
+        <div className="bg-[#F5F0E8] p-4 border border-gold/20">
+          <p className="text-sm text-charcoal/60 leading-relaxed">
             Pay in cash when your delivery arrives. A 750 {tr.common.dzd}{" "}
             delivery fee applies for orders under 5,000 {tr.common.dzd}.
           </p>
@@ -502,6 +531,8 @@ function ReviewConfirmStep({
   subtotal,
   shipping,
   total,
+  shippingLoading,
+  shippingError,
   onPlace,
   onBack,
   placing,
@@ -513,6 +544,8 @@ function ReviewConfirmStep({
   subtotal: number;
   shipping: number;
   total: number;
+  shippingLoading: boolean;
+  shippingError: string;
   onPlace: () => void;
   onBack: () => void;
   placing: boolean;
@@ -528,20 +561,20 @@ function ReviewConfirmStep({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-display text-2xl font-bold text-[#1A1A2E] mb-1">
+        <h2 className="font-display text-2xl font-bold text-charcoal mb-1">
           {tr.checkout.reviewTitle}
         </h2>
-        <p className="text-[#1A1A2E]/50 text-sm">{tr.checkout.reviewSub}</p>
+        <p className="text-charcoal/50 text-sm">{tr.checkout.reviewSub}</p>
       </div>
 
       {/* Delivery info */}
-      <div className="bg-white border border-[#1A1A2E]/8 p-5 space-y-3">
-        <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/50 flex items-center gap-2">
+      <div className="bg-white border border-charcoal/8 p-5 space-y-3">
+        <p className="text-xs font-semibold tracking-widest uppercase text-charcoal/50 flex items-center gap-2">
           <LocationOnIcon sx={{ fontSize: 12, color: "#C9A84C" }} />{" "}
           {tr.checkout.deliveryInfo}
         </p>
-        <div className="text-sm text-[#1A1A2E]/70 space-y-0.5">
-          <p className="font-semibold text-[#1A1A2E] capitalize">
+        <div className="text-sm text-charcoal/70 space-y-0.5">
+          <p className="font-semibold text-charcoal capitalize">
             {info.shippingType === "home_delivery"
               ? "Home Delivery"
               : "Desk Pickup"}
@@ -555,19 +588,19 @@ function ReviewConfirmStep({
       </div>
 
       {/* Payment method */}
-      <div className="bg-white border border-[#1A1A2E]/8 p-5 space-y-3">
-        <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/50 flex items-center gap-2">
+      <div className="bg-white border border-charcoal/8 p-5 space-y-3">
+        <p className="text-xs font-semibold tracking-widest uppercase text-charcoal/50 flex items-center gap-2">
           <CreditCardIcon sx={{ fontSize: 12, color: "#C9A84C" }} />{" "}
           {tr.checkout.paymentMethod}
         </p>
-        <p className="text-sm text-[#1A1A2E]/70">
+        <p className="text-sm text-charcoal/70">
           {methodLabels[payment.method]}
         </p>
       </div>
 
       {/* Order items */}
-      <div className="bg-white border border-[#1A1A2E]/8 p-5 space-y-3">
-        <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/50 flex items-center gap-2">
+      <div className="bg-white border border-charcoal/8 p-5 space-y-3">
+        <p className="text-xs font-semibold tracking-widest uppercase text-charcoal/50 flex items-center gap-2">
           <ShoppingBagIcon sx={{ fontSize: 12, color: "#C9A84C" }} />
           {tr.checkout.orderItems} ({items.reduce((s, i) => s + i.quantity, 0)})
         </p>
@@ -578,42 +611,44 @@ function ReviewConfirmStep({
               className="flex justify-between items-center text-sm"
             >
               <div>
-                <span className="text-[#1A1A2E] font-medium">
+                <span className="text-charcoal font-medium">
                   {item.product.name}
                 </span>
-                <span className="text-[#1A1A2E]/40 ms-2">
+                <span className="text-charcoal/40 ms-2">
                   &times; {item.quantity}
                 </span>
                 {item.size && (
-                  <span className="text-[#1A1A2E]/40 text-xs ms-1">
+                  <span className="text-charcoal/40 text-xs ms-1">
                     ({item.size})
                   </span>
                 )}
               </div>
-              <span className="font-semibold text-[#1A1A2E]">
+              <span className="font-semibold text-charcoal">
                 {(item.product.price * item.quantity).toLocaleString()}{" "}
                 {tr.common.dzd}
               </span>
             </div>
           ))}
         </div>
-        <div className="border-t border-[#1A1A2E]/8 pt-3 space-y-1.5">
-          <div className="flex justify-between text-sm text-[#1A1A2E]/50">
+        <div className="border-t border-charcoal/8 pt-3 space-y-1.5">
+          <div className="flex justify-between text-sm text-charcoal/50">
             <span>{tr.checkout.subtotal}</span>
             <span>
               {subtotal.toLocaleString()} {tr.common.dzd}
             </span>
           </div>
-          <div className="flex justify-between text-sm text-[#1A1A2E]/50">
+          <div className="flex justify-between text-sm text-charcoal/50">
             <span>{tr.checkout.shipping}</span>
-            <span className={shipping === 0 ? "text-[#C9A84C]" : ""}>
-              {shipping === 0
-                ? tr.checkout.freeShipping
-                : `${shipping.toLocaleString()} ${tr.common.dzd}`}
+            <span className="text-gold">
+              {shippingLoading
+                ? "Calculating..."
+                : shippingError
+                  ? "Unavailable"
+                  : `${shipping.toLocaleString()} ${tr.common.dzd}`}
             </span>
           </div>
-          <div className="flex justify-between font-bold text-base border-t border-[#1A1A2E]/8 pt-2 mt-2">
-            <span className="text-[#1A1A2E]">{tr.checkout.total}</span>
+          <div className="flex justify-between font-bold text-base border-t border-charcoal/8 pt-2 mt-2">
+            <span className="text-charcoal">{tr.checkout.total}</span>
             <span className="gold-text font-display">
               {total.toLocaleString()} {tr.common.dzd}
             </span>
@@ -664,14 +699,13 @@ function OrderSuccess({
   onViewOrders: () => void;
 }) {
   const { tr } = useLang();
+  const isRtl = tr.dir === "rtl";
   const methodLabels: Record<PaymentMethod, string> = {
     cod: tr.checkout.cod,
     cib: tr.checkout.cib,
     baridimob: tr.checkout.baridimob,
   };
-  const allItems = orders.flatMap((o) => o.items);
   const grandTotal = orders.reduce((sum, o) => sum + o.totalAmount, 0);
-  const shipping = orders[0]?.shippingDetails;
   const orderDate = orders[0]?.createdAt
     ? new Date(orders[0].createdAt).toLocaleDateString("en-GB", {
         day: "numeric",
@@ -681,149 +715,190 @@ function OrderSuccess({
     : null;
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] py-16 px-6">
+    <div className="min-h-screen bg-cream py-16 px-6">
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
         <div className="text-center space-y-4">
           <div className="w-20 h-20 mx-auto gold-gradient rounded-full flex items-center justify-center shadow-lg">
             <CheckCircleIcon sx={{ fontSize: 38, color: "#1A1A2E" }} />
           </div>
           <div>
-            <p className="text-[#C9A84C] text-xs font-semibold tracking-widest uppercase mb-2">
+            <p className="text-gold text-xs font-semibold tracking-widest uppercase mb-2">
               {tr.checkout.orderConfirmed}
             </p>
-            <h1 className="font-display text-4xl font-bold text-[#1A1A2E] mb-2">
+            <h1 className="font-display text-4xl font-bold text-charcoal mb-2">
               {tr.checkout.successTitle}
             </h1>
-            <p className="text-[#1A1A2E]/55 leading-relaxed max-w-sm mx-auto">
+            <p className="text-charcoal/55 leading-relaxed max-w-sm mx-auto">
               {tr.checkout.successSub}
             </p>
           </div>
         </div>
 
-        {/* Order references + meta */}
-        <div className="bg-white border border-[#1A1A2E]/8 divide-y divide-[#1A1A2E]/6">
-          {orders.map((order) => (
-            <div
-              key={order._id}
-              className="flex items-center justify-between px-5 py-3.5"
-            >
-              <span className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/45">
-                {tr.checkout.orderNumber}
-              </span>
-              <span className="font-display font-bold text-[#C9A84C] text-sm tracking-widest">
-                #{order._id.slice(-10).toUpperCase()}
-              </span>
-            </div>
-          ))}
-          {orderDate && (
-            <div className="flex items-center justify-between px-5 py-3.5">
-              <span className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/45">
-                Date Placed
-              </span>
-              <span className="text-sm text-[#1A1A2E]/70">{orderDate}</span>
-            </div>
-          )}
-          <div className="flex items-center justify-between px-5 py-3.5">
-            <span className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/45">
-              Status
-            </span>
-            <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 text-xs font-semibold px-3 py-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-              Pending
-            </span>
-          </div>
-          <div className="flex items-center justify-between px-5 py-3.5">
-            <span className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/45">
-              {tr.checkout.paymentMethod}
-            </span>
-            <span className="text-sm text-[#1A1A2E]/70">
-              {methodLabels[method]}
-            </span>
-          </div>
-        </div>
+        <div className="bg-white border border-charcoal/8 divide-y divide-charcoal/6">
+          {orders.map((order) => {
+            const shippingFee = order.shippingDetails?.shippingFee ?? 0;
+            const itemsTotal = Math.max(order.totalAmount - shippingFee, 0);
 
-        {/* Items */}
-        <div className="bg-white border border-[#1A1A2E]/8">
-          <div className="px-5 py-3 border-b border-[#1A1A2E]/6">
-            <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/45 flex items-center gap-2">
-              <ShoppingBagIcon sx={{ fontSize: 12, color: "#C9A84C" }} />
-              {tr.checkout.orderItems} (
-              {allItems.reduce((s, i) => s + i.quantity, 0)})
-            </p>
-          </div>
-          <div className="divide-y divide-[#1A1A2E]/5">
-            {allItems.map((item, idx) => (
-              <div
-                key={`${item.productId}-${idx}`}
-                className="flex gap-4 px-5 py-4"
-              >
-                {item.image && (
-                  <div className="w-14 h-16 flex-shrink-0 bg-[#F0EBE3] overflow-hidden">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-[#1A1A2E] text-sm font-semibold leading-tight">
-                    {item.name}
-                  </p>
-                  <p className="text-[#1A1A2E]/45 text-xs mt-0.5">
-                    Qty: {item.quantity}
-                  </p>
+            return (
+              <div key={order._id} className="px-5 py-4 space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-semibold tracking-widest uppercase text-charcoal/45">
+                    {isRtl ? "رقم الطلب" : tr.checkout.orderNumber}
+                  </span>
+                  <span className="font-display font-bold text-gold text-sm tracking-widest">
+                    #{order._id.slice(-10).toUpperCase()}
+                  </span>
                 </div>
-                <p className="text-[#1A1A2E] font-bold text-sm flex-shrink-0">
-                  {(item.price * item.quantity).toLocaleString()}{" "}
-                  {tr.common.dzd}
-                </p>
+
+                <div className="space-y-3">
+                  {order.items.map((item, idx) => (
+                    <div
+                      key={`${order._id}-${item.productId}-${idx}`}
+                      className="flex gap-4"
+                    >
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-14 h-16 object-cover bg-[#F0EBE3] shrink-0"
+                        />
+                      ) : (
+                        <div className="w-14 h-16 bg-[#F0EBE3] shrink-0 flex items-center justify-center">
+                          <ShoppingBagIcon
+                            sx={{ fontSize: 14, color: "rgba(26,26,46,0.25)" }}
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-charcoal text-sm font-semibold leading-tight">
+                          {item.name}
+                        </p>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-charcoal/45">
+                          <span>
+                            {isRtl ? "الكمية" : "Qty"}: {item.quantity}
+                          </span>
+                          {item.selectedChoices?.size && (
+                            <span>
+                              {isRtl ? "المقاس" : "Size"}:{" "}
+                              {item.selectedChoices.size}
+                            </span>
+                          )}
+                          {item.selectedChoices?.color && (
+                            <span>
+                              {isRtl ? "اللون" : "Color"}:{" "}
+                              {item.selectedChoices.color}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-charcoal font-bold text-sm shrink-0">
+                        {(item.price * item.quantity).toLocaleString()}{" "}
+                        {tr.common.dzd}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="border-t border-charcoal/6 pt-3 space-y-1.5">
+                  <div className="flex justify-between text-sm text-charcoal/55">
+                    <span>{isRtl ? "المجموع الفرعي" : "Subtotal"}</span>
+                    <span>
+                      {itemsTotal.toLocaleString()} {tr.common.dzd}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm text-charcoal/55">
+                    <span>{isRtl ? "رسوم الشحن" : tr.checkout.shipping}</span>
+                    <span className="text-gold font-semibold">
+                      {shippingFee.toLocaleString()} {tr.common.dzd}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm font-bold text-charcoal border-t border-charcoal/6 pt-2 mt-2">
+                    <span>{isRtl ? "الإجمالي" : tr.checkout.total}</span>
+                    <span className="gold-text font-display">
+                      {order.totalAmount.toLocaleString()} {tr.common.dzd}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-charcoal/70 border-t border-charcoal/5 pt-3">
+                  <div>
+                    <p className="text-[10px] font-semibold tracking-widest uppercase text-charcoal/45 mb-1">
+                      {isRtl ? "طريقة الشحن" : tr.checkout.deliveryInfo}
+                    </p>
+                    <p className="font-semibold text-charcoal">
+                      {order.shippingDetails.shippingType === "home_delivery"
+                        ? tr.profile.homeDelivery
+                        : tr.profile.deskPickup}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold tracking-widest uppercase text-charcoal/45 mb-1">
+                      {isRtl ? "العنوان" : tr.checkout.deliveryInfo}
+                    </p>
+                    <p>
+                      {isRtl
+                        ? `${getCommuneArName(order.shippingDetails.wilaya, order.shippingDetails.commune)}, ${getWilayaArName(order.shippingDetails.wilaya)}`
+                        : `${order.shippingDetails.commune}, ${order.shippingDetails.wilaya}`}
+                    </p>
+                    {order.shippingDetails.postalCode && (
+                      <p>
+                        {isRtl ? "الرمز البريدي" : "Postal code"}:{" "}
+                        {order.shippingDetails.postalCode}
+                      </p>
+                    )}
+                    <p>{order.shippingDetails.phone}</p>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-          <div className="px-5 py-4 border-t border-[#1A1A2E]/6 flex justify-between items-center">
-            <span className="text-sm font-bold text-[#1A1A2E]">
-              {tr.checkout.total}
-            </span>
-            <span className="font-display font-bold text-xl gold-text">
-              {grandTotal.toLocaleString()} {tr.common.dzd}
-            </span>
-          </div>
+            );
+          })}
         </div>
 
-        {/* Shipping */}
-        {shipping && (
-          <div className="bg-white border border-[#1A1A2E]/8">
-            <div className="px-5 py-3 border-b border-[#1A1A2E]/6">
-              <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/45 flex items-center gap-2">
-                <LocationOnIcon sx={{ fontSize: 12, color: "#C9A84C" }} />
-                {tr.checkout.deliveryInfo}
-              </p>
-            </div>
-            <div className="px-5 py-4 space-y-1.5 text-sm text-[#1A1A2E]/70">
-              <p className="font-semibold text-[#1A1A2E]">
-                {shipping.shippingType === "home_delivery"
-                  ? "Home Delivery"
-                  : "Desk Pickup"}
-              </p>
-              <p>
-                {shipping.commune}, {shipping.wilaya}
-              </p>
-              {shipping.postalCode && <p>Postal code: {shipping.postalCode}</p>}
-              <p>{shipping.phone}</p>
-            </div>
+        {orderDate && (
+          <div className="bg-white border border-charcoal/8 px-5 py-4 flex items-center justify-between">
+            <span className="text-xs font-semibold tracking-widest uppercase text-charcoal/45">
+              {isRtl ? "تاريخ الطلب" : "Date Placed"}
+            </span>
+            <span className="text-sm text-charcoal/70">{orderDate}</span>
           </div>
         )}
 
-        {/* CTAs */}
+        <div className="bg-white border border-charcoal/8 px-5 py-4 flex items-center justify-between">
+          <span className="text-xs font-semibold tracking-widest uppercase text-charcoal/45">
+            {isRtl ? "الحالة" : "Status"}
+          </span>
+          <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 text-xs font-semibold px-3 py-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+            {isRtl ? "قيد الانتظار" : "Pending"}
+          </span>
+        </div>
+
+        <div className="bg-white border border-charcoal/8 px-5 py-4 flex items-center justify-between">
+          <span className="text-xs font-semibold tracking-widest uppercase text-charcoal/45">
+            {tr.checkout.paymentMethod}
+          </span>
+          <span className="text-sm text-charcoal/70">
+            {methodLabels[method]}
+          </span>
+        </div>
+
+        <div className="bg-white border border-charcoal/8 px-5 py-4 flex justify-between items-center">
+          <span className="text-sm font-bold text-charcoal">
+            {isRtl ? "إجمالي الطلبات" : tr.checkout.total}
+          </span>
+          <span className="font-display font-bold text-xl gold-text">
+            {grandTotal.toLocaleString()} {tr.common.dzd}
+          </span>
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
           <Button
             variant="outline-gold"
             onClick={onViewOrders}
             className="flex-1 h-11 gap-2"
           >
-            <ShoppingBagIcon sx={{ fontSize: 15 }} /> View My Orders
+            <ShoppingBagIcon sx={{ fontSize: 15 }} />
+            {isRtl ? "عرض طلباتي" : "View My Orders"}
           </Button>
           <Button variant="dark" onClick={onHome} className="flex-1 h-11 gap-2">
             {tr.checkout.backHome} <ArrowForwardIcon sx={{ fontSize: 15 }} />
@@ -851,10 +926,10 @@ function StepIndicator({ current }: { current: string }) {
             <div
               className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
                 i < idx
-                  ? "gold-gradient text-[#1A1A2E]"
+                  ? "gold-gradient text-charcoal"
                   : i === idx
-                    ? "bg-[#1A1A2E] text-white"
-                    : "border-2 border-[#1A1A2E]/15 text-[#1A1A2E]/30"
+                    ? "bg-charcoal text-white"
+                    : "border-2 border-charcoal/15 text-charcoal/30"
               }`}
             >
               {i < idx ? "✓" : i + 1}
@@ -862,10 +937,10 @@ function StepIndicator({ current }: { current: string }) {
             <span
               className={`text-xs font-semibold tracking-wide hidden sm:block transition-colors duration-300 ${
                 i === idx
-                  ? "text-[#1A1A2E]"
+                  ? "text-charcoal"
                   : i < idx
-                    ? "text-[#C9A84C]"
-                    : "text-[#1A1A2E]/30"
+                    ? "text-gold"
+                    : "text-charcoal/30"
               }`}
             >
               {stepLabels[i]}
@@ -874,7 +949,7 @@ function StepIndicator({ current }: { current: string }) {
           {i < STEPS.length - 1 && (
             <div
               className={`w-12 sm:w-16 h-px mx-2 sm:mx-3 transition-all duration-300 ${
-                i < idx ? "bg-[#C9A84C]" : "bg-[#1A1A2E]/10"
+                i < idx ? "bg-gold" : "bg-charcoal/10"
               }`}
             />
           )}
@@ -920,10 +995,12 @@ export default function CheckoutPage() {
   const { user, openLogin } = useAuth();
   const { tr } = useLang();
 
-  const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : 750;
-  const total = subtotal + shipping;
-
   const [step, setStep] = useState<Step>("Shipping");
+  // (previously tracked a single shippingFees response) kept out to avoid unused variable
+  const [shippingPerSeller, setShippingPerSeller] = useState<
+    Record<string, number>
+  >({});
+  const [shippingTotal, setShippingTotal] = useState<number>(0);
   const [info, setInfo] = useState<DeliveryInfo>({
     phone: "",
     wilaya: "",
@@ -946,6 +1023,115 @@ export default function CheckoutPage() {
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState("");
   const [placedOrders, setPlacedOrders] = useState<ApiOrder[] | null>(null);
+  const [shippingLoading, setShippingLoading] = useState(false);
+  const [shippingError, setShippingError] = useState("");
+  const shippingCacheRef = useRef(
+    new Map<string, ApiCheckoutShippingFeesResponse["shippingFees"]>(),
+  );
+
+  const shippingWilayaName = useMemo(() => info.wilaya, [info.wilaya]);
+
+  const shippingWilayaCode = useMemo(
+    () => getWilayaCodeByName(shippingWilayaName),
+    [shippingWilayaName],
+  );
+
+  // compute per-seller shipping fees in parallel and cache results per product:wilaya
+  useEffect(() => {
+    if (!items.length || !shippingWilayaName) {
+      setShippingPerSeller({});
+      setShippingTotal(0);
+      setShippingLoading(false);
+      setShippingError("");
+      return;
+    }
+
+    let active = true;
+    setShippingLoading(true);
+    setShippingError("");
+
+    // group items by sellerId
+    const groups = new Map<string, typeof items>();
+    for (const it of items) {
+      const sellerId = it.product.sellerId ?? "__unknown";
+      const arr = groups.get(sellerId) ?? [];
+      arr.push(it);
+      groups.set(sellerId, arr);
+    }
+
+    const promises: Promise<void>[] = [];
+    const nextPerSeller: Record<string, number> = {};
+    let nextTotal = 0;
+
+    for (const [sellerId, groupItems] of groups.entries()) {
+      const productId = groupItems[0].product.id;
+      const cacheKey = `${productId}:${shippingWilayaName}`;
+      const cached = shippingCacheRef.current.get(cacheKey);
+
+      if (cached) {
+        const fee =
+          getShippingFeeAmount(cached, shippingWilayaCode, info.shippingType) ??
+          0;
+        nextPerSeller[sellerId] = fee;
+        nextTotal += fee;
+      } else {
+        const p = cartService
+          .getShippingFees(productId, shippingWilayaName)
+          .then((fees) => {
+            if (!active) return;
+            shippingCacheRef.current.set(cacheKey, fees);
+            const fee =
+              getShippingFeeAmount(
+                fees,
+                shippingWilayaCode,
+                info.shippingType,
+              ) ?? 0;
+            nextPerSeller[sellerId] = fee;
+            nextTotal += fee;
+            // not storing single 'shippingFees' state anymore
+          })
+          .catch((err) => {
+            if (!active) return;
+            // mark this seller fee as 0 but note error
+            nextPerSeller[sellerId] = 0;
+            setShippingError(
+              (e) =>
+                e ||
+                (err instanceof Error
+                  ? err.message
+                  : "Unable to calculate shipping."),
+            );
+          });
+
+        promises.push(p);
+      }
+    }
+
+    Promise.all(promises)
+      .then(() => {
+        if (!active) return;
+        // merge any previously computed (cached) values and compute total
+        setShippingPerSeller((prev) => {
+          const merged = { ...prev, ...nextPerSeller };
+          const sum = Object.values(merged).reduce((s, v) => s + v, 0);
+          setShippingTotal(sum);
+          return merged;
+        });
+      })
+      .finally(() => {
+        if (active) setShippingLoading(false);
+      });
+
+    // no helper needed
+
+    return () => {
+      active = false;
+    };
+  }, [items, shippingWilayaName, shippingWilayaCode, info.shippingType]);
+
+  // shippingTotal is the sum of per-seller shipping fees
+  const shipping = shippingTotal;
+  const total = subtotal + shipping;
 
   if (items.length === 0 && step !== "Success")
     return <Navigate to="/shop" replace />;
@@ -986,9 +1172,20 @@ export default function CheckoutPage() {
         commune: info.commune,
         shippingType: info.shippingType,
         ...(info.postalCode ? { postalCode: info.postalCode } : {}),
+        // include aggregated shipping in shippingDetails for visibility
+        shippingFee: shippingTotal,
       };
-      // Backend cart is already in sync — just checkout
-      const result = await cartService.checkout(shippingDetails);
+
+      // build per-seller shippingFees array to send to backend so it can persist exact fee per order
+      const shippingFeesPayload = Object.entries(shippingPerSeller).map(
+        ([sellerId, fee]) => ({ sellerId, shippingFee: fee }),
+      );
+
+      // Backend cart is already in sync — just checkout and send per-seller fees
+      const result = await cartService.checkout(
+        shippingDetails,
+        shippingFeesPayload,
+      );
       clearCart();
       setPlacedOrders(result.orders);
       setStep("Success");
@@ -1010,18 +1207,18 @@ export default function CheckoutPage() {
         orders={placedOrders}
         method={payment.method}
         onHome={() => navigate("/")}
-        onViewOrders={() => navigate("/profile")}
+        onViewOrders={() => navigate("/profile?tab=orders")}
       />
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2]">
+    <div className="min-h-screen bg-cream">
       <div className="dark-gradient pt-24 pb-8 px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
           <button
             onClick={() => navigate("/shop")}
-            className="flex items-center gap-2 text-white/50 hover:text-[#C9A84C] transition-colors duration-200 mb-6 text-sm"
+            className="flex items-center gap-2 text-white/50 hover:text-gold transition-colors duration-200 mb-6 text-sm"
           >
             <ArrowBackIcon sx={{ fontSize: 15 }} className="rtl:rotate-180" />
             {tr.checkout.backToCart}
@@ -1065,6 +1262,8 @@ export default function CheckoutPage() {
                 subtotal={subtotal}
                 shipping={shipping}
                 total={total}
+                shippingLoading={shippingLoading}
+                shippingError={shippingError}
                 placing={placing}
                 placeError={placeError}
                 onPlace={handlePlaceOrder}
@@ -1081,6 +1280,8 @@ export default function CheckoutPage() {
               subtotal={subtotal}
               shipping={shipping}
               total={total}
+              shippingLoading={shippingLoading}
+              shippingError={shippingError}
             />
           </div>
         </div>

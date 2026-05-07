@@ -27,7 +27,13 @@ const disabledInputSx = {
 };
 
 // ─── Section Header ──────────────────────────────────────────────────────────
-function SectionHeader({ title, Icon }: { title: string; Icon: SvgIconComponent }) {
+function SectionHeader({
+  title,
+  Icon,
+}: {
+  title: string;
+  Icon: SvgIconComponent;
+}) {
   return (
     <div className="flex items-center gap-2.5 mb-1">
       <div className="w-7 h-7 bg-[#C9A84C]/10 flex items-center justify-center">
@@ -52,7 +58,7 @@ interface SettingsForm {
 
 export default function SettingsPage() {
   const { user, updateSellerSettings } = useAuth();
-  const { tr } = useLang();
+  const { tr, isRTL } = useLang();
   const t = tr.seller.settingsPage;
   const navigate = useNavigate();
 
@@ -154,15 +160,13 @@ export default function SettingsPage() {
 
   return (
     <SellerLayout>
-      <div className="p-8 max-w-3xl">
+      <div className="p-8 max-w-3xl" dir={isRTL ? "rtl" : "ltr"}>
         {/* Header */}
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold text-[#1A1A2E]">
             {t.title}
           </h1>
-          <p className="text-[#1A1A2E]/50 text-sm mt-0.5">
-            {t.subtitle}
-          </p>
+          <p className="text-[#1A1A2E]/50 text-sm mt-0.5">{t.subtitle}</p>
         </div>
 
         <form onSubmit={handleSave} className="space-y-6">
@@ -171,7 +175,9 @@ export default function SettingsPage() {
             <SectionHeader title={t.storeIdentity} Icon={BadgeOutlinedIcon} />
 
             {/* Logo upload */}
-            <div className="flex items-center gap-5">
+            <div
+              className={`flex items-center gap-5 ${isRTL ? "flex-row-reverse" : ""}`}
+            >
               <input
                 ref={logoInputRef}
                 type="file"
@@ -196,7 +202,13 @@ export default function SettingsPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setForm((f) => ({ ...f, logoPreview: "", logoFile: null }))}
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          logoPreview: "",
+                          logoFile: null,
+                        }))
+                      }
                       className="p-1.5 bg-red-500/80 hover:bg-red-500 text-white transition-colors"
                     >
                       <DeleteIcon sx={{ fontSize: 14 }} />
@@ -221,9 +233,7 @@ export default function SettingsPage() {
                 <p className="text-sm font-semibold text-[#1A1A2E]">
                   {t.storeLogo}
                 </p>
-                <p className="text-xs text-[#1A1A2E]/40 mt-0.5">
-                  {t.logoHint}
-                </p>
+                <p className="text-xs text-[#1A1A2E]/40 mt-0.5">{t.logoHint}</p>
               </div>
             </div>
 
@@ -241,7 +251,10 @@ export default function SettingsPage() {
 
           {/* ── Contact Information ───────────────────────────────────────── */}
           <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
-            <SectionHeader title={t.contactInfo} Icon={ContactMailOutlinedIcon} />
+            <SectionHeader
+              title={t.contactInfo}
+              Icon={ContactMailOutlinedIcon}
+            />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <TextField
                 label={t.phone}
@@ -262,8 +275,12 @@ export default function SettingsPage() {
                   sx={disabledInputSx}
                 />
                 <div className="flex items-center gap-1 mt-1">
-                  <LockOutlinedIcon sx={{ fontSize: 10, color: "rgba(26,26,46,0.3)" }} />
-                  <span className="text-[10px] text-[#1A1A2E]/40">{t.emailDisabled}</span>
+                  <LockOutlinedIcon
+                    sx={{ fontSize: 10, color: "rgba(26,26,46,0.3)" }}
+                  />
+                  <span className="text-[10px] text-[#1A1A2E]/40">
+                    {t.emailDisabled}
+                  </span>
                 </div>
               </div>
             </div>
@@ -271,7 +288,10 @@ export default function SettingsPage() {
 
           {/* ── Location ─────────────────────────────────────────────────── */}
           <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
-            <SectionHeader title={t.locationInfo} Icon={LocationOnOutlinedIcon} />
+            <SectionHeader
+              title={t.locationInfo}
+              Icon={LocationOnOutlinedIcon}
+            />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <TextField
                 label={t.wilaya}
@@ -293,11 +313,16 @@ export default function SettingsPage() {
               />
             </div>
             {errors.wilayaCommune && (
-              <Alert severity="error" sx={{ borderRadius: 0, py: 0.5, fontSize: "0.75rem" }}>
+              <Alert
+                severity="error"
+                sx={{ borderRadius: 0, py: 0.5, fontSize: "0.75rem" }}
+              >
                 {errors.wilayaCommune}
               </Alert>
             )}
-            <p className="text-[10px] text-[#1A1A2E]/40">{t.wilayaCommuneHint}</p>
+            <p className="text-[10px] text-[#1A1A2E]/40">
+              {t.wilayaCommuneHint}
+            </p>
           </div>
 
           {/* API error */}

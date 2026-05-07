@@ -1,5 +1,14 @@
 import api from "../lib/api";
-import type { ApiProduct, ApiOrder, ApiOrderStatus, ApiSellerSettingsResponse } from "../types/api";
+import type {
+  ApiProduct,
+  ApiOrder,
+  ApiOrderStatus,
+  ApiManageOrderResponse,
+  ApiSellerSettingsResponse,
+  ApiDeliveryCompaniesResponse,
+  ApiCompleteSellerSetupPayload,
+  ApiCompleteSellerSetupResponse,
+} from "../types/api";
 
 export interface AddProductPayload {
   name: string;
@@ -66,7 +75,7 @@ export const sellerService = {
 
   updateOrderStatus: (id: string, status: ApiOrderStatus) =>
     api
-      .put<{ message: string }>(`/seller/orders/${id}`, { status })
+      .put<ApiManageOrderResponse>(`/seller/orders/${id}`, { status })
       .then((r) => r.data),
 
   updateSettings: (payload: {
@@ -88,4 +97,14 @@ export const sellerService = {
       })
       .then((r) => r.data);
   },
+
+  getDeliveryCompanies: () =>
+    api
+      .get<ApiDeliveryCompaniesResponse>("/delivery-companies")
+      .then((r) => r.data.companies),
+
+  completeSellerSetup: (payload: ApiCompleteSellerSetupPayload) =>
+    api
+      .post<ApiCompleteSellerSetupResponse>("/seller/complete-setup", payload)
+      .then((r) => r.data),
 };

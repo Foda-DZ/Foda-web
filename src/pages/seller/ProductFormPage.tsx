@@ -194,7 +194,7 @@ export default function ProductFormPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { createProduct, updateProduct, sellerProducts } = useSellerContext();
-  const { tr } = useLang();
+  const { tr, isRTL } = useLang();
   const t = tr.seller.form;
   const isEdit = !!id;
   const existingProduct = isEdit
@@ -353,9 +353,11 @@ export default function ProductFormPage() {
 
   return (
     <SellerLayout>
-      <div className="p-8 max-w-3xl">
+      <div className="p-8 max-w-3xl" dir={isRTL ? "rtl" : "ltr"}>
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
+        <div
+          className={`flex items-center gap-3 mb-6 ${isRTL ? "flex-row-reverse" : ""}`}
+        >
           <IconButton
             onClick={() => navigate("/seller/products")}
             sx={{

@@ -25,8 +25,7 @@ export default function CartPage() {
   const [discountCode, setDiscountCode] = useState("");
   const [discountError, setDiscountError] = useState("");
 
-  const shipping = 750;
-  const total = subtotal + shipping;
+  const total = subtotal;
 
   const handleApplyDiscount = () => {
     if (!discountCode.trim()) return;
@@ -116,7 +115,7 @@ export default function CartPage() {
               >
                 <Link
                   to={`/product/${item.product.id}`}
-                  className="w-24 h-28 sm:w-28 sm:h-32 flex-shrink-0 overflow-hidden bg-cream"
+                  className="w-24 h-28 sm:w-28 sm:h-32 shrink-0 overflow-hidden bg-cream"
                 >
                   <img
                     src={item.product.images[0]}
@@ -262,10 +261,6 @@ export default function CartPage() {
                   <span>{tr.cart.subtotal}</span>
                   <span>{subtotal.toLocaleString()} DZD</span>
                 </div>
-                <div className="flex justify-between text-sm text-charcoal/60">
-                  <span>{tr.cart.shipping}</span>
-                  <span>{shipping.toLocaleString()} DZD</span>
-                </div>
                 <div className="h-px bg-charcoal/8" />
                 <div className="flex justify-between font-bold">
                   <span className="text-charcoal">{tr.cart.total}</span>
@@ -289,7 +284,7 @@ export default function CartPage() {
 
             {/* Trust signals */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs text-[#1A1A2E]/40">
+              <div className="flex items-center gap-2 text-xs text-charcoal/40">
                 <SecurityIcon
                   sx={{ fontSize: 13, color: "#C9A84C", flexShrink: 0 }}
                 />

@@ -8,7 +8,7 @@ import fodaLogo from "../../assets/Foda-Logo (1).png";
 
 export default function PendingPage() {
   const { user, logout } = useAuth();
-  const { tr } = useLang();
+  const { tr, isRTL } = useLang();
   const t = tr.seller.pendingPage;
   const navigate = useNavigate();
 
@@ -24,11 +24,18 @@ export default function PendingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center px-6">
+    <div
+      className="min-h-screen bg-cream flex items-center justify-center px-6"
+      dir={isRTL ? "rtl" : "ltr"}
+    >
       <div className="max-w-md w-full text-center space-y-8">
         {/* Logo */}
         <div className="flex items-center justify-center">
-          <img src={fodaLogo} alt="FODA" className="h-20 w-auto object-contain" />
+          <img
+            src={fodaLogo}
+            alt="FODA"
+            className="h-20 w-auto object-contain"
+          />
         </div>
 
         {/* Icon */}

@@ -55,6 +55,9 @@ export interface SessionUser {
   phone?: number | null;
   logoUrl?: string | null;
   address?: { wilaya: string; commune: string } | null;
+  deliveryCompany?: string;
+  deliveryToken?: string;
+  sellerSetupStatus?: "pending" | "complete";
 }
 
 export type AuthModalView = "login" | "register" | "reset" | "verify" | null;

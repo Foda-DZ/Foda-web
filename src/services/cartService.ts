@@ -2,6 +2,7 @@ import api from "../lib/api";
 import type {
   ApiCart,
   ApiCheckoutResponse,
+  ApiCheckoutShippingFeesResponse,
   ApiShippingDetails,
 } from "../types/api";
 
@@ -28,10 +29,18 @@ export const cartService = {
       .delete<{ message: string }>(`/cart/items/${productId}`)
       .then((r) => r.data),
 
-  checkout: (shippingDetails: ApiShippingDetails) =>
+  checkout: (shippingDetails: ApiShippingDetails, shippingFees?: { sellerId: string; shippingFee: number }[]) =>
     api
-      .post<ApiCheckoutResponse>("/cart/checkout", { shippingDetails })
+      .post<ApiCheckoutResponse>("/cart/checkout", { shippingDetails, shippingFees })
       .then((r) => r.data),
+
+  /** GET /cart/checkout/shipping-fees — returns available delivery fees for a product and wilaya. */
+  getShippingFees: (productId: string, to_wilaya: string) =>
+    api
+      .get<ApiCheckoutShippingFeesResponse>("/cart/checkout/shipping-fees", {
+        params: { productId, to_wilaya },
+      })
+      .then((r) => r.data.shippingFees),
 
   clearCart: () =>
     api

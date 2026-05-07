@@ -129,11 +129,31 @@ function SkeletonCard() {
   return (
     <div className="bg-white border border-[#1A1A2E]/8 p-5 space-y-3">
       <div className="flex items-center justify-between">
-        <Skeleton variant="text" width={80} height={14} sx={{ borderRadius: 0 }} />
-        <Skeleton variant="rectangular" width={40} height={40} sx={{ borderRadius: 0 }} />
+        <Skeleton
+          variant="text"
+          width={80}
+          height={14}
+          sx={{ borderRadius: 0 }}
+        />
+        <Skeleton
+          variant="rectangular"
+          width={40}
+          height={40}
+          sx={{ borderRadius: 0 }}
+        />
       </div>
-      <Skeleton variant="text" width={120} height={32} sx={{ borderRadius: 0 }} />
-      <Skeleton variant="text" width={140} height={14} sx={{ borderRadius: 0 }} />
+      <Skeleton
+        variant="text"
+        width={120}
+        height={32}
+        sx={{ borderRadius: 0 }}
+      />
+      <Skeleton
+        variant="text"
+        width={140}
+        height={14}
+        sx={{ borderRadius: 0 }}
+      />
     </div>
   );
 }
@@ -144,16 +164,50 @@ function SkeletonTable() {
     <div className="bg-white border border-[#1A1A2E]/8 overflow-hidden">
       <div className="bg-[#FAF7F2] border-b border-[#1A1A2E]/8 px-4 py-3 flex gap-8">
         {[100, 80, 60, 90, 70].map((w, i) => (
-          <Skeleton key={i} variant="text" width={w} height={14} sx={{ borderRadius: 0 }} />
+          <Skeleton
+            key={i}
+            variant="text"
+            width={w}
+            height={14}
+            sx={{ borderRadius: 0 }}
+          />
         ))}
       </div>
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="border-b border-[#1A1A2E]/5 last:border-0 px-4 py-3.5 flex gap-8">
-          <Skeleton variant="text" width={90} height={16} sx={{ borderRadius: 0 }} />
-          <Skeleton variant="text" width={100} height={16} sx={{ borderRadius: 0 }} />
-          <Skeleton variant="text" width={50} height={16} sx={{ borderRadius: 0 }} />
-          <Skeleton variant="text" width={85} height={16} sx={{ borderRadius: 0 }} />
-          <Skeleton variant="rectangular" width={70} height={20} sx={{ borderRadius: 0 }} />
+        <div
+          key={i}
+          className="border-b border-[#1A1A2E]/5 last:border-0 px-4 py-3.5 flex gap-8"
+        >
+          <Skeleton
+            variant="text"
+            width={90}
+            height={16}
+            sx={{ borderRadius: 0 }}
+          />
+          <Skeleton
+            variant="text"
+            width={100}
+            height={16}
+            sx={{ borderRadius: 0 }}
+          />
+          <Skeleton
+            variant="text"
+            width={50}
+            height={16}
+            sx={{ borderRadius: 0 }}
+          />
+          <Skeleton
+            variant="text"
+            width={85}
+            height={16}
+            sx={{ borderRadius: 0 }}
+          />
+          <Skeleton
+            variant="rectangular"
+            width={70}
+            height={20}
+            sx={{ borderRadius: 0 }}
+          />
         </div>
       ))}
     </div>
@@ -166,28 +220,43 @@ function SectionHeader({
   actionLabel,
   onAction,
   Icon,
+  isRTL,
 }: {
   title: string;
   actionLabel?: string;
   onAction?: () => void;
   Icon?: SvgIconComponent;
+  isRTL?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between mb-5">
-      <div className="flex items-center gap-2.5">
+    <div
+      className={`flex items-center justify-between mb-5 ${
+        isRTL ? "flex-row-reverse" : ""
+      }`}
+    >
+      <div
+        className={`flex items-center gap-2.5 ${isRTL ? "flex-row-reverse" : ""}`}
+      >
         {Icon && (
           <div className="w-7 h-7 bg-[#C9A84C]/10 flex items-center justify-center">
             <Icon sx={{ fontSize: 14, color: "#C9A84C" }} />
           </div>
         )}
-        <h2 className="font-display font-bold text-[#1A1A2E] text-lg">{title}</h2>
+        <h2 className="font-display font-bold text-[#1A1A2E] text-lg">
+          {title}
+        </h2>
       </div>
       {onAction && (
         <button
           onClick={onAction}
-          className="text-xs font-semibold text-[#C9A84C] hover:text-[#A07830] flex items-center gap-1 transition-colors duration-200"
+          className={`text-xs font-semibold text-[#C9A84C] hover:text-[#A07830] flex items-center gap-1 transition-colors duration-200 ${
+            isRTL ? "flex-row-reverse" : ""
+          }`}
         >
-          {actionLabel} <ArrowForwardIcon sx={{ fontSize: 11 }} />
+          {actionLabel}{" "}
+          <ArrowForwardIcon
+            sx={{ fontSize: 11, transform: isRTL ? "scaleX(-1)" : "none" }}
+          />
         </button>
       )}
     </div>
@@ -195,7 +264,13 @@ function SectionHeader({
 }
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
-function StatusBadge({ status, label }: { status: ApiOrderStatus; label: string }) {
+function StatusBadge({
+  status,
+  label,
+}: {
+  status: ApiOrderStatus;
+  label: string;
+}) {
   const cfg = STATUS_ICONS[status];
   return (
     <span
@@ -298,13 +373,16 @@ export default function Dashboard() {
   );
 
   const dateLocale = lang === "ar" ? "ar-DZ" : "en-GB";
+  const isRTL = lang === "ar";
 
   return (
     <SellerLayout>
-      <div className="p-8 space-y-8">
+      <div className="p-8 space-y-8" dir={isRTL ? "rtl" : "ltr"}>
         {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
+        <div
+          className={`flex flex-col sm:items-center justify-between gap-4 ${isRTL ? "sm:flex-row-reverse" : "sm:flex-row"}`}
+        >
+          <div className={isRTL ? "text-right" : "text-left"}>
             <h1 className="font-display text-2xl font-bold text-[#1A1A2E]">
               {t.welcomeBack}{" "}
               <span className="text-[#C9A84C]">{user?.fullName}</span>
@@ -313,10 +391,14 @@ export default function Dashboard() {
               {t.storePerformance}
             </p>
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
+          <div
+            className={`flex items-center gap-3 flex-wrap ${isRTL ? "flex-row-reverse justify-end" : "justify-start"}`}
+          >
             {pendingCount > 0 && (
               <button
-                onClick={() => navigate("/seller/orders", { state: { tab: "pending" } })}
+                onClick={() =>
+                  navigate("/seller/orders", { state: { tab: "pending" } })
+                }
                 className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold hover:bg-amber-100 transition-colors duration-200"
               >
                 <PendingOutlinedIcon sx={{ fontSize: 13 }} />
@@ -384,17 +466,20 @@ export default function Dashboard() {
 
         {/* ── Quick Actions ──────────────────────────────────────────────── */}
         <div>
-          <SectionHeader title={t.quickActions} Icon={BarChartIcon} />
+          <SectionHeader
+            title={t.quickActions}
+            Icon={BarChartIcon}
+            isRTL={isRTL}
+          />
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {quickActions.map(({ label, description, Icon, to, primary }) => (
               <button
-                key={to}
                 onClick={() => navigate(to)}
                 className={`group p-4 border text-start transition-all duration-200 ${
                   primary
                     ? "bg-[#1A1A2E] border-[#1A1A2E] hover:bg-[#2d2d50]"
                     : "bg-white border-[#1A1A2E]/8 hover:border-[#C9A84C]/40 hover:shadow-sm"
-                }`}
+                } ${isRTL ? "text-right" : ""}`}
               >
                 <div
                   className={`w-9 h-9 flex items-center justify-center mb-3 transition-transform duration-200 group-hover:scale-110 ${
@@ -447,9 +532,11 @@ export default function Dashboard() {
                       key={p.id}
                       className="text-xs text-amber-700 flex items-center gap-2"
                     >
-                      <span className="w-1.5 h-1.5 bg-amber-500 rounded-full flex-shrink-0" />
+                      <span className="w-1.5 h-1.5 bg-amber-500 rounded-full shrink-0" />
                       <span className="font-medium">{p.name}</span>
-                      <span className="text-amber-500">— {p.stock} {t.left}</span>
+                      <span className="text-amber-500">
+                        — {p.stock} {t.left}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -459,7 +546,9 @@ export default function Dashboard() {
         )}
 
         {/* ── Two-column: Recent Orders + Status Breakdown ─────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div
+          className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${isRTL ? "lg:flex-row-reverse" : ""}`}
+        >
           {/* Recent Orders — 2/3 */}
           <div className="lg:col-span-2">
             <SectionHeader
@@ -467,6 +556,7 @@ export default function Dashboard() {
               Icon={ShoppingBagIcon}
               actionLabel={t.viewAll}
               onAction={() => navigate("/seller/orders")}
+              isRTL={isRTL}
             />
 
             {loading ? (
@@ -542,7 +632,10 @@ export default function Dashboard() {
                           {order.totalAmount.toLocaleString()} {tr.common.dzd}
                         </td>
                         <td className="px-4 py-3.5">
-                          <StatusBadge status={order.status} label={statusLabelMap[order.status]} />
+                          <StatusBadge
+                            status={order.status}
+                            label={statusLabelMap[order.status]}
+                          />
                         </td>
                       </tr>
                     ))}
@@ -554,17 +647,35 @@ export default function Dashboard() {
 
           {/* Order Status Breakdown — 1/3 */}
           <div>
-            <SectionHeader title={t.orderStatus} Icon={BarChartIcon} />
+            <SectionHeader
+              title={t.orderStatus}
+              Icon={BarChartIcon}
+              isRTL={isRTL}
+            />
 
             {loading ? (
               <div className="bg-white border border-[#1A1A2E]/8 p-5 space-y-4">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Skeleton variant="text" width={80} height={14} sx={{ borderRadius: 0 }} />
-                      <Skeleton variant="text" width={20} height={14} sx={{ borderRadius: 0 }} />
+                      <Skeleton
+                        variant="text"
+                        width={80}
+                        height={14}
+                        sx={{ borderRadius: 0 }}
+                      />
+                      <Skeleton
+                        variant="text"
+                        width={20}
+                        height={14}
+                        sx={{ borderRadius: 0 }}
+                      />
                     </div>
-                    <Skeleton variant="rectangular" height={6} sx={{ borderRadius: 0 }} />
+                    <Skeleton
+                      variant="rectangular"
+                      height={6}
+                      sx={{ borderRadius: 0 }}
+                    />
                   </div>
                 ))}
               </div>
@@ -578,9 +689,7 @@ export default function Dashboard() {
                 <p className="font-display font-bold text-[#1A1A2E] text-sm mb-1">
                   {t.noDataYet}
                 </p>
-                <p className="text-[#1A1A2E]/40 text-xs">
-                  {t.noDataDesc}
-                </p>
+                <p className="text-[#1A1A2E]/40 text-xs">{t.noDataDesc}</p>
               </div>
             ) : (
               <div className="bg-white border border-[#1A1A2E]/8 p-5 space-y-4">

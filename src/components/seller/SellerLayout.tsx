@@ -9,6 +9,7 @@ import OpenInNewOutlinedIcon from "@mui/icons-material/OpenInNewOutlined";
 import ChevronRightOutlinedIcon from "@mui/icons-material/ChevronRightOutlined";
 import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../context/LangContext";
+import SellerSetupModal from "./SellerSetupModal";
 import fodaLogo from "../../assets/Foda-Logo (1).png";
 
 interface Props {
@@ -17,15 +18,27 @@ interface Props {
 
 export default function SellerLayout({ children }: Props) {
   const { user, logout } = useAuth();
-  const { tr } = useLang();
+  const { tr, isRTL } = useLang();
   const s = tr.seller.layout;
   const navigate = useNavigate();
 
   const navItems = [
-    { to: "/seller/dashboard", label: s.dashboard, Icon: DashboardOutlinedIcon },
-    { to: "/seller/products", label: s.myProducts, Icon: Inventory2OutlinedIcon },
+    {
+      to: "/seller/dashboard",
+      label: s.dashboard,
+      Icon: DashboardOutlinedIcon,
+    },
+    {
+      to: "/seller/products",
+      label: s.myProducts,
+      Icon: Inventory2OutlinedIcon,
+    },
     { to: "/seller/orders", label: s.orders, Icon: LocalShippingOutlinedIcon },
-    { to: "/seller/settings", label: s.storeSettings, Icon: SettingsOutlinedIcon },
+    {
+      to: "/seller/settings",
+      label: s.storeSettings,
+      Icon: SettingsOutlinedIcon,
+    },
   ];
 
   const handleLogout = () => {
@@ -43,9 +56,13 @@ export default function SellerLayout({ children }: Props) {
     : "";
 
   return (
-    <div className="flex min-h-screen bg-[#FAF7F2]">
-      {/* ── Sidebar ────────────────────────────────────────────────────── */}
-      <aside className="w-64 dark-gradient flex flex-col fixed h-full z-40 shadow-2xl">
+    <div className="flex min-h-screen bg-cream" dir={isRTL ? "rtl" : "ltr"}>
+      {/* ── Sidebar ────────────────────────────────────────────────────────── */}
+      <aside
+        className={`w-64 dark-gradient flex flex-col fixed h-screen z-40 shadow-2xl overflow-y-auto ${
+          isRTL ? "right-0" : "left-0"
+        }`}
+      >
         {/* Branding */}
         <div className="px-6 py-5 border-b border-white/8">
           <div className="flex items-center gap-2.5">
@@ -53,9 +70,9 @@ export default function SellerLayout({ children }: Props) {
               <img
                 src={fodaLogo}
                 alt="FODA"
-                className="h-12 w-auto object-contain [filter:invert(1)_hue-rotate(180deg)]"
+                className="h-12 w-auto object-contain filter-[invert(1)_hue-rotate(180deg)]"
               />
-              <p className="text-[#C9A84C] text-[9px] font-semibold tracking-[0.2em] uppercase mt-0.5">
+              <p className="text-gold text-[9px] font-semibold tracking-[0.2em] uppercase mt-0.5">
                 {s.portal}
               </p>
             </div>
@@ -71,7 +88,7 @@ export default function SellerLayout({ children }: Props) {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all duration-200 group relative ${
                   isActive
-                    ? "gold-gradient text-[#1A1A2E] font-semibold"
+                    ? "gold-gradient text-charcoal font-semibold"
                     : "text-white/60 hover:text-white hover:bg-white/5"
                 }`
               }
@@ -79,12 +96,20 @@ export default function SellerLayout({ children }: Props) {
               {({ isActive }) => (
                 <>
                   <Icon
-                    sx={{ fontSize: 16, color: isActive ? "#1A1A2E" : "inherit" }}
+                    sx={{
+                      fontSize: 16,
+                      color: isActive ? "#1A1A2E" : "inherit",
+                    }}
                   />
-                  {label}
+                  <span className="flex-1">{label}</span>
                   {isActive && (
                     <ChevronRightOutlinedIcon
-                      sx={{ fontSize: 13, color: "rgba(26,26,46,0.6)", marginInlineStart: "auto" }}
+                      sx={{
+                        fontSize: 13,
+                        color: "rgba(26,26,46,0.6)",
+                        marginInlineStart: "auto",
+                        transform: isRTL ? "scaleX(-1)" : "none",
+                      }}
                     />
                   )}
                 </>
@@ -100,32 +125,44 @@ export default function SellerLayout({ children }: Props) {
             href="/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 px-3 py-2.5 text-sm text-white/40 hover:text-white/70 transition-colors duration-200"
+            className={`flex items-center gap-3 px-3 py-2.5 text-sm text-white/40 hover:text-white/70 transition-colors duration-200 ${
+              isRTL ? "flex-row-reverse" : ""
+            }`}
           >
             <OpenInNewOutlinedIcon sx={{ fontSize: 15 }} />
             {s.visitStore}
           </a>
 
           {/* User info */}
-          <div className="flex items-center gap-2.5 px-3 py-2.5">
+          <div
+            className={`flex items-center gap-2.5 px-3 py-2.5 ${
+              isRTL ? "flex-row-reverse" : ""
+            }`}
+          >
             {user?.logoUrl ? (
               <img
                 src={user.logoUrl}
                 alt={user.fullName}
-                className="w-8 h-8 object-cover rounded-full border border-white/20 flex-shrink-0"
+                className="w-8 h-8 object-cover rounded-full border border-white/20 shrink-0"
               />
             ) : (
-              <div className="w-8 h-8 gold-gradient flex items-center justify-center rounded-full text-[#1A1A2E] text-xs font-black flex-shrink-0">
+              <div className="w-8 h-8 gold-gradient flex items-center justify-center rounded-full text-charcoal text-xs font-black shrink-0">
                 {initials}
               </div>
             )}
-            <div className="min-w-0 flex-1">
+            <div className={`min-w-0 flex-1 ${isRTL ? "text-right" : ""}`}>
               <p className="text-white text-xs font-semibold truncate">
                 {user?.fullName}
               </p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <StorefrontOutlinedIcon sx={{ fontSize: 9, color: "#C9A84C" }} />
-                <p className="text-[#C9A84C] text-[9px] uppercase tracking-widest font-semibold">
+              <div
+                className={`flex items-center gap-1 mt-0.5 ${
+                  isRTL ? "flex-row-reverse justify-end" : ""
+                }`}
+              >
+                <StorefrontOutlinedIcon
+                  sx={{ fontSize: 9, color: "#C9A84C" }}
+                />
+                <p className="text-gold text-[9px] uppercase tracking-widest font-semibold">
                   {s.seller}
                 </p>
               </div>
@@ -135,7 +172,9 @@ export default function SellerLayout({ children }: Props) {
           {/* Logout */}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors duration-200"
+            className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors duration-200 ${
+              isRTL ? "flex-row-reverse" : ""
+            }`}
           >
             <LogoutOutlinedIcon sx={{ fontSize: 15 }} /> {s.signOut}
           </button>
@@ -143,7 +182,15 @@ export default function SellerLayout({ children }: Props) {
       </aside>
 
       {/* ── Main content ───────────────────────────────────────────────── */}
-      <main className="ms-64 flex-1 min-w-0">{children}</main>
+      <main
+        className={`flex-1 min-w-0 h-screen overflow-y-auto ${
+          isRTL ? "mr-64" : "ml-64"
+        }`}
+      >
+        {children}
+      </main>
+
+      <SellerSetupModal />
     </div>
   );
 }

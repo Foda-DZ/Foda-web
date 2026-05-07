@@ -66,7 +66,7 @@ function LoginForm({
         role,
       });
       if (session.role === "seller") {
-        navigate(session.isActive ? "/seller/dashboard" : "/seller/pending");
+        navigate("/seller/dashboard");
       } else if (redirectTarget) {
         navigate(redirectTarget);
       }
@@ -424,7 +424,7 @@ function VerifyForm({
         verificationCode: parseInt(code, 10),
       });
       if (session.role === "seller") {
-        navigate(session.isActive ? "/seller/dashboard" : "/seller/pending");
+        navigate("/seller/dashboard");
       } else if (customerOnly && redirectTarget) {
         navigate(redirectTarget);
       }

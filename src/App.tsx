@@ -25,7 +25,6 @@ import ProductsPage from "./pages/seller/ProductsPage";
 import ProductFormPage from "./pages/seller/ProductFormPage";
 import OrdersPage from "./pages/seller/OrdersPage";
 import SettingsPage from "./pages/seller/SettingsPage";
-import PendingPage from "./pages/seller/PendingPage";
 
 // ─── Scroll Restoration ────────────────────────────────────────────────────────
 
@@ -49,25 +48,14 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
 function SellerIndexRedirect() {
   const { user } = useAuth();
   if (!user || user.role !== "seller") return <Navigate to="/" replace />;
-  return (
-    <Navigate
-      to={user.isActive ? "/seller/dashboard" : "/seller/pending"}
-      replace
-    />
-  );
+  return <Navigate to="/seller/dashboard" replace />;
 }
 
 /** Logged-in sellers landing on "/" get sent to their dashboard */
 function HomeOrSellerRedirect() {
   const { user } = useAuth();
-  if (user?.role === "seller") {
-    return (
-      <Navigate
-        to={user.isActive ? "/seller/dashboard" : "/seller/pending"}
-        replace
-      />
-    );
-  }
+  if (user?.role === "seller")
+    return <Navigate to="/seller/dashboard" replace />;
   return <HomePage />;
 }
 
@@ -76,16 +64,6 @@ function RequireActiveSeller({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/" replace />;
   if (user.role !== "seller") return <Navigate to="/" replace />;
-  if (!user.isActive) return <Navigate to="/seller/pending" replace />;
-  return <>{children}</>;
-}
-
-/** Only pending sellers can access the pending page */
-function RequirePendingSeller({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/" replace />;
-  if (user.role !== "seller") return <Navigate to="/" replace />;
-  if (user.isActive) return <Navigate to="/seller/dashboard" replace />;
   return <>{children}</>;
 }
 
@@ -122,14 +100,6 @@ export default function App() {
                   {/* ── Seller routes (own SellerLayout, no buyer navbar) ── */}
                   <Route path="seller">
                     <Route index element={<SellerIndexRedirect />} />
-                    <Route
-                      path="pending"
-                      element={
-                        <RequirePendingSeller>
-                          <PendingPage />
-                        </RequirePendingSeller>
-                      }
-                    />
                     <Route
                       path="dashboard"
                       element={

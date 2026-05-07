@@ -141,6 +141,7 @@ export interface ApiShippingDetails {
   commune: string;
   postalCode?: string;
   shippingType: "home_delivery" | "desk_pickup";
+  shippingFee?: number;
 }
 
 export type ApiOrderStatus =
@@ -169,6 +170,11 @@ export interface ApiOrder {
   updatedAt: string;
 }
 
+export interface ApiManageOrderResponse {
+  message: string;
+  order: ApiOrder;
+}
+
 // ─── Seller Settings ─────────────────────────────────────────────────────────
 export interface ApiSellerSettingsResponse {
   message: string;
@@ -188,6 +194,35 @@ export interface ApiCheckoutResponse {
   orders: ApiOrder[];
 }
 
+// ─── Shipping Fees ───────────────────────────────────────────────────────────
+export interface ApiCheckoutShippingFeeItem {
+  wilaya_id: number;
+  wilaya_name: string | null;
+  commune_id: number | null;
+  commune_name: string | null;
+  fees: {
+    home?: number;
+    desk?: number;
+    return?: number;
+  };
+}
+
+export interface ApiCheckoutShippingFeesResponse {
+  shippingFees: {
+    meta?: {
+      company_id?: number;
+      company_name?: string;
+      company_code?: string;
+      sub_provider?: string;
+      api_code?: string;
+      provider_enum?: string;
+      timestamp?: string;
+    };
+    data: ApiCheckoutShippingFeeItem[];
+    status: string;
+  };
+}
+
 // ─── Customer Profile ─────────────────────────────────────────────────────────
 export interface ApiCustomerProfile {
   _id: string;
@@ -201,4 +236,39 @@ export interface ApiCustomerProfile {
   imageUrl: ApiImageObject | null;
   createdAt: string;
   updatedAt: string;
+}
+
+// ─── Delivery Companies ────────────────────────────────────────────────────────
+export interface ApiDeliveryCompany {
+  _id: string;
+  id: number;
+  name: string;
+  api_code: string;
+  company_code: string;
+  logo: string;
+}
+
+export interface ApiDeliveryCompaniesResponse {
+  companies: ApiDeliveryCompany[];
+}
+
+export interface ApiCompleteSellerSetupPayload {
+  wilaya: string;
+  commune: string;
+  deliveryCompany: string;
+  seller_delivery_token?: string;
+}
+
+export interface ApiCompleteSellerSetupResponse {
+  message: string;
+  seller: {
+    _id: string;
+    shopName: string;
+    email: string;
+    address: {
+      wilaya: string;
+      commune: string;
+    };
+    company_code: string;
+  };
 }

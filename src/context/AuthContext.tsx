@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { SessionUser, AuthModalView, UserRole } from "../types";
 import { authService } from "../services/authService";
 import { cartService } from "../services/cartService";
+import { sellerService } from "../services/sellerService";
 import { setStoredToken, removeStoredToken, getStoredToken } from "../lib/api";
 import type { ApiAuthResponse } from "../types/api";
 
@@ -50,6 +51,12 @@ interface AuthContextValue {
     logoUrl?: string | null;
     address?: { wilaya: string; commune: string } | null;
   }) => void;
+  completeSellerSetup: (params: {
+    wilaya: string;
+    commune: string;
+    deliveryCompany: string;
+    seller_delivery_token?: string;
+  }) => Promise<void>;
 }
 
 // ─── Session storage helpers ──────────────────────────────────────────────────
@@ -71,6 +78,57 @@ function saveSession(session: SessionUser): void {
 
 function clearSession(): void {
   localStorage.removeItem(SESSION_KEY);
+}
+
+type SellerSetupStatus = "pending" | "complete";
+
+interface SellerSetupRecord {
+  status: SellerSetupStatus;
+  deliveryCompany?: string;
+  seller_delivery_token?: string;
+  address?: { wilaya: string; commune: string };
+}
+
+const SELLER_SETUP_PREFIX = "foda_seller_setup";
+
+function sellerSetupKey(userId: string): string {
+  return `${SELLER_SETUP_PREFIX}_${userId}`;
+}
+
+function getSellerSetupRecord(userId: string): SellerSetupRecord | null {
+  try {
+    const raw = JSON.parse(
+      localStorage.getItem(sellerSetupKey(userId)) || "null",
+    );
+    if (!raw || typeof raw !== "object") return null;
+    return raw as SellerSetupRecord;
+  } catch {
+    return null;
+  }
+}
+
+function saveSellerSetupRecord(
+  userId: string,
+  record: SellerSetupRecord,
+): void {
+  localStorage.setItem(sellerSetupKey(userId), JSON.stringify(record));
+}
+
+function applySellerSetup(session: SessionUser): SessionUser {
+  if (session.role !== "seller") return session;
+  const record = getSellerSetupRecord(session.id);
+  if (!record) return session;
+  return {
+    ...session,
+    sellerSetupStatus: record.status,
+    ...(record.deliveryCompany !== undefined && {
+      deliveryCompany: record.deliveryCompany,
+    }),
+    ...(record.seller_delivery_token !== undefined && {
+      seller_delivery_token: record.seller_delivery_token,
+    }),
+    ...(record.address !== undefined && { address: record.address }),
+  };
 }
 
 function sessionFromResponse(data: ApiAuthResponse): SessionUser {
@@ -171,7 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: params.role,
       });
       setStoredToken(data.accessToken);
-      const session = sessionFromResponse(data);
+      const session = applySellerSetup(sessionFromResponse(data));
       saveSession(session);
       setUser(session);
       setAuthModal(null);
@@ -188,7 +246,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }): Promise<SessionUser> => {
       const data = await authService.verifyEmail(params);
       setStoredToken(data.accessToken);
-      const session = sessionFromResponse(data);
+      let session = applySellerSetup(sessionFromResponse(data));
+      if (session.role === "seller" && !getSellerSetupRecord(session.id)) {
+        const pendingSellerSession: SessionUser = {
+          ...session,
+          sellerSetupStatus: "pending",
+        };
+        saveSellerSetupRecord(session.id, { status: "pending" });
+        session = pendingSellerSession;
+      }
       saveSession(session);
       setUser(session);
       setPendingEmail(null);
@@ -251,6 +317,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
+  const completeSellerSetup = useCallback(
+    async (params: {
+      wilaya: string;
+      commune: string;
+      deliveryCompany: string;
+      seller_delivery_token?: string;
+    }): Promise<void> => {
+      if (!user || user.role !== "seller") return;
+
+      // Call API to complete setup
+      const response = await sellerService.completeSellerSetup(params as any);
+
+      // Persist local seller setup record and update session
+      saveSellerSetupRecord(user.id, {
+        status: "complete",
+        deliveryCompany: params.deliveryCompany,
+        seller_delivery_token: params.seller_delivery_token,
+        address: { wilaya: params.wilaya, commune: params.commune },
+      });
+
+      const updated: SessionUser = {
+        ...user,
+        sellerSetupStatus: "complete",
+        deliveryCompany: params.deliveryCompany,
+        seller_delivery_token: params.seller_delivery_token,
+        address: { wilaya: params.wilaya, commune: params.commune },
+      };
+      saveSession(updated);
+      setUser(updated);
+    },
+    [user],
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -270,6 +369,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         updateProfile,
         updateSellerSettings,
+        completeSellerSetup,
       }}
     >
       {children}

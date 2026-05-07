@@ -11,7 +11,10 @@ import type { Product } from "../types";
 import type { ApiOrder, ApiOrderStatus } from "../types/api";
 import { useAuth } from "./AuthContext";
 import { sellerService } from "../services/sellerService";
-import type { AddProductPayload, UpdateProductPayload } from "../services/sellerService";
+import type {
+  AddProductPayload,
+  UpdateProductPayload,
+} from "../services/sellerService";
 import { apiProductToProduct } from "../lib/mappers";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -34,7 +37,10 @@ interface SellerContextValue {
   getSellerOrders: (sellerId: string) => ApiOrder[];
   getSellerStats: (sellerId: string) => SellerStats;
   createProduct: (payload: AddProductPayload) => Promise<Product>;
-  updateProduct: (id: string, payload: UpdateProductPayload) => Promise<Product>;
+  updateProduct: (
+    id: string,
+    payload: UpdateProductPayload,
+  ) => Promise<Product>;
   deleteProduct: (id: string) => Promise<void>;
   updateOrderStatus: (id: string, status: ApiOrderStatus) => Promise<void>;
   reload: () => void;
@@ -130,9 +136,11 @@ export function SellerProvider({ children }: { children: ReactNode }) {
 
   const updateOrderStatus = useCallback(
     async (id: string, status: ApiOrderStatus): Promise<void> => {
-      await sellerService.updateOrderStatus(id, status);
+      const response = await sellerService.updateOrderStatus(id, status);
       setOrders((prev) =>
-        prev.map((o) => (o._id === id ? { ...o, status } : o)),
+        prev.map((o) =>
+          o._id === id ? { ...o, status: response.order.status } : o,
+        ),
       );
     },
     [],
