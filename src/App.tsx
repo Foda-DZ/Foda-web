@@ -25,6 +25,13 @@ import ProductsPage from "./pages/seller/ProductsPage";
 import ProductFormPage from "./pages/seller/ProductFormPage";
 import OrdersPage from "./pages/seller/OrdersPage";
 import SettingsPage from "./pages/seller/SettingsPage";
+import MetaAdsPage from "./pages/seller/MetaAds";
+import MetaAdsCallbackPage from "./pages/seller/MetaAdsCallback";
+import TrafficAnalyticsPage from "./pages/seller/TrafficAnalytics";
+import InventoryPage from "./pages/seller/InventoryPage";
+import PromotionsPage from "./pages/seller/PromotionsPage";
+import ProductAnalyticsPage from "./pages/seller/ProductAnalyticsPage";
+import RevenueAnalyticsPage from "./pages/seller/RevenueAnalyticsPage";
 
 // ─── Scroll Restoration ────────────────────────────────────────────────────────
 
@@ -83,7 +90,7 @@ export default function App() {
                   <Route element={<Layout />}>
                     <Route index element={<HomeOrSellerRedirect />} />
                     <Route path="shop" element={<ShopPage />} />
-                    <Route path="product/:id" element={<ProductPage />} />
+                    <Route path="products/:id" element={<ProductPage />} />
                     <Route path="wishlist" element={<WishlistPage />} />
                     <Route path="cart" element={<CartPage />} />
                     <Route path="checkout" element={<CheckoutPage />} />
@@ -117,6 +124,22 @@ export default function App() {
                       }
                     />
                     <Route
+                      path="inventory"
+                      element={
+                        <RequireActiveSeller>
+                          <InventoryPage />
+                        </RequireActiveSeller>
+                      }
+                    />
+                    <Route
+                      path="promotions"
+                      element={
+                        <RequireActiveSeller>
+                          <PromotionsPage />
+                        </RequireActiveSeller>
+                      }
+                    />
+                    <Route
                       path="products/new"
                       element={
                         <RequireActiveSeller>
@@ -145,6 +168,46 @@ export default function App() {
                       element={
                         <RequireActiveSeller>
                           <SettingsPage />
+                        </RequireActiveSeller>
+                      }
+                    />
+                    <Route
+                      path="meta-ads"
+                      element={
+                        <RequireActiveSeller>
+                          <MetaAdsPage />
+                        </RequireActiveSeller>
+                      }
+                    />
+                    <Route
+                      path="meta-ads/callback"
+                      element={
+                        <RequireActiveSeller>
+                          <MetaAdsCallbackPage />
+                        </RequireActiveSeller>
+                      }
+                    />
+                    <Route
+                      path="traffic-analytics"
+                      element={
+                        <RequireActiveSeller>
+                          <TrafficAnalyticsPage />
+                        </RequireActiveSeller>
+                      }
+                    />
+                    <Route
+                      path="analytics/product/:id"
+                      element={
+                        <RequireActiveSeller>
+                          <ProductAnalyticsPage />
+                        </RequireActiveSeller>
+                      }
+                    />
+                    <Route
+                      path="analytics/revenue"
+                      element={
+                        <RequireActiveSeller>
+                          <RevenueAnalyticsPage />
                         </RequireActiveSeller>
                       }
                     />

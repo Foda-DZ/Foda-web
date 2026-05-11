@@ -62,6 +62,71 @@ function colorToHex(name: string): string {
   return COLOR_HEX[key] ?? key;
 }
 
+// ── Set Open Graph meta tags for rich share preview ──
+function setOpenGraphTags(product: Product | null) {
+  const baseUrl = window.location.origin;
+  const productUrl = product ? `${baseUrl}/products/${product.id}` : baseUrl;
+
+  const tags = [
+    { property: "og:title", content: product?.name ?? "Foda" },
+    {
+      property: "og:description",
+      content:
+        product?.description && product.description.length > 160
+          ? product.description.slice(0, 157) + "..."
+          : (product?.description ?? "Shop modern fashion on Foda"),
+    },
+    { property: "og:image", content: product?.images?.[0] ?? "" },
+    { property: "og:url", content: productUrl },
+    { property: "og:type", content: "product" },
+    {
+      property: "product:price:amount",
+      content: product ? String(product.price) : "",
+    },
+    { property: "product:price:currency", content: "DZD" },
+  ];
+
+  tags.forEach(({ property, content }) => {
+    if (!content) return;
+    let meta = document.querySelector(
+      `meta[property="${property}"]`,
+    ) as HTMLMetaElement | null;
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("property", property);
+      document.head.appendChild(meta);
+    }
+    meta.content = content;
+  });
+
+  // Also set Twitter card for better compatibility
+  const twitterTags = [
+    { name: "twitter:card", content: "product" },
+    { name: "twitter:title", content: product?.name ?? "Foda" },
+    {
+      name: "twitter:description",
+      content:
+        product?.description && product.description.length > 160
+          ? product.description.slice(0, 157) + "..."
+          : (product?.description ?? "Shop modern fashion on Foda"),
+    },
+    { name: "twitter:image", content: product?.images?.[0] ?? "" },
+  ];
+
+  twitterTags.forEach(({ name, content }) => {
+    if (!content) return;
+    let meta = document.querySelector(
+      `meta[name="${name}"]`,
+    ) as HTMLMetaElement | null;
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", name);
+      document.head.appendChild(meta);
+    }
+    meta.content = content;
+  });
+}
+
 function RatingStars({ rating }: { rating: number }) {
   const stars = [];
   const full = Math.floor(rating);
@@ -146,6 +211,11 @@ export default function ProductPage() {
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [id]);
+
+  // Update Open Graph meta tags when product loads for rich share preview
+  useEffect(() => {
+    setOpenGraphTags(product);
+  }, [product]);
 
   useEffect(() => {
     if (!id) return;
@@ -271,7 +341,30 @@ export default function ProductPage() {
   };
 
   const copyShareLink = async (link?: string) => {
-    const textToCopy = link || shareData?.productUrl || window.location.href;
+    const url =
+      link ||
+      shareData?.productUrl ||
+      `${window.location.origin}/products/${product?.id}`;
+    const title = product?.name ?? "";
+    const price = product
+      ? `${product.price.toLocaleString()} ${tr.common.dzd}`
+      : "";
+    const image = product?.images?.[0] ?? "";
+
+    // Compose a professional share message
+    const messageLines = [title, price];
+    if (product?.description) {
+      const desc =
+        product.description.length > 140
+          ? product.description.slice(0, 137) + "..."
+          : product.description;
+      messageLines.push(desc);
+    }
+    if (image) messageLines.push(image);
+    messageLines.push(url);
+
+    const textToCopy = messageLines.join("\n\n");
+
     try {
       await navigator.clipboard.writeText(textToCopy);
       setShareCopied(true);
@@ -293,7 +386,13 @@ export default function ProductPage() {
     setShareData(null);
     try {
       const response = await productsService.getShareLink(product.id);
-      setShareData(response.share);
+      // Ensure product URL uses /products/ (not /product/)
+      const incoming = response.share;
+      let prodUrl =
+        incoming.productUrl ||
+        `${window.location.origin}/products/${product.id}`;
+      prodUrl = prodUrl.replace("/product/", "/products/");
+      setShareData({ ...incoming, productUrl: prodUrl });
     } catch (err) {
       setShareError(
         err instanceof Error ? err.message : "Failed to load share links.",
@@ -303,13 +402,59 @@ export default function ProductPage() {
     }
   };
 
-  const handlePlatformShare = async (platformUrl: string) => {
-    if (platformUrl.startsWith("http")) {
-      window.open(platformUrl, "_blank", "noopener,noreferrer");
+  const handlePlatformShare = async (
+    platform: "whatsapp" | "facebook" | "telegram" | "instagram",
+  ) => {
+    if (!product) return;
+    const url =
+      shareData?.productUrl ||
+      `${window.location.origin}/products/${product.id}`;
+    const title = product.name;
+    const price = `${product.price.toLocaleString()} ${tr.common.dzd}`;
+    const desc = product.description
+      ? product.description.length > 140
+        ? product.description.slice(0, 137) + "..."
+        : product.description
+      : "";
+    const image = product.images?.[0] ?? "";
+
+    const message = `${title} — ${price}${desc ? "\n\n" + desc : ""}\n\n${url}`;
+
+    // Close share modal
+    setIsShareOpen(false);
+
+    // Prefer Web Share API when available (native sharing)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title,
+          text: `${title} — ${price}${desc ? "\n\n" + desc : ""}`,
+          url,
+        } as any);
+        return;
+      } catch (e) {
+        // fall through to platform-specific fallback
+      }
+    }
+
+    // Platform-specific web fallbacks
+    if (platform === "whatsapp") {
+      const href = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(href, "_blank", "noopener,noreferrer");
       return;
     }
-    await copyShareLink();
-    setShareError(platformUrl);
+    if (platform === "telegram") {
+      const href = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title + " — " + price + (desc ? "\n\n" + desc : ""))}`;
+      window.open(href, "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (platform === "facebook") {
+      const href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+      window.open(href, "_blank", "noopener,noreferrer");
+      return;
+    }
+    // Instagram has no simple share URL for links; fallback to copying a rich message
+    await copyShareLink(url);
   };
 
   const handleSubmitReview = async (e: React.FormEvent) => {
@@ -924,31 +1069,31 @@ export default function ProductPage() {
                       {
                         label: "WhatsApp",
                         Icon: WhatsAppIcon,
-                        href: shareData.platforms.whatsapp,
+                        key: "whatsapp",
                         color: "#25D366",
                       },
                       {
                         label: "Facebook",
                         Icon: FacebookIcon,
-                        href: shareData.platforms.facebook,
+                        key: "facebook",
                         color: "#1877F2",
                       },
                       {
                         label: "Telegram",
                         Icon: TelegramIcon,
-                        href: shareData.platforms.telegram,
+                        key: "telegram",
                         color: "#229ED9",
                       },
                       {
                         label: "Instagram",
                         Icon: InstagramIcon,
-                        href: shareData.platforms.instagram,
+                        key: "instagram",
                         color: "#E4405F",
                       },
-                    ].map(({ label, Icon, href, color }) => (
+                    ].map(({ label, Icon, key, color }) => (
                       <button
                         key={label}
-                        onClick={() => handlePlatformShare(href)}
+                        onClick={() => handlePlatformShare(key as any)}
                         className="flex items-center gap-2.5 p-3 border border-[#1A1A2E]/12 hover:border-[#C9A84C]/45 transition-all text-start"
                       >
                         <Icon sx={{ fontSize: 19, color }} />

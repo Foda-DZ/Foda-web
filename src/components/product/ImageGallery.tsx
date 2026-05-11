@@ -66,7 +66,7 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
         <img
           src={src}
           alt={alt}
-          className="absolute inset-0 w-full h-full object-contain transition-transform duration-300"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300"
           style={
             zoomed
               ? {
@@ -132,12 +132,6 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
           </>
         )}
 
-        {/* Image counter */}
-        {images.length > 1 && (
-          <span className="absolute bottom-3 right-3 text-[10px] font-semibold tracking-wider text-white bg-[#1A1A2E]/60 px-2.5 py-1">
-            {current + 1} / {images.length}
-          </span>
-        )}
       </div>
 
       {/* Thumbnail strip */}

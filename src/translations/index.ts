@@ -463,6 +463,7 @@ export interface Translations {
       dashboard: string;
       myProducts: string;
       orders: string;
+      trafficAnalytics: string;
       storeSettings: string;
       visitStore: string;
       seller: string;
@@ -547,6 +548,7 @@ export interface Translations {
       validStock: string;
       selectSize: string;
       selectColor: string;
+      euSizes: string;
       imageRequired: string;
       productUpdated: string;
       productAdded: string;
@@ -1123,6 +1125,7 @@ export const ar: Translations = {
       dashboard: "لوحة التحكم",
       myProducts: "منتجاتي",
       orders: "الطلبات",
+      trafficAnalytics: "تحليلات حركة المرور",
       storeSettings: "إعدادات المتجر",
       visitStore: "زيارة المتجر",
       seller: "بائع",
@@ -1207,6 +1210,7 @@ export const ar: Translations = {
       validStock: "أدخل كمية مخزون صالحة.",
       selectSize: "اختر مقاساً واحداً على الأقل.",
       selectColor: "اختر لوناً واحداً على الأقل.",
+      euSizes: "مقاسات EU",
       imageRequired: "صورة واحدة على الأقل للمنتج مطلوبة.",
       productUpdated: "تم تحديث المنتج!",
       productAdded: "تمت إضافة المنتج!",
@@ -1783,6 +1787,7 @@ export const en: Translations = {
       dashboard: "Dashboard",
       myProducts: "My Products",
       orders: "Orders",
+      trafficAnalytics: "Traffic Analytics",
       storeSettings: "Store Settings",
       visitStore: "Visit Store",
       seller: "Seller",
@@ -1867,6 +1872,7 @@ export const en: Translations = {
       validStock: "Enter a valid stock quantity.",
       selectSize: "Select at least one size.",
       selectColor: "Select at least one color.",
+      euSizes: "EU Sizes",
       imageRequired: "At least one product image is required.",
       productUpdated: "Product Updated!",
       productAdded: "Product Added!",

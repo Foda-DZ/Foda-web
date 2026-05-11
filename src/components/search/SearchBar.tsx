@@ -102,7 +102,7 @@ export default function SearchBar({
       setQuery("");
       setOpen(false);
       onMobileClose();
-      navigate(`/product/${productId}`);
+      navigate(`/products/${productId}`);
     },
     [navigate, onMobileClose],
   );
@@ -299,10 +299,7 @@ export default function SearchBar({
   return (
     <>
       {/* ── Desktop search ────────────────────────────────────────── */}
-      <div
-        ref={wrapperRef}
-        className="relative hidden lg:block w-full"
-      >
+      <div ref={wrapperRef} className="relative hidden lg:block w-full">
         <div
           className={`flex items-center rounded-lg border transition-all duration-200 ${
             open

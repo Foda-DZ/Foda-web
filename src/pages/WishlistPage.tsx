@@ -281,7 +281,7 @@ export default function WishlistPage() {
                 >
                   {/* Image */}
                   <Link
-                    to={`/product/${product.id}`}
+                    to={`/products/${product.id}`}
                     className="w-24 h-28 sm:w-28 sm:h-32 flex-shrink-0 overflow-hidden bg-cream rounded-lg"
                   >
                     <img
@@ -299,7 +299,7 @@ export default function WishlistPage() {
                           {product.category}
                         </p>
                         <Link
-                          to={`/product/${product.id}`}
+                          to={`/products/${product.id}`}
                           className="text-charcoal font-semibold text-sm leading-tight hover:text-gold transition-colors truncate block"
                         >
                           {product.name}

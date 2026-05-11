@@ -327,7 +327,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!user || user.role !== "seller") return;
 
       // Call API to complete setup
-      const response = await sellerService.completeSellerSetup(params as any);
+      const response = await sellerService.completeSellerSetup(params);
 
       // Persist local seller setup record and update session
       saveSellerSetupRecord(user.id, {

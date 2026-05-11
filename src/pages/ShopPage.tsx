@@ -10,11 +10,7 @@ import TuneIcon from "@mui/icons-material/Tune";
 import IconButton from "@mui/material/IconButton";
 import CircularProgress from "@mui/material/CircularProgress";
 import Fuse from "fuse.js";
-import {
-  useNavigate,
-  useSearchParams,
-  useLocation,
-} from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { categories } from "../data/products";
 import type { Product } from "../types";
 import Footer from "../components/Footer";
@@ -124,7 +120,10 @@ export default function ShopPage() {
     if (location.state?.scrollToProducts && productsRef.current) {
       // Small delay to let the layout settle after navigation
       setTimeout(() => {
-        productsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        productsRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }, 100);
       // Clear the state so back-navigation doesn't re-trigger
       window.history.replaceState({}, "");
@@ -510,10 +509,7 @@ export default function ShopPage() {
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
                   {paginatedProducts.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                    />
+                    <ProductCard key={product.id} product={product} />
                   ))}
                 </div>
                 <Pagination
@@ -529,10 +525,7 @@ export default function ShopPage() {
               <>
                 <div className="flex flex-col gap-3">
                   {paginatedProducts.map((product) => (
-                    <ListRow
-                      key={product.id}
-                      product={product}
-                    />
+                    <ListRow key={product.id} product={product} />
                   ))}
                 </div>
                 <Pagination
@@ -554,11 +547,7 @@ export default function ShopPage() {
 }
 
 // ─── List row ────────────────────────────────────────────────
-function ListRow({
-  product,
-}: {
-  product: Product;
-}) {
+function ListRow({ product }: { product: Product }) {
   const { tr } = useLang();
   const navigate = useNavigate();
   const isOutOfStock = product.stock === 0;
@@ -566,7 +555,7 @@ function ListRow({
   return (
     <div
       className="flex gap-5 p-4 bg-white border border-[#1A1A2E]/8 hover:border-[#C9A84C]/30 transition-all duration-300 group cursor-pointer"
-      onClick={() => navigate(`/product/${product.id}`)}
+      onClick={() => navigate(`/products/${product.id}`)}
     >
       <div className="w-28 h-36 flex-shrink-0 overflow-hidden bg-[#F0EBE3] relative">
         <img

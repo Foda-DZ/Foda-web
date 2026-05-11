@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -20,10 +20,12 @@ import IconButton from "@mui/material/IconButton";
 import { useSellerContext } from "../../context/SellerContext";
 import { useLang } from "../../context/LangContext";
 import SellerLayout from "../../components/seller/SellerLayout";
+import { getSizesByCategory, isNumericSizes } from "../../utils/sizeOptions";
 import type { SvgIconComponent } from "@mui/icons-material";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SIZES_OPTIONS = ["XS", "S", "M", "L", "XL", "XXL", "One Size"];
+// Deprecated: Use getSizesByCategory() instead for dynamic sizes
 const COLORS_OPTIONS = [
   { name: "Black", hex: "#1a1a1a" },
   { name: "White", hex: "#f9f9f9" },
@@ -284,6 +286,28 @@ export default function ProductFormPage() {
         ? form.colors.filter((c) => c !== color)
         : [...form.colors, color],
     );
+
+  // Dynamically get sizes based on selected sub-category (memoized for performance)
+  const availableSizes = useMemo(
+    () => getSizesByCategory(form.subCategory),
+    [form.subCategory],
+  );
+
+  // Check if current sizes are numeric
+  const isNumeric = useMemo(
+    () => isNumericSizes(form.subCategory),
+    [form.subCategory],
+  );
+
+  // Validate that selected sizes match available sizes for the category
+  useEffect(() => {
+    const validSizes = form.sizes.filter((size) =>
+      availableSizes.includes(size),
+    );
+    if (validSizes.length !== form.sizes.length) {
+      set("sizes", validSizes);
+    }
+  }, [form.subCategory, availableSizes]);
 
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
@@ -553,8 +577,15 @@ export default function ProductFormPage() {
                 title={t.availableSizes}
                 Icon={StraightenOutlinedIcon}
               />
+              <div className="flex items-center gap-2">
+                {isNumeric && (
+                  <span className="text-xs px-2 py-1 bg-[#C9A84C]/10 text-[#C9A84C] font-semibold rounded">
+                    {t.euSizes}
+                  </span>
+                )}
+              </div>
               {form.sizes.length > 0 && (
-                <span className="text-xs text-[#C9A84C] font-semibold animate-in">
+                <span className="text-xs text-[#C9A84C] font-semibold animate-in ml-2">
                   {form.sizes.join(" · ")}
                 </span>
               )}
@@ -567,15 +598,21 @@ export default function ProductFormPage() {
                 {errors.sizes}
               </Alert>
             )}
-            <div className="flex flex-wrap gap-2">
-              {SIZES_OPTIONS.map((size) => {
+            <div
+              className={`grid gap-2 ${
+                isNumeric
+                  ? "grid-cols-6 sm:grid-cols-8"
+                  : "grid-cols-3 sm:grid-cols-6"
+              }`}
+            >
+              {availableSizes.map((size) => {
                 const selected = form.sizes.includes(size);
                 return (
                   <button
                     key={size}
                     type="button"
                     onClick={() => toggleSize(size)}
-                    className={`px-4 h-9 text-xs font-semibold tracking-wide border transition-all duration-200 ${
+                    className={`h-9 text-xs font-semibold tracking-wide border transition-all duration-200 flex items-center justify-center ${
                       selected
                         ? "border-[#1A1A2E] bg-[#1A1A2E] text-white scale-105 shadow-md"
                         : "border-[#1A1A2E]/20 text-[#1A1A2E]/60 hover:border-[#1A1A2E] hover:text-[#1A1A2E] hover:scale-105"

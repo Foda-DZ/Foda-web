@@ -41,10 +41,7 @@ interface ProductCardProps {
   delay?: number;
 }
 
-export default function ProductCard({
-  product,
-  delay = 0,
-}: ProductCardProps) {
+export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
   const navigate = useNavigate();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user, openLogin } = useAuth();
@@ -73,7 +70,7 @@ export default function ProductCard({
       {/* ── Image area ── */}
       <div
         className="relative overflow-hidden bg-[#F0EBE3] aspect-[3/4]"
-        onClick={() => navigate(`/product/${product.id}`)}
+        onClick={() => navigate(`/products/${product.id}`)}
       >
         <img
           src={product.images[0]}
@@ -163,7 +160,7 @@ export default function ProductCard({
       {/* ── Card body ── */}
       <div
         className="p-3 flex flex-col gap-1.5 flex-1"
-        onClick={() => navigate(`/product/${product.id}`)}
+        onClick={() => navigate(`/products/${product.id}`)}
       >
         {/* Category + seller */}
         <div className="flex items-center justify-between">
