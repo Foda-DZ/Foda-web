@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import type { ReactNode } from "react";
 import type { SessionUser, AuthModalView, UserRole } from "../types";
 import { authService } from "../services/authService";
@@ -10,6 +16,7 @@ import type { ApiAuthResponse } from "../types/api";
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface AuthContextValue {
   user: SessionUser | null;
+  authReady: boolean;
   authModal: AuthModalView;
   pendingEmail: string | null;
   authCustomerOnly: boolean;
@@ -65,7 +72,7 @@ const SESSION_KEY = "foda_session";
 function getSession(): SessionUser | null {
   try {
     const raw = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
-    if (!raw || !getStoredToken()) return null;
+    if (!raw) return null;
     return raw as SessionUser;
   } catch {
     return null;
@@ -158,11 +165,61 @@ function sessionFromResponse(data: ApiAuthResponse): SessionUser {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<SessionUser | null>(getSession);
+  const [user, setUser] = useState<SessionUser | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [authModal, setAuthModal] = useState<AuthModalView>(null);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [authCustomerOnly, setAuthCustomerOnly] = useState(false);
   const [authRedirectTo, setAuthRedirectTo] = useState<string | null>(null);
+
+  // ── Rehydrate session on app boot (and silently refresh token if needed) ──
+  useEffect(() => {
+    let active = true;
+
+    const restoreSession = async () => {
+      const stored = getSession();
+      if (!stored) {
+        if (active) {
+          setUser(null);
+          setAuthReady(true);
+        }
+        return;
+      }
+
+      const hydrated = applySellerSetup(stored);
+      if (active) setUser(hydrated);
+
+      const token = getStoredToken();
+      if (token) {
+        if (active) setAuthReady(true);
+        return;
+      }
+
+      try {
+        const baseUrl = import.meta.env.VITE_API_BASE_URL as string;
+        const response = await fetch(`${baseUrl}/auth/refresh`, {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!response.ok) throw new Error("refresh failed");
+        const data = (await response.json()) as { accessToken?: string };
+        if (!data.accessToken) throw new Error("missing token");
+        setStoredToken(data.accessToken);
+      } catch {
+        removeStoredToken();
+        clearSession();
+        if (active) setUser(null);
+      } finally {
+        if (active) setAuthReady(true);
+      }
+    };
+
+    void restoreSession();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const openLogin = useCallback(
     (options?: { customerOnly?: boolean; redirectTo?: string }) => {
@@ -354,6 +411,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+        authReady,
         authModal,
         pendingEmail,
         authCustomerOnly,

@@ -1,7 +1,4 @@
 import { useState, useRef, useCallback } from "react";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import IconButton from "@mui/material/IconButton";
 
 interface ImageGalleryProps {
   images: string[];
@@ -77,60 +74,6 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
           }
           draggable={false}
         />
-
-        {/* Prev / Next arrows */}
-        {images.length > 1 && (
-          <>
-            <IconButton
-              onClick={(e) => {
-                e.stopPropagation();
-                go(current - 1);
-              }}
-              disabled={current === 0}
-              sx={{
-                position: "absolute",
-                top: "50%",
-                left: 8,
-                transform: "translateY(-50%)",
-                bgcolor: "rgba(255,255,255,0.85)",
-                borderRadius: 0,
-                width: 36,
-                height: 36,
-                opacity: 0,
-                transition: "opacity 0.2s",
-                ".group:hover &": { opacity: 1 },
-                "&:hover": { bgcolor: "#fff" },
-                "&.Mui-disabled": { opacity: 0 },
-              }}
-            >
-              <ChevronLeftIcon sx={{ fontSize: 20, color: "#1A1A2E" }} />
-            </IconButton>
-            <IconButton
-              onClick={(e) => {
-                e.stopPropagation();
-                go(current + 1);
-              }}
-              disabled={current === images.length - 1}
-              sx={{
-                position: "absolute",
-                top: "50%",
-                right: 8,
-                transform: "translateY(-50%)",
-                bgcolor: "rgba(255,255,255,0.85)",
-                borderRadius: 0,
-                width: 36,
-                height: 36,
-                opacity: 0,
-                transition: "opacity 0.2s",
-                ".group:hover &": { opacity: 1 },
-                "&:hover": { bgcolor: "#fff" },
-                "&.Mui-disabled": { opacity: 0 },
-              }}
-            >
-              <ChevronRightIcon sx={{ fontSize: 20, color: "#1A1A2E" }} />
-            </IconButton>
-          </>
-        )}
 
       </div>
 

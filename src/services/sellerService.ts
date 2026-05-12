@@ -8,6 +8,9 @@ import type {
   ApiDeliveryCompaniesResponse,
   ApiCompleteSellerSetupPayload,
   ApiCompleteSellerSetupResponse,
+  TrafficOverview,
+  TrafficSourceRow,
+  TrafficRangeParams,
 } from "../types/api";
 
 export type MetaDatePreset = "today" | "yesterday" | "last_7d" | "last_30d";
@@ -287,50 +290,63 @@ export const sellerService = {
       })
       .then((r) => r.data),
 
-  // Traffic Analytics endpoints
-  getTrafficAnalytics: (params?: { datePreset?: string; startDate?: string; endDate?: string }) =>
+  // Traffic Analytics
+  getTrafficOverview: (params?: TrafficRangeParams) =>
     api
-      .get<any>("/seller/traffic-analytics", { params })
-      .then((r) => r.data),
+      .get<{ overview: TrafficOverview }>("/seller/traffic/overview", { params })
+      .then((r) => r.data.overview),
 
-  getTrafficSummary: (params?: { datePreset?: string; startDate?: string; endDate?: string }) =>
+  getTrafficSources: (params?: TrafficRangeParams) =>
     api
-      .get<any>("/seller/traffic-analytics/summary", { params })
-      .then((r) => r.data),
+      .get<{ sources: TrafficSourceRow[] }>("/seller/traffic/sources", { params })
+      .then((r) => r.data.sources),
 
-  getDeviceDistribution: (params?: { datePreset?: string; startDate?: string; endDate?: string }) =>
+  exportTrafficReport: (params?: TrafficRangeParams) =>
     api
-      .get<any>("/seller/traffic-analytics/devices", { params })
-      .then((r) => r.data),
+      .get("/seller/traffic/export", { params, responseType: "blob" })
+      .then((r) => r.data as Blob),
 
-  getTopSources: (params?: { datePreset?: string; startDate?: string; endDate?: string; limit?: number }) =>
-    api
-      .get<any>("/seller/traffic-analytics/top-sources", { params })
-      .then((r) => r.data),
-
-  trackTrafficSource: (data: {
-    source: string;
-    deviceType: string;
-    pageViews?: number;
-    bounceRate?: number;
-    avgSessionDuration?: number;
-    conversions?: number;
-    revenue?: number;
-    referrer?: string;
-    campaign?: string;
-  }) =>
-    api
-      .post<any>("/seller/traffic-analytics/track", data)
-      .then((r) => r.data),
+  // Public beacon — records an anonymous product page visit from a tracked link
+  trackProductVisit: (
+    productId: string,
+    body: { source?: string; visitorId?: string; deviceType?: string; referrer?: string },
+  ) => api.post(`/products/${productId}/visit`, body).then((r) => r.data),
   // Inventory & Promotions
+  getInventoryStats: (): Promise<{
+    totalActive: number;
+    lowStock: number;
+    outOfStock: number;
+    outOfStockVariants: number;
+    totalUnits: number;
+    lowStockItems: { _id: string; name: string; stock: number; images: { url: string }[] }[];
+    outOfStockItems: { _id: string; name: string; stock: number; images: { url: string }[] }[];
+  }> =>
+    api.get(`/seller/inventory/stats`).then((r) => r.data.stats),
+
   getInventory: (params?: { page?: number; limit?: number; search?: string }) =>
     api.get<{ inventory: { items: any[]; total: number; page: number; limit: number; totalPages: number } }>(`/seller/inventory`, { params }).then((r) => r.data.inventory),
   updateInventory: (productId: string, payload: { stock?: number; sizeVariants?: { size: string; stock: number }[] }) => api.put(`/seller/inventory/${productId}`, payload).then((r) => r.data),
 
-  upsertPromotion: (productId: string, promo: any) => api.post(`/seller/promotions/${productId}`, promo).then((r) => r.data),
+  getProductPromotion: (productId: string) =>
+    api
+      .get<{ product: { _id: string; name: string; price: number; images?: { url: string }[]; promotion?: { active?: boolean; type?: "percentage" | "amount"; value?: number; startDate?: string | null; endDate?: string | null } } }>(`/seller/promotions/${productId}`)
+      .then((r) => r.data.product),
+
+  upsertPromotion: (productId: string, promo: { active: boolean; type: "percentage" | "amount"; value: number; startDate?: string; endDate?: string }) =>
+    api.post(`/seller/promotions/${productId}`, promo).then((r) => r.data),
+
   listPromotions: () => api.get(`/seller/promotions`).then((r) => r.data.promotions),
+
   removePromotion: (productId: string) => api.delete(`/seller/promotions/${productId}`).then((r) => r.data),
 
   getProductAnalytics: (productId: string, params?: { startDate?: string; endDate?: string }) => api.get(`/seller/analytics/product/${productId}`, { params }).then((r) => r.data.analytics),
-  getRevenueAnalytics: (params?: { startDate?: string; endDate?: string }) => api.get(`/seller/analytics/revenue`, { params }).then((r) => r.data.analytics),
+
+  getRevenueAnalytics: (): Promise<{
+    totalRevenue: { value: number; count: number };
+    pendingRevenue: { value: number; count: number };
+    available: { value: number; count: number };
+    thisMonth: { value: number; count: number };
+    daily: { _id: string; revenue: number; orders: number }[];
+    recentOrders: { _id: string; status: string; totalAmount: number; createdAt: string; shippingDetails: { wilaya: string } }[];
+  }> => api.get(`/seller/analytics/revenue`).then((r) => r.data.analytics),
 };

@@ -53,6 +53,14 @@ export type ApiSubCategory =
   | "Hats"
   | "Other";
 
+export interface ApiPromotion {
+  active?: boolean;
+  type?: "percentage" | "amount";
+  value?: number;
+  startDate?: string | null;
+  endDate?: string | null;
+}
+
 export interface ApiProduct {
   _id: string;
   sellerId: string;
@@ -66,6 +74,7 @@ export interface ApiProduct {
   colors: string[];
   mainCategory: ApiCategory;
   subCategory: ApiSubCategory;
+  promotion?: ApiPromotion;
   createdAt: string;
   updatedAt: string;
 }
@@ -116,6 +125,51 @@ export interface ApiProductShareResponse {
   share: ApiProductShare;
 }
 
+// ─── Traffic Analytics ────────────────────────────────────────────────────────
+export type TrafficSource =
+  | "instagram"
+  | "tiktok"
+  | "whatsapp"
+  | "facebook"
+  | "direct"
+  | "other";
+
+export interface TrafficSourceCount {
+  source: TrafficSource;
+  visits: number;
+  percentage: number;
+}
+
+export interface TrafficTrendPoint {
+  date: string; // YYYY-MM-DD
+  visits: number;
+}
+
+export interface TrafficOverview {
+  range: { from: string; to: string };
+  productId: string | null;
+  totalVisits: number;
+  totalOrders: number;
+  conversionRate: number;
+  topSource: TrafficSource | null;
+  bySource: TrafficSourceCount[];
+  trend: TrafficTrendPoint[];
+}
+
+export interface TrafficSourceRow {
+  source: TrafficSource;
+  visits: number;
+  percentage: number;
+  trend: TrafficTrendPoint[];
+}
+
+export interface TrafficRangeParams {
+  range?: "today" | "7d" | "30d" | "custom";
+  from?: string;
+  to?: string;
+  productId?: string;
+}
+
 // ─── Cart ─────────────────────────────────────────────────────────────────────
 export interface ApiCartItem {
   productId: string;
@@ -123,6 +177,7 @@ export interface ApiCartItem {
   name: string;
   quantity: number;
   price: number;
+  originalPrice?: number;
   image: string;
   selectedChoices: { size: string; color: string };
 }

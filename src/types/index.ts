@@ -1,4 +1,12 @@
 // ─── Product ──────────────────────────────────────────────────────────────────
+export interface ProductPromotion {
+  active?: boolean;
+  type?: "percentage" | "amount";
+  value?: number;
+  startDate?: string | null;
+  endDate?: string | null;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -16,6 +24,7 @@ export interface Product {
   sellerName?: string;
   brand?: string;
   rating?: number;
+  promotion?: ProductPromotion;
 }
 
 // ─── Cart ──────────────────────────────────────────────────────────────────────

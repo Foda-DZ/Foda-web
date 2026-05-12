@@ -31,5 +31,6 @@ export function apiProductToProduct(p: ApiProduct): Product {
     sellerName: (p as Record<string, unknown>).sellerName as string | undefined,
     brand: (p as Record<string, unknown>).brand as string | undefined,
     rating: (p as Record<string, unknown>).rating as number | undefined,
+    promotion: p.promotion,
   };
 }

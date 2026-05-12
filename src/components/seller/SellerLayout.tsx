@@ -9,12 +9,12 @@ import AnalyticsOutlinedIcon from "@mui/icons-material/AnalyticsOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import ChevronRightOutlinedIcon from "@mui/icons-material/ChevronRightOutlined";
-import ChevronLeftOutlinedIcon from "@mui/icons-material/ChevronLeftOutlined";
 import WarehouseOutlinedIcon from "@mui/icons-material/WarehouseOutlined";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import TrendingUpOutlinedIcon from "@mui/icons-material/TrendingUpOutlined";
 import MenuOpenOutlinedIcon from "@mui/icons-material/MenuOpenOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
+import TranslateOutlinedIcon from "@mui/icons-material/TranslateOutlined";
 import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../context/LangContext";
 import SellerSetupModal from "./SellerSetupModal";
@@ -29,54 +29,90 @@ const NAV_GROUPS = [
     label: "Overview",
     labelAr: "نظرة عامة",
     items: [
-      { to: "/seller/dashboard", labelKey: "dashboard", Icon: DashboardOutlinedIcon },
+      {
+        to: "/seller/dashboard",
+        labelKey: "dashboard",
+        Icon: DashboardOutlinedIcon,
+      },
     ],
   },
   {
     label: "Products",
     labelAr: "المنتجات",
     items: [
-      { to: "/seller/products", labelKey: "myProducts", Icon: Inventory2OutlinedIcon },
-      { to: "/seller/inventory", labelKey: "inventory", Icon: WarehouseOutlinedIcon },
-      { to: "/seller/promotions", labelKey: "promotions", Icon: LocalOfferOutlinedIcon },
+      {
+        to: "/seller/products",
+        labelKey: "myProducts",
+        Icon: Inventory2OutlinedIcon,
+      },
+      {
+        to: "/seller/inventory",
+        labelKey: "inventory",
+        Icon: WarehouseOutlinedIcon,
+      },
+      {
+        to: "/seller/promotions",
+        labelKey: "promotions",
+        Icon: LocalOfferOutlinedIcon,
+      },
     ],
   },
   {
     label: "Sales",
     labelAr: "المبيعات",
     items: [
-      { to: "/seller/orders", labelKey: "orders", Icon: LocalShippingOutlinedIcon },
+      {
+        to: "/seller/orders",
+        labelKey: "orders",
+        Icon: LocalShippingOutlinedIcon,
+      },
     ],
   },
   {
     label: "Analytics",
     labelAr: "التحليلات",
     items: [
-      { to: "/seller/analytics/revenue", labelKey: "revenue", Icon: TrendingUpOutlinedIcon },
-      { to: "/seller/traffic-analytics", labelKey: "trafficAnalytics", Icon: AnalyticsOutlinedIcon },
-      { to: "/seller/meta-ads", labelKey: "metaAds", Icon: AdsClickOutlinedIcon },
+      {
+        to: "/seller/analytics/revenue",
+        labelKey: "revenue",
+        Icon: TrendingUpOutlinedIcon,
+      },
+      {
+        to: "/seller/traffic-analytics",
+        labelKey: "trafficAnalytics",
+        Icon: AnalyticsOutlinedIcon,
+      },
+      {
+        to: "/seller/meta-ads",
+        labelKey: "metaAds",
+        Icon: AdsClickOutlinedIcon,
+      },
     ],
   },
   {
     label: "Account",
     labelAr: "الحساب",
     items: [
-      { to: "/seller/settings", labelKey: "storeSettings", Icon: SettingsOutlinedIcon },
+      {
+        to: "/seller/settings",
+        labelKey: "storeSettings",
+        Icon: SettingsOutlinedIcon,
+      },
     ],
   },
 ];
 
 const LABEL_FALLBACKS: Record<string, { en: string; ar: string }> = {
-  inventory:        { en: "Inventory",          ar: "المخزون" },
-  promotions:       { en: "Promotions",          ar: "العروض" },
-  revenue:          { en: "Revenue",             ar: "الإيرادات" },
-  metaAds:          { en: "Meta Ads",            ar: "إعلانات Meta" },
-  trafficAnalytics: { en: "Traffic Analytics",   ar: "تحليلات حركة المرور" },
+  inventory: { en: "Inventory", ar: "المخزون" },
+  promotions: { en: "Promotions", ar: "العروض" },
+  revenue: { en: "Revenue", ar: "الإيرادات" },
+  metaAds: { en: "Meta Ads", ar: "إعلانات Meta" },
+  trafficAnalytics: { en: "Traffic Analytics", ar: "تحليلات حركة المرور" },
 };
 
 export default function SellerLayout({ children }: Props) {
   const { user, logout } = useAuth();
-  const { tr, isRTL, lang } = useLang();
+  const { tr, isRTL, lang, setLang } = useLang();
   const s = tr.seller.layout;
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
@@ -93,14 +129,27 @@ export default function SellerLayout({ children }: Props) {
     navigate("/");
   };
 
+  const handleToggleLang = () => {
+    setLang(lang === "ar" ? "en" : "ar");
+  };
+
   const initials = user
-    ? user.fullName.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
+    ? user.fullName
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
     : "";
 
   const sidebarW = collapsed ? "w-[60px]" : "w-60";
   const mainOffset = isRTL
-    ? collapsed ? "mr-[60px]" : "mr-60"
-    : collapsed ? "ml-[60px]" : "ml-60";
+    ? collapsed
+      ? "mr-[60px]"
+      : "mr-60"
+    : collapsed
+      ? "ml-[60px]"
+      : "ml-60";
 
   return (
     <div className="flex h-screen bg-[#F5F3EF]" dir={isRTL ? "rtl" : "ltr"}>
@@ -111,7 +160,9 @@ export default function SellerLayout({ children }: Props) {
         }`}
       >
         {/* Branding */}
-        <div className={`flex items-center border-b border-white/8 shrink-0 transition-all duration-300 ${collapsed ? "px-3 py-4 justify-center" : "px-5 py-4"}`}>
+        <div
+          className={`flex items-center border-b border-white/8 shrink-0 transition-all duration-300 ${collapsed ? "px-3 py-4 justify-center" : "px-5 py-4"}`}
+        >
           {!collapsed && (
             <div className="flex-1 min-w-0">
               <img
@@ -130,9 +181,11 @@ export default function SellerLayout({ children }: Props) {
             className={`flex items-center justify-center w-7 h-7 rounded-none text-white/40 hover:text-white hover:bg-white/8 transition-all duration-200 shrink-0 ${collapsed ? "" : "ms-2"}`}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            {collapsed
-              ? (isRTL ? <ChevronLeftOutlinedIcon sx={{ fontSize: 16 }} /> : <MenuOutlinedIcon sx={{ fontSize: 16 }} />)
-              : (isRTL ? <ChevronRightOutlinedIcon sx={{ fontSize: 16 }} /> : <MenuOpenOutlinedIcon sx={{ fontSize: 16 }} />)}
+            {collapsed ? (
+              <MenuOutlinedIcon sx={{ fontSize: 16 }} />
+            ) : (
+              <MenuOpenOutlinedIcon sx={{ fontSize: 16 }} />
+            )}
           </button>
         </div>
 
@@ -173,7 +226,9 @@ export default function SellerLayout({ children }: Props) {
                           />
                           {!collapsed && (
                             <>
-                              <span className="flex-1 truncate">{getLabel(labelKey)}</span>
+                              <span className="flex-1 truncate">
+                                {getLabel(labelKey)}
+                              </span>
                               {isActive && (
                                 <ChevronRightOutlinedIcon
                                   sx={{
@@ -196,7 +251,9 @@ export default function SellerLayout({ children }: Props) {
         </nav>
 
         {/* Bottom section — user info + logout */}
-        <div className={`border-t border-white/8 pt-3 pb-3 shrink-0 ${collapsed ? "px-1 space-y-1" : "px-2 space-y-0.5"}`}>
+        <div
+          className={`border-t border-white/8 pt-3 pb-3 shrink-0 ${collapsed ? "px-1 space-y-1" : "px-2 space-y-0.5"}`}
+        >
           {/* User info */}
           {collapsed ? (
             <div className="flex justify-center py-1">
@@ -226,14 +283,31 @@ export default function SellerLayout({ children }: Props) {
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <p className="text-white text-xs font-semibold truncate">{user?.fullName}</p>
+                <p className="text-white text-xs font-semibold truncate">
+                  {user?.fullName}
+                </p>
                 <div className="flex items-center gap-1 mt-0.5">
-                  <StorefrontOutlinedIcon sx={{ fontSize: 9, color: "#C9A84C" }} />
-                  <p className="text-gold text-[9px] uppercase tracking-widest font-semibold">{s.seller}</p>
+                  <StorefrontOutlinedIcon
+                    sx={{ fontSize: 9, color: "#C9A84C" }}
+                  />
+                  <p className="text-gold text-[9px] uppercase tracking-widest font-semibold">
+                    {s.seller}
+                  </p>
                 </div>
               </div>
             </div>
           )}
+
+          {/* Switch lang */}
+          <button
+            onClick={handleToggleLang}
+            title={s.switchLang}
+            className={`w-full flex items-center justify-center py-2 text-white/60 hover:text-white hover:bg-white/8 transition-colors duration-200 ${
+              collapsed ? "px-0" : "px-3"
+            }`}
+          >
+            <TranslateOutlinedIcon sx={{ fontSize: 16 }} />
+          </button>
 
           {/* Logout */}
           <button
@@ -250,7 +324,9 @@ export default function SellerLayout({ children }: Props) {
       </aside>
 
       {/* ── Main content ──────────────────────────────────────────────────────── */}
-      <main className={`flex-1 min-w-0 overflow-y-auto transition-[margin] duration-300 ease-in-out ${mainOffset}`}>
+      <main
+        className={`flex-1 min-w-0 overflow-y-auto transition-[margin] duration-300 ease-in-out ${mainOffset}`}
+      >
         {children}
       </main>
 

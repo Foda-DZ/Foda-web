@@ -46,21 +46,24 @@ function ScrollToTop() {
 // ─── Route Guards ─────────────────────────────────────────────────────────────
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, authReady } = useAuth();
+  if (!authReady) return null;
   if (!user) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
 /** Redirect root /seller to the dashboard */
 function SellerIndexRedirect() {
-  const { user } = useAuth();
+  const { user, authReady } = useAuth();
+  if (!authReady) return null;
   if (!user || user.role !== "seller") return <Navigate to="/" replace />;
   return <Navigate to="/seller/dashboard" replace />;
 }
 
 /** Logged-in sellers landing on "/" get sent to their dashboard */
 function HomeOrSellerRedirect() {
-  const { user } = useAuth();
+  const { user, authReady } = useAuth();
+  if (!authReady) return null;
   if (user?.role === "seller")
     return <Navigate to="/seller/dashboard" replace />;
   return <HomePage />;
@@ -68,7 +71,8 @@ function HomeOrSellerRedirect() {
 
 /** Only active sellers can access seller portal pages */
 function RequireActiveSeller({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, authReady } = useAuth();
+  if (!authReady) return null;
   if (!user) return <Navigate to="/" replace />;
   if (user.role !== "seller") return <Navigate to="/" replace />;
   return <>{children}</>;

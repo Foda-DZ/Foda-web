@@ -468,6 +468,7 @@ export interface Translations {
       visitStore: string;
       seller: string;
       signOut: string;
+      switchLang: string;
     };
     dash: {
       welcomeBack: string;
@@ -575,6 +576,7 @@ export interface Translations {
       lowStock: string;
       inStock: string;
       units: string;
+      promote: string;
       edit: string;
       deleteLabel: string;
       deleteProduct: string;
@@ -584,6 +586,94 @@ export interface Translations {
       deleteBtn: string;
       cancel: string;
       failedDelete: string;
+    };
+    inventoryPage: {
+      title: string;
+      subtitle: string;
+      outOfStock: string;
+      lowStock: string;
+      inStock: string;
+      summaryOutOfStock: string;
+      summaryRunningLow: string;
+      productSingle: string;
+      productPlural: string;
+      sectionHeader: string;
+      stockLevels: string;
+      colProduct: string;
+      colStock: string;
+      colSizes: string;
+      colStatus: string;
+      colAction: string;
+      emptyTitle: string;
+      emptyDesc: string;
+      toastLoadError: string;
+      toastInvalidStock: string;
+      toastUpdated: string;
+      toastUpdateError: string;
+      page: string;
+      of: string;
+      kpiTotalActive: string;
+      kpiTotalActiveDesc: string;
+      kpiLowStock: string;
+      kpiLowStockDesc: string;
+      kpiOutOfStock: string;
+      kpiOutOfStockDesc: string;
+      kpiTotalUnits: string;
+      kpiTotalUnitsDesc: string;
+      alertTitle: string;
+      alertSubtitle: string;
+      alertOutOfStockSection: string;
+      alertLowStockSection: string;
+      units: string;
+      updateStock: string;
+      searchPlaceholder: string;
+    };
+    productAnalyticsPage: {
+      title: string;
+      totals: string;
+      unitsSold: string;
+      revenue: string;
+      bySize: string;
+      size: string;
+      noSalesYet: string;
+      toastLoadError: string;
+    };
+    promotionsPage: {
+      title: string;
+      subtitle: string;
+      activeSingle: string;
+      activePlural: string;
+      sectionHeader: string;
+      productCount: string;
+      colProduct: string;
+      colActive: string;
+      colDiscount: string;
+      emptyTitle: string;
+      emptyDesc: string;
+      toastLoadError: string;
+      toastUpdateError: string;
+      toastActivated: string;
+      toastPaused: string;
+      toastSaved: string;
+      toastSaveError: string;
+      toastRemoved: string;
+      toastRemoveError: string;
+      save: string;
+      removeTooltip: string;
+      removeTitle: string;
+      removeDesc: string;
+      cancel: string;
+      remove: string;
+      productWord: string;
+      noPromoLabel: string;
+      statusActive: string;
+      statusInactive: string;
+      statusExpired: string;
+      filterAll: string;
+      filterActive: string;
+      filterInactive: string;
+      filterNoPromo: string;
+      expiresOn: string;
     };
     ordersList: {
       title: string;
@@ -659,6 +749,80 @@ export interface Translations {
       shipped: string;
       delivered: string;
       cancelled: string;
+    };
+    revenueAnalyticsPage: {
+      title: string;
+      subtitle: string;
+      totalRevenue: string;
+      totalRevenueDesc: string;
+      pendingRevenue: string;
+      pendingRevenueDesc: string;
+      available: string;
+      availableDesc: string;
+      thisMonth: string;
+      thisMonthDesc: string;
+      orders: string;
+      chartTitle: string;
+      chartEmpty: string;
+      recentOrders: string;
+      noRecentOrders: string;
+      viewAll: string;
+      error: string;
+      dzd: string;
+      statusLabels: {
+        pending: string;
+        confirmed: string;
+        shipped: string;
+        delivered: string;
+        cancelled: string;
+      };
+    };
+    trafficAnalyticsPage: {
+      title: string;
+      subtitle: string;
+      totalVisits: string;
+      totalVisitsDesc: string;
+      totalOrders: string;
+      totalOrdersDesc: string;
+      conversionRate: string;
+      conversionRateDesc: string;
+      topSource: string;
+      topSourceDesc: string;
+      rangeToday: string;
+      range7d: string;
+      range30d: string;
+      rangeCustom: string;
+      from: string;
+      to: string;
+      scopeLabel: string;
+      wholeStore: string;
+      visitsTrend: string;
+      visitsTrendEmpty: string;
+      sourceBreakdown: string;
+      colSource: string;
+      colVisits: string;
+      colShare: string;
+      noSources: string;
+      exportCsv: string;
+      exporting: string;
+      error: string;
+      visits: string;
+      sources: {
+        instagram: string;
+        tiktok: string;
+        whatsapp: string;
+        facebook: string;
+        direct: string;
+        other: string;
+      };
+    };
+    trackedLinks: {
+      title: string;
+      subtitle: string;
+      copy: string;
+      copied: string;
+      copyAll: string;
+      hint: string;
     };
   };
 }
@@ -1130,6 +1294,7 @@ export const ar: Translations = {
       visitStore: "زيارة المتجر",
       seller: "بائع",
       signOut: "تسجيل الخروج",
+      switchLang: "تبديل اللغة",
     },
     dash: {
       welcomeBack: "مرحباً بعودتك،",
@@ -1237,6 +1402,7 @@ export const ar: Translations = {
       lowStock: "مخزون منخفض",
       inStock: "متوفر",
       units: "وحدة",
+      promote: "ترويج",
       edit: "تعديل",
       deleteLabel: "حذف",
       deleteProduct: "حذف المنتج",
@@ -1246,6 +1412,94 @@ export const ar: Translations = {
       deleteBtn: "حذف",
       cancel: "إلغاء",
       failedDelete: "فشل حذف المنتج.",
+    },
+    inventoryPage: {
+      title: "المخزون",
+      subtitle: "إدارة مستويات مخزون منتجاتك",
+      outOfStock: "نفد المخزون",
+      lowStock: "مخزون منخفض",
+      inStock: "متوفر",
+      summaryOutOfStock: "نفد من المخزون",
+      summaryRunningLow: "مخزون منخفض",
+      productSingle: "منتج",
+      productPlural: "منتجات",
+      sectionHeader: "مستويات المخزون",
+      stockLevels: "مخزون",
+      colProduct: "المنتج",
+      colStock: "المخزون",
+      colSizes: "المقاسات",
+      colStatus: "الحالة",
+      colAction: "الإجراء",
+      emptyTitle: "لا توجد منتجات",
+      emptyDesc: "أضف منتجات لتبدأ إدارة المخزون.",
+      toastLoadError: "تعذر تحميل المخزون",
+      toastInvalidStock: "يرجى إدخال رقم مخزون صالح",
+      toastUpdated: "تم تحديث المخزون بنجاح",
+      toastUpdateError: "تعذر تحديث المخزون",
+      page: "الصفحة",
+      of: "من",
+      kpiTotalActive: "المنتجات النشطة",
+      kpiTotalActiveDesc: "منتجات بمخزون أكبر من صفر",
+      kpiLowStock: "مخزون منخفض",
+      kpiLowStockDesc: "5 وحدات أو أقل",
+      kpiOutOfStock: "نفد المخزون",
+      kpiOutOfStockDesc: "منتجات بمخزون صفر",
+      kpiTotalUnits: "إجمالي الوحدات",
+      kpiTotalUnitsDesc: "مجموع الوحدات المتاحة",
+      alertTitle: "تنبيهات المخزون",
+      alertSubtitle: "منتجات تحتاج إلى انتباه فوري",
+      alertOutOfStockSection: "نفد المخزون",
+      alertLowStockSection: "مخزون منخفض",
+      units: "وحدة",
+      updateStock: "تحديث المخزون",
+      searchPlaceholder: "البحث عن منتج...",
+    },
+    productAnalyticsPage: {
+      title: "تحليلات المنتج",
+      totals: "الإجماليات",
+      unitsSold: "الوحدات المباعة",
+      revenue: "الإيرادات",
+      bySize: "حسب المقاس",
+      size: "المقاس",
+      noSalesYet: "لا توجد مبيعات لهذا المنتج بعد",
+      toastLoadError: "تعذر تحميل التحليلات",
+    },
+    promotionsPage: {
+      title: "العروض الترويجية",
+      subtitle: "حدّد التخفيضات على منتجاتك وفعّلها بنقرة واحدة",
+      activeSingle: "عرض نشط",
+      activePlural: "عروض نشطة",
+      sectionHeader: "عروض المنتجات",
+      productCount: "منتج",
+      colProduct: "المنتج",
+      colActive: "نشط",
+      colDiscount: "الخصم",
+      emptyTitle: "لا توجد منتجات بعد",
+      emptyDesc: "أضف منتجات إلى متجرك لبدء إعداد العروض والتخفيضات.",
+      toastLoadError: "تعذر تحميل العروض",
+      toastUpdateError: "تعذر التحديث",
+      toastActivated: "تم تفعيل العرض",
+      toastPaused: "تم إيقاف العرض",
+      toastSaved: "تم حفظ العرض",
+      toastSaveError: "تعذر حفظ العرض",
+      toastRemoved: "تم حذف العرض",
+      toastRemoveError: "تعذر حذف العرض",
+      save: "حفظ",
+      removeTooltip: "إزالة العرض",
+      removeTitle: "إزالة العرض؟",
+      removeDesc: "سيتم إزالة التخفيض من هذا المنتج نهائيًا.",
+      cancel: "إلغاء",
+      remove: "إزالة",
+      productWord: "منتج",
+      noPromoLabel: "بدون خصم",
+      statusActive: "نشط",
+      statusInactive: "موقوف",
+      statusExpired: "منتهي",
+      filterAll: "الكل",
+      filterActive: "نشطة",
+      filterInactive: "موقوفة",
+      filterNoPromo: "بدون خصم",
+      expiresOn: "تنتهي",
     },
     ordersList: {
       title: "الطلبات",
@@ -1321,6 +1575,80 @@ export const ar: Translations = {
       shipped: "تم الشحن",
       delivered: "تم التوصيل",
       cancelled: "ملغى",
+    },
+    revenueAnalyticsPage: {
+      title: "الإيرادات",
+      subtitle: "نظرة شاملة على أداء متجرك المالي",
+      totalRevenue: "إجمالي الإيرادات",
+      totalRevenueDesc: "جميع الطلبات غير الملغاة",
+      pendingRevenue: "الإيرادات المعلقة",
+      pendingRevenueDesc: "طلبات مؤكدة أو مشحونة",
+      available: "الرصيد المتاح",
+      availableDesc: "طلبات تم توصيلها",
+      thisMonth: "إيرادات هذا الشهر",
+      thisMonthDesc: "طلبات موصّلة هذا الشهر",
+      orders: "طلب",
+      chartTitle: "الإيرادات اليومية — آخر 30 يومًا",
+      chartEmpty: "لا توجد إيرادات خلال آخر 30 يومًا",
+      recentOrders: "أحدث الطلبات",
+      noRecentOrders: "لا توجد طلبات بعد",
+      viewAll: "عرض الكل",
+      error: "تعذر تحميل بيانات الإيرادات",
+      dzd: "دج",
+      statusLabels: {
+        pending: "قيد الانتظار",
+        confirmed: "مؤكد",
+        shipped: "مشحون",
+        delivered: "موصّل",
+        cancelled: "ملغى",
+      },
+    },
+    trafficAnalyticsPage: {
+      title: "تحليلات حركة المرور",
+      subtitle: "من أين يأتي زوار متجرك ومنتجاتك",
+      totalVisits: "إجمالي الزيارات",
+      totalVisitsDesc: "زيارات صفحات المنتجات",
+      totalOrders: "إجمالي الطلبات",
+      totalOrdersDesc: "طلبات غير ملغاة في الفترة",
+      conversionRate: "معدل التحويل",
+      conversionRateDesc: "طلبات ÷ زيارات",
+      topSource: "أفضل مصدر",
+      topSourceDesc: "الأكثر زيارة في الفترة",
+      rangeToday: "اليوم",
+      range7d: "7 أيام",
+      range30d: "30 يومًا",
+      rangeCustom: "مخصص",
+      from: "من",
+      to: "إلى",
+      scopeLabel: "النطاق",
+      wholeStore: "المتجر كامل",
+      visitsTrend: "اتجاه الزيارات",
+      visitsTrendEmpty: "لا توجد زيارات خلال هذه الفترة",
+      sourceBreakdown: "أداء المصادر",
+      colSource: "المصدر",
+      colVisits: "الزيارات",
+      colShare: "النسبة",
+      noSources: "لا توجد بيانات مصادر بعد",
+      exportCsv: "تصدير CSV",
+      exporting: "جارٍ التصدير…",
+      error: "تعذر تحميل تحليلات حركة المرور",
+      visits: "زيارة",
+      sources: {
+        instagram: "إنستغرام",
+        tiktok: "تيك توك",
+        whatsapp: "واتساب",
+        facebook: "فيسبوك",
+        direct: "مباشر",
+        other: "أخرى",
+      },
+    },
+    trackedLinks: {
+      title: "روابط متتبَّعة",
+      subtitle: "شارك هذه الروابط على منصاتك لتتبّع مصدر الزيارات",
+      copy: "نسخ",
+      copied: "تم النسخ",
+      copyAll: "نسخ الكل",
+      hint: "كل رابط يحمل وسم المنصة لتعرف من أين يأتي الزوار.",
     },
   },
 };
@@ -1792,6 +2120,7 @@ export const en: Translations = {
       visitStore: "Visit Store",
       seller: "Seller",
       signOut: "Sign Out",
+      switchLang: "Switch language",
     },
     dash: {
       welcomeBack: "Welcome back,",
@@ -1899,6 +2228,7 @@ export const en: Translations = {
       lowStock: "Low Stock",
       inStock: "In Stock",
       units: "units",
+      promote: "Promote",
       edit: "Edit",
       deleteLabel: "Delete",
       deleteProduct: "Delete Product",
@@ -1908,6 +2238,94 @@ export const en: Translations = {
       deleteBtn: "Delete",
       cancel: "Cancel",
       failedDelete: "Failed to delete product.",
+    },
+    inventoryPage: {
+      title: "Inventory",
+      subtitle: "Manage your product stock levels",
+      outOfStock: "Out of stock",
+      lowStock: "Low stock",
+      inStock: "In stock",
+      summaryOutOfStock: "out of stock",
+      summaryRunningLow: "running low",
+      productSingle: "product",
+      productPlural: "products",
+      sectionHeader: "Stock levels",
+      stockLevels: "stock",
+      colProduct: "Product",
+      colStock: "Stock",
+      colSizes: "Sizes",
+      colStatus: "Status",
+      colAction: "Action",
+      emptyTitle: "No products found",
+      emptyDesc: "Add products to start managing inventory.",
+      toastLoadError: "Failed to load inventory",
+      toastInvalidStock: "Please enter a valid stock number",
+      toastUpdated: "Stock updated successfully",
+      toastUpdateError: "Failed to update stock",
+      page: "Page",
+      of: "of",
+      kpiTotalActive: "Total Active Products",
+      kpiTotalActiveDesc: "Products with stock above zero",
+      kpiLowStock: "Low Stock Items",
+      kpiLowStockDesc: "5 units or fewer remaining",
+      kpiOutOfStock: "Out of Stock",
+      kpiOutOfStockDesc: "Products with zero stock",
+      kpiTotalUnits: "Total Units Available",
+      kpiTotalUnitsDesc: "Sum of all product stock",
+      alertTitle: "Stock Alerts",
+      alertSubtitle: "Products requiring immediate attention",
+      alertOutOfStockSection: "Out of Stock",
+      alertLowStockSection: "Running Low",
+      units: "units",
+      updateStock: "Update Stock",
+      searchPlaceholder: "Search products...",
+    },
+    productAnalyticsPage: {
+      title: "Product Analytics",
+      totals: "Totals",
+      unitsSold: "Units Sold",
+      revenue: "Revenue",
+      bySize: "By Size",
+      size: "Size",
+      noSalesYet: "No sales for this product yet",
+      toastLoadError: "Failed to load analytics",
+    },
+    promotionsPage: {
+      title: "Promotions",
+      subtitle: "Set discounts on your products and activate them in one click",
+      activeSingle: "active promotion",
+      activePlural: "active promotions",
+      sectionHeader: "Product promotions",
+      productCount: "products",
+      colProduct: "Product",
+      colActive: "Active",
+      colDiscount: "Discount",
+      emptyTitle: "No products yet",
+      emptyDesc: "Add products to your store to start setting up promotions and discounts.",
+      toastLoadError: "Failed to load promotions",
+      toastUpdateError: "Failed to update",
+      toastActivated: "Promotion activated",
+      toastPaused: "Promotion paused",
+      toastSaved: "Promotion saved",
+      toastSaveError: "Failed to save",
+      toastRemoved: "Promotion removed",
+      toastRemoveError: "Failed to remove",
+      save: "Save",
+      removeTooltip: "Remove promotion",
+      removeTitle: "Remove promotion?",
+      removeDesc: "The discount will be permanently removed from this product.",
+      cancel: "Cancel",
+      remove: "Remove",
+      productWord: "products",
+      noPromoLabel: "No discount",
+      statusActive: "Active",
+      statusInactive: "Paused",
+      statusExpired: "Expired",
+      filterAll: "All",
+      filterActive: "Active",
+      filterInactive: "Inactive",
+      filterNoPromo: "No Promo",
+      expiresOn: "Expires",
     },
     ordersList: {
       title: "Orders",
@@ -1983,6 +2401,80 @@ export const en: Translations = {
       shipped: "Shipped",
       delivered: "Delivered",
       cancelled: "Cancelled",
+    },
+    revenueAnalyticsPage: {
+      title: "Revenue",
+      subtitle: "A complete overview of your store's financial performance",
+      totalRevenue: "Total Revenue",
+      totalRevenueDesc: "All non-cancelled orders",
+      pendingRevenue: "Pending Revenue",
+      pendingRevenueDesc: "Confirmed or shipped orders",
+      available: "Available Balance",
+      availableDesc: "Delivered orders",
+      thisMonth: "This Month",
+      thisMonthDesc: "Delivered orders this month",
+      orders: "orders",
+      chartTitle: "Daily Revenue — Last 30 Days",
+      chartEmpty: "No revenue in the last 30 days",
+      recentOrders: "Recent Orders",
+      noRecentOrders: "No orders yet",
+      viewAll: "View all",
+      error: "Failed to load revenue data",
+      dzd: "DZD",
+      statusLabels: {
+        pending: "Pending",
+        confirmed: "Confirmed",
+        shipped: "Shipped",
+        delivered: "Delivered",
+        cancelled: "Cancelled",
+      },
+    },
+    trafficAnalyticsPage: {
+      title: "Traffic Analytics",
+      subtitle: "See where your store and product visitors come from",
+      totalVisits: "Total Visits",
+      totalVisitsDesc: "Product page visits",
+      totalOrders: "Total Orders",
+      totalOrdersDesc: "Non-cancelled orders in range",
+      conversionRate: "Conversion Rate",
+      conversionRateDesc: "Orders ÷ visits",
+      topSource: "Top Source",
+      topSourceDesc: "Most visits in range",
+      rangeToday: "Today",
+      range7d: "7 days",
+      range30d: "30 days",
+      rangeCustom: "Custom",
+      from: "From",
+      to: "To",
+      scopeLabel: "Scope",
+      wholeStore: "Whole store",
+      visitsTrend: "Visits Trend",
+      visitsTrendEmpty: "No visits in this period",
+      sourceBreakdown: "Source Performance",
+      colSource: "Source",
+      colVisits: "Visits",
+      colShare: "Share",
+      noSources: "No source data yet",
+      exportCsv: "Export CSV",
+      exporting: "Exporting…",
+      error: "Failed to load traffic analytics",
+      visits: "visits",
+      sources: {
+        instagram: "Instagram",
+        tiktok: "TikTok",
+        whatsapp: "WhatsApp",
+        facebook: "Facebook",
+        direct: "Direct",
+        other: "Other",
+      },
+    },
+    trackedLinks: {
+      title: "Tracked Links",
+      subtitle: "Share these links on your platforms to track where visits come from",
+      copy: "Copy",
+      copied: "Copied",
+      copyAll: "Copy all",
+      hint: "Each link carries a platform tag so you can see which channel drives traffic.",
     },
   },
 };

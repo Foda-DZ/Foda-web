@@ -115,6 +115,11 @@ interface PaymentInfo {
   baridimobPhone: string;
 }
 
+// ─── Shipping Skeleton ────────────────────────────────────────────────────────
+function ShippingSkeleton() {
+  return <span className="inline-block h-4 w-16 bg-charcoal/10 animate-pulse rounded" />;
+}
+
 // ─── Order Summary ────────────────────────────────────────────────────────────
 function OrderSummary({
   items,
@@ -132,37 +137,57 @@ function OrderSummary({
   shippingError: string;
 }) {
   const { tr } = useLang();
+
+  const savingsTotal = items.reduce((sum, i) => {
+    if (i.product.originalPrice && i.product.originalPrice > i.product.price) {
+      return sum + (i.product.originalPrice - i.product.price) * i.quantity;
+    }
+    return sum;
+  }, 0);
+
   return (
     <div className="bg-white border border-charcoal/8 p-6 space-y-5 lg:sticky lg:top-28">
       <h3 className="font-display font-bold text-charcoal text-lg">
         {tr.checkout.orderSummary}
       </h3>
       <div className="space-y-3 max-h-60 overflow-y-auto pe-1">
-        {items.map((item) => (
-          <div key={item.key} className="flex gap-3">
-            <div className="w-14 h-16 shrink-0 bg-cream overflow-hidden">
-              <img
-                src={item.product.images[0]}
-                alt={item.product.name}
-                className="w-full h-full object-cover"
-              />
+        {items.map((item) => {
+          const hasDiscount =
+            item.product.originalPrice !== undefined &&
+            item.product.originalPrice > item.product.price;
+          return (
+            <div key={item.key} className="flex gap-3">
+              <div className="w-14 h-16 shrink-0 bg-cream overflow-hidden">
+                <img
+                  src={item.product.images[0]}
+                  alt={item.product.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-charcoal/40 text-[10px] uppercase tracking-wider">
+                  {item.product.category}
+                </p>
+                <p className="text-charcoal text-sm font-semibold leading-tight truncate">
+                  {item.product.name}
+                </p>
+                <p className="text-charcoal/50 text-xs mt-0.5">
+                  {item.size} · ×{item.quantity}
+                </p>
+              </div>
+              <div className="text-end shrink-0">
+                {hasDiscount && (
+                  <p className="text-charcoal/35 text-xs line-through">
+                    {((item.product.originalPrice ?? 0) * item.quantity).toLocaleString()}
+                  </p>
+                )}
+                <p className={`font-bold text-sm ${hasDiscount ? "text-gold" : "text-charcoal"}`}>
+                  {(item.product.price * item.quantity).toLocaleString()}
+                </p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-charcoal/40 text-[10px] uppercase tracking-wider">
-                {item.product.category}
-              </p>
-              <p className="text-charcoal text-sm font-semibold leading-tight truncate">
-                {item.product.name}
-              </p>
-              <p className="text-charcoal/50 text-xs mt-0.5">
-                {item.size} · ×{item.quantity}
-              </p>
-            </div>
-            <p className="text-charcoal font-bold text-sm shrink-0">
-              {(item.product.price * item.quantity).toLocaleString()}
-            </p>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <div className="border-t border-charcoal/8 pt-4 space-y-2">
         <div className="flex justify-between text-sm text-charcoal/60">
@@ -171,22 +196,34 @@ function OrderSummary({
             {subtotal.toLocaleString()} {tr.common.dzd}
           </span>
         </div>
+        {savingsTotal > 0 && (
+          <div className="flex justify-between text-sm font-medium text-emerald-600">
+            <span>You save</span>
+            <span>-{savingsTotal.toLocaleString()} {tr.common.dzd}</span>
+          </div>
+        )}
         <div className="flex justify-between text-sm text-charcoal/60">
           <span>{tr.checkout.shipping}</span>
           <span className="text-gold font-semibold">
-            {shippingLoading
-              ? "Calculating..."
-              : shippingError
-                ? "Unavailable"
-                : `${shipping.toLocaleString()} ${tr.common.dzd}`}
+            {shippingLoading ? (
+              <ShippingSkeleton />
+            ) : shippingError ? (
+              "Unavailable"
+            ) : (
+              `${shipping.toLocaleString()} ${tr.common.dzd}`
+            )}
           </span>
         </div>
         <div className="h-px bg-charcoal/8" />
-        <div className="flex justify-between font-bold">
+        <div className="flex justify-between font-bold items-center">
           <span className="text-charcoal">{tr.checkout.total}</span>
-          <span className="gold-text font-display text-xl">
-            {total.toLocaleString()} {tr.common.dzd}
-          </span>
+          {shippingLoading ? (
+            <span className="inline-block h-6 w-24 bg-charcoal/10 animate-pulse rounded" />
+          ) : (
+            <span className="gold-text font-display text-xl">
+              {total.toLocaleString()} {tr.common.dzd}
+            </span>
+          )}
         </div>
       </div>
       <div className="border-t border-charcoal/8 pt-4 space-y-2">
@@ -605,30 +642,42 @@ function ReviewConfirmStep({
           {tr.checkout.orderItems} ({items.reduce((s, i) => s + i.quantity, 0)})
         </p>
         <div className="space-y-3">
-          {items.map((item) => (
-            <div
-              key={item.key}
-              className="flex justify-between items-center text-sm"
-            >
-              <div>
-                <span className="text-charcoal font-medium">
-                  {item.product.name}
-                </span>
-                <span className="text-charcoal/40 ms-2">
-                  &times; {item.quantity}
-                </span>
-                {item.size && (
-                  <span className="text-charcoal/40 text-xs ms-1">
-                    ({item.size})
+          {items.map((item) => {
+            const hasDiscount =
+              item.product.originalPrice !== undefined &&
+              item.product.originalPrice > item.product.price;
+            return (
+              <div
+                key={item.key}
+                className="flex justify-between items-start text-sm"
+              >
+                <div>
+                  <span className="text-charcoal font-medium">
+                    {item.product.name}
                   </span>
-                )}
+                  <span className="text-charcoal/40 ms-2">
+                    &times; {item.quantity}
+                  </span>
+                  {item.size && (
+                    <span className="text-charcoal/40 text-xs ms-1">
+                      ({item.size})
+                    </span>
+                  )}
+                </div>
+                <div className="text-end ms-3 shrink-0">
+                  {hasDiscount && (
+                    <span className="block text-charcoal/35 text-xs line-through">
+                      {((item.product.originalPrice ?? 0) * item.quantity).toLocaleString()} {tr.common.dzd}
+                    </span>
+                  )}
+                  <span className={`font-semibold ${hasDiscount ? "text-gold" : "text-charcoal"}`}>
+                    {(item.product.price * item.quantity).toLocaleString()}{" "}
+                    {tr.common.dzd}
+                  </span>
+                </div>
               </div>
-              <span className="font-semibold text-charcoal">
-                {(item.product.price * item.quantity).toLocaleString()}{" "}
-                {tr.common.dzd}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div className="border-t border-charcoal/8 pt-3 space-y-1.5">
           <div className="flex justify-between text-sm text-charcoal/50">
@@ -637,21 +686,41 @@ function ReviewConfirmStep({
               {subtotal.toLocaleString()} {tr.common.dzd}
             </span>
           </div>
-          <div className="flex justify-between text-sm text-charcoal/50">
+          {(() => {
+            const savingsTotal = items.reduce((sum, i) => {
+              if (i.product.originalPrice && i.product.originalPrice > i.product.price) {
+                return sum + (i.product.originalPrice - i.product.price) * i.quantity;
+              }
+              return sum;
+            }, 0);
+            return savingsTotal > 0 ? (
+              <div className="flex justify-between text-sm font-medium text-emerald-600">
+                <span>You save</span>
+                <span>-{savingsTotal.toLocaleString()} {tr.common.dzd}</span>
+              </div>
+            ) : null;
+          })()}
+          <div className="flex justify-between text-sm text-charcoal/50 items-center">
             <span>{tr.checkout.shipping}</span>
             <span className="text-gold">
-              {shippingLoading
-                ? "Calculating..."
-                : shippingError
-                  ? "Unavailable"
-                  : `${shipping.toLocaleString()} ${tr.common.dzd}`}
+              {shippingLoading ? (
+                <ShippingSkeleton />
+              ) : shippingError ? (
+                "Unavailable"
+              ) : (
+                `${shipping.toLocaleString()} ${tr.common.dzd}`
+              )}
             </span>
           </div>
-          <div className="flex justify-between font-bold text-base border-t border-charcoal/8 pt-2 mt-2">
+          <div className="flex justify-between font-bold text-base border-t border-charcoal/8 pt-2 mt-2 items-center">
             <span className="text-charcoal">{tr.checkout.total}</span>
-            <span className="gold-text font-display">
-              {total.toLocaleString()} {tr.common.dzd}
-            </span>
+            {shippingLoading ? (
+              <span className="inline-block h-5 w-20 bg-charcoal/10 animate-pulse rounded" />
+            ) : (
+              <span className="gold-text font-display">
+                {total.toLocaleString()} {tr.common.dzd}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -675,11 +744,13 @@ function ReviewConfirmStep({
         <Button
           onClick={onPlace}
           loading={placing}
+          disabled={placing || shippingLoading}
           className="h-11 flex-1 gap-2"
         >
-          {tr.checkout.placeOrder} &middot; {total.toLocaleString()}{" "}
-          {tr.common.dzd}
-          <ArrowForwardIcon sx={{ fontSize: 15 }} />
+          {shippingLoading
+            ? "Calculating shipping..."
+            : `${tr.checkout.placeOrder} · ${total.toLocaleString()} ${tr.common.dzd}`}
+          {!shippingLoading && <ArrowForwardIcon sx={{ fontSize: 15 }} />}
         </Button>
       </div>
     </div>

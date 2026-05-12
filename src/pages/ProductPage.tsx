@@ -14,6 +14,8 @@ import FacebookIcon from "@mui/icons-material/Facebook";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import LoopIcon from "@mui/icons-material/Loop";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import StarIcon from "@mui/icons-material/Star";
 import StarHalfIcon from "@mui/icons-material/StarHalf";
 import StarOutlineIcon from "@mui/icons-material/StarOutline";
@@ -21,6 +23,7 @@ import Footer from "../components/Footer";
 import ImageGallery from "../components/product/ImageGallery";
 import ProductCard from "../components/ui/ProductCard";
 import { productsService } from "../services/productsService";
+import { sellerService } from "../services/sellerService";
 import { apiProductToProduct } from "../lib/mappers";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
@@ -158,7 +161,7 @@ export default function ProductPage() {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user, openLogin } = useAuth();
   const isCustomer = user?.role === "customer";
-  const { tr } = useLang();
+  const { tr, isRTL } = useLang();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);
@@ -182,6 +185,7 @@ export default function ProductPage() {
   const [shareError, setShareError] = useState("");
   const [shareCopied, setShareCopied] = useState(false);
   const [shareData, setShareData] = useState<ApiProductShare | null>(null);
+  const [cartAdded, setCartAdded] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -216,6 +220,31 @@ export default function ProductPage() {
   useEffect(() => {
     setOpenGraphTags(product);
   }, [product]);
+
+  // Record an anonymous visit (tracked-link beacon) — fire once per product view
+  useEffect(() => {
+    if (!id) return;
+    const allowed = ["instagram", "tiktok", "whatsapp", "facebook"];
+    const raw = new URLSearchParams(location.search).get("src");
+    const source = raw && allowed.includes(raw.toLowerCase()) ? raw.toLowerCase() : "direct";
+    let visitorId: string;
+    try {
+      visitorId = localStorage.getItem("foda_vid") || "";
+      if (!visitorId) {
+        visitorId =
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `v_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        localStorage.setItem("foda_vid", visitorId);
+      }
+    } catch {
+      visitorId = `v_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    }
+    const deviceType = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "mobile" : "desktop";
+    sellerService
+      .trackProductVisit(id, { source, visitorId, deviceType, referrer: document.referrer || undefined })
+      .catch(() => undefined);
+  }, [id, location.search]);
 
   useEffect(() => {
     if (!id) return;
@@ -253,6 +282,22 @@ export default function ProductPage() {
           100,
       )
     : 0;
+
+  // Active promotion from seller
+  const promo = product?.promotion?.active && (product.promotion.value ?? 0) > 0
+    ? product.promotion
+    : null;
+  const promoDiscountedPrice = promo
+    ? promo.type === "percentage"
+      ? product!.price * (1 - promo.value! / 100)
+      : Math.max(0, product!.price - promo.value!)
+    : null;
+  const promoPercent = promo && promo.type === "percentage"
+    ? promo.value!
+    : promo && promo.type === "amount" && product
+      ? Math.round((promo.value! / product.price) * 100)
+      : 0;
+
   const isOutOfStock = product ? product.stock === 0 : false;
   const hasSizes = product ? product.sizes.length > 0 : false;
   const hasColors = product ? product.colors.length > 0 : false;
@@ -313,6 +358,9 @@ export default function ProductPage() {
     const sizeToAdd = selectedSize ?? "One Size";
     const colorToAdd = selectedColor ?? "Default";
     addItem(product, sizeToAdd, colorToAdd, quantity);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setCartAdded(true);
+    setTimeout(() => setCartAdded(false), 4000);
   };
 
   const handleBuyNow = () => {
@@ -596,26 +644,78 @@ export default function ProductPage() {
               </div>
             )}
 
+            {/* Promotion banner */}
+            {promo && (
+              <div className="relative overflow-hidden border border-[#C9A84C]/30 bg-gradient-to-r from-[#C9A84C]/8 via-[#C9A84C]/5 to-transparent px-4 py-3 flex items-center gap-3">
+                <div className="shrink-0 w-8 h-8 gold-gradient flex items-center justify-center">
+                  <LocalOfferIcon sx={{ fontSize: 15, color: "#1A1A2E" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#C9A84C]">
+                    {isRTL ? "عرض خاص" : "Special Offer"}
+                  </p>
+                  <p className="text-xs font-semibold text-[#1A1A2E] mt-0.5">
+                    {promo.type === "percentage"
+                      ? isRTL
+                        ? `خصم ${promo.value}% على هذا المنتج`
+                        : `${promo.value}% off this product`
+                      : isRTL
+                        ? `خصم ${promo.value} ${tr.common.dzd} على السعر`
+                        : `Save ${promo.value} ${tr.common.dzd} on this item`}
+                  </p>
+                </div>
+                <div className="shrink-0 text-end">
+                  <p className="text-[10px] text-[#1A1A2E]/40 uppercase tracking-wide font-semibold">
+                    {isRTL ? "توفير" : "Save"}
+                  </p>
+                  <p className="text-sm font-bold text-[#C9A84C]">
+                    -{promoPercent}%
+                  </p>
+                </div>
+                {/* Decorative stripe */}
+                <div className="absolute inset-y-0 right-0 w-1 gold-gradient opacity-60" />
+              </div>
+            )}
+
             {/* Price + Stock panel */}
             <div className="bg-[#FAF7F2] border border-[#C9A84C]/10 px-5 py-4 space-y-2">
-              <div className="flex items-baseline gap-3">
-                <span className="text-2xl font-bold text-[#1A1A2E]">
-                  {product.price.toLocaleString()}{" "}
-                  <span className="text-sm font-normal text-[#1A1A2E]/45">
-                    {tr.common.dzd}
+              {promo && promoDiscountedPrice !== null ? (
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-2xl font-bold text-[#1A1A2E]">
+                      {Math.round(promoDiscountedPrice).toLocaleString()}{" "}
+                      <span className="text-sm font-normal text-[#1A1A2E]/45">
+                        {tr.common.dzd}
+                      </span>
+                    </span>
+                    <span className="text-base text-[#1A1A2E]/35 line-through">
+                      {product.price.toLocaleString()}
+                    </span>
+                    <span className="inline-flex items-center px-2 py-0.5 gold-gradient text-[10px] font-bold text-[#1A1A2E] uppercase tracking-wide">
+                      -{promoPercent}%
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-baseline gap-3">
+                  <span className="text-2xl font-bold text-[#1A1A2E]">
+                    {product.price.toLocaleString()}{" "}
+                    <span className="text-sm font-normal text-[#1A1A2E]/45">
+                      {tr.common.dzd}
+                    </span>
                   </span>
-                </span>
-                {hasDiscount && (
-                  <>
-                    <span className="text-lg text-[#1A1A2E]/30 line-through">
-                      {product.originalPrice!.toLocaleString()}
-                    </span>
-                    <span className="text-sm font-bold text-red-500">
-                      -{discountPercent}%
-                    </span>
-                  </>
-                )}
-              </div>
+                  {hasDiscount && (
+                    <>
+                      <span className="text-lg text-[#1A1A2E]/30 line-through">
+                        {product.originalPrice!.toLocaleString()}
+                      </span>
+                      <span className="text-sm font-bold text-red-500">
+                        -{discountPercent}%
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
 
               {/* Stock indicator */}
               {isOutOfStock ? (
@@ -1034,6 +1134,26 @@ export default function ProductPage() {
           </section>
         )}
       </div>
+
+      {/* ── Cart added toast ───────────────────────────────────────────── */}
+      {cartAdded && (
+        <div
+          className={`fixed top-6 ${isRTL ? "left-6" : "right-6"} z-[200] flex items-center gap-3 px-5 py-4 bg-[#1A1A2E] text-white shadow-2xl max-w-xs transition-all`}
+          dir={isRTL ? "rtl" : "ltr"}
+        >
+          <div className="shrink-0 w-8 h-8 gold-gradient flex items-center justify-center">
+            <CheckCircleOutlinedIcon sx={{ fontSize: 16, color: "#1A1A2E" }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#C9A84C]">
+              {isRTL ? "تمت الإضافة" : "Added to cart"}
+            </p>
+            <p className="text-xs text-white/70 mt-0.5 truncate">
+              {product?.name}
+            </p>
+          </div>
+        </div>
+      )}
 
       {isShareOpen && (
         <div className="fixed inset-0 z-[120] bg-black/55 backdrop-blur-sm flex items-center justify-center p-4">

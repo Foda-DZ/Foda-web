@@ -15,8 +15,11 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
+import { useLang } from "../../context/LangContext";
 
 export default function ProductAnalyticsPage() {
+  const { tr, isRTL } = useLang();
+  const t = tr.seller.productAnalyticsPage;
   const { id } = useParams<{ id: string }>();
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -30,19 +33,19 @@ export default function ProductAnalyticsPage() {
         const r = await sellerService.getProductAnalytics(id);
         setAnalytics(r);
       } catch (err: any) {
-        setError(err?.message || "Failed to load analytics");
+        setError(err?.message || t.toastLoadError);
       } finally {
         setLoading(false);
       }
     };
     load();
-  }, [id]);
+  }, [id, t.toastLoadError]);
 
   return (
     <SellerLayout>
-      <div className="p-6">
+      <div className="p-6" dir={isRTL ? "rtl" : "ltr"}>
         <Typography variant="h5" gutterBottom>
-          Product Analytics
+          {t.title}
         </Typography>
         <Paper className="p-4">
           {loading ? (
@@ -55,19 +58,23 @@ export default function ProductAnalyticsPage() {
             <div>{error}</div>
           ) : (
             <>
-              <Typography variant="subtitle1">Totals</Typography>
-              <div>Units Sold: {analytics.totals?.unitsSold ?? 0}</div>
-              <div>Revenue: {analytics.totals?.revenue ?? 0}</div>
+              <Typography variant="subtitle1">{t.totals}</Typography>
+              <div>
+                {t.unitsSold}: {analytics.totals?.unitsSold ?? 0}
+              </div>
+              <div>
+                {t.revenue}: {analytics.totals?.revenue ?? 0}
+              </div>
 
               <Typography variant="subtitle1" sx={{ mt: 2 }}>
-                By Size
+                {t.bySize}
               </Typography>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Size</TableCell>
-                    <TableCell>Units Sold</TableCell>
-                    <TableCell>Revenue</TableCell>
+                    <TableCell>{t.size}</TableCell>
+                    <TableCell>{t.unitsSold}</TableCell>
+                    <TableCell>{t.revenue}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -81,9 +88,7 @@ export default function ProductAnalyticsPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={3}>
-                        No sales for this product yet
-                      </TableCell>
+                      <TableCell colSpan={3}>{t.noSalesYet}</TableCell>
                     </TableRow>
                   )}
                 </TableBody>

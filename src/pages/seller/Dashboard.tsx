@@ -34,11 +34,19 @@ import { useSellerContext } from "../../context/SellerContext";
 import SellerLayout from "../../components/seller/SellerLayout";
 import type { ApiOrderStatus } from "../../types/api";
 
+// ─── Local types ──────────────────────────────────────────────────────────────
+interface QuickAction {
+  label: string;
+  description: string;
+  Icon: SvgIconComponent;
+  to: string;
+  primary?: boolean;
+}
+
 // ─── Status icon map (language-independent) ──────────────────────────────────
-const STATUS_ICONS: Record<
-  ApiOrderStatus,
-  { dot: string; badge: string; Icon: SvgIconComponent }
-> = {
+type StatusConfig = { dot: string; badge: string; Icon: SvgIconComponent };
+
+const STATUS_ICONS: Record<ApiOrderStatus, StatusConfig> = {
   pending: {
     dot: "bg-amber-400",
     badge: "bg-amber-100 text-amber-700",
@@ -65,6 +73,14 @@ const STATUS_ICONS: Record<
     Icon: CancelIcon,
   },
 };
+
+/** Runtime-safe lookup — falls back to pending style for unknown/future statuses */
+function getStatusConfig(status: string): StatusConfig {
+  return (
+    (STATUS_ICONS as Record<string, StatusConfig>)[status] ??
+    STATUS_ICONS.pending
+  );
+}
 
 // ─── Enhanced Stat Card ───────────────────────────────────────────────────────
 function StatCard({
@@ -268,10 +284,10 @@ function StatusBadge({
   status,
   label,
 }: {
-  status: ApiOrderStatus;
+  status: string;
   label: string;
 }) {
-  const cfg = STATUS_ICONS[status];
+  const cfg = getStatusConfig(status);
   return (
     <span
       className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${cfg.badge}`}
@@ -285,48 +301,54 @@ function StatusBadge({
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { user } = useAuth();
-  const { tr, lang } = useLang();
+  const { tr, isRTL } = useLang();
   const t = tr.seller.dash;
   const sl = tr.seller.statusLabels;
   const { getSellerStats, getSellerOrders, allOrders, loading } =
     useSellerContext();
   const navigate = useNavigate();
 
-  const statusLabelMap: Record<ApiOrderStatus, string> = {
-    pending: sl.pending,
-    confirmed: sl.confirmed,
-    shipped: sl.shipped,
-    delivered: sl.delivered,
-    cancelled: sl.cancelled,
-  };
+  const statusLabelMap = useMemo<Record<ApiOrderStatus, string>>(
+    () => ({
+      pending: sl.pending,
+      confirmed: sl.confirmed,
+      shipped: sl.shipped,
+      delivered: sl.delivered,
+      cancelled: sl.cancelled,
+    }),
+    [sl],
+  );
 
-  const quickActions = [
-    {
-      label: t.addProduct,
-      description: t.listNewProduct,
-      Icon: AddIcon,
-      to: "/seller/products/new",
-      primary: true,
-    },
-    {
-      label: t.viewOrders,
-      description: t.manageOrders,
-      Icon: ShoppingBagIcon,
-      to: "/seller/orders",
-    },
-    {
-      label: t.editProducts,
-      description: t.updateListings,
-      Icon: EditNoteIcon,
-      to: "/seller/products",
-    },
-    {
-      label: tr.seller.layout.storeSettings,
-      description: t.configureStore,
-      Icon: SettingsOutlinedIcon,
-      to: "/seller/settings",
-    },
-  ];
+  const quickActions = useMemo<QuickAction[]>(
+    () => [
+      {
+        label: t.addProduct,
+        description: t.listNewProduct,
+        Icon: AddIcon,
+        to: "/seller/products/new",
+        primary: true,
+      },
+      {
+        label: t.viewOrders,
+        description: t.manageOrders,
+        Icon: ShoppingBagIcon,
+        to: "/seller/orders",
+      },
+      {
+        label: t.editProducts,
+        description: t.updateListings,
+        Icon: EditNoteIcon,
+        to: "/seller/products",
+      },
+      {
+        label: tr.seller.layout.storeSettings,
+        description: t.configureStore,
+        Icon: SettingsOutlinedIcon,
+        to: "/seller/settings",
+      },
+    ],
+    [t, tr.seller.layout.storeSettings],
+  );
 
   const stats = useMemo(
     () => (user ? getSellerStats(user.id) : null),
@@ -372,8 +394,7 @@ export default function Dashboard() {
     [allOrders],
   );
 
-  const dateLocale = lang === "ar" ? "ar-DZ" : "en-GB";
-  const isRTL = lang === "ar";
+  const dateLocale = isRTL ? "ar-DZ" : "en-GB";
 
   return (
     <SellerLayout>
@@ -474,6 +495,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {quickActions.map(({ label, description, Icon, to, primary }) => (
               <button
+                key={to}
                 onClick={() => navigate(to)}
                 className={`group p-4 border text-start transition-all duration-200 ${
                   primary
@@ -634,7 +656,7 @@ export default function Dashboard() {
                         <td className="px-4 py-3.5">
                           <StatusBadge
                             status={order.status}
-                            label={statusLabelMap[order.status]}
+                            label={statusLabelMap[order.status] ?? order.status}
                           />
                         </td>
                       </tr>
@@ -717,7 +739,7 @@ export default function Dashboard() {
 
                 {/* Progress bars */}
                 {statusBreakdown.map(({ status, count, pct }) => {
-                  const cfg = STATUS_ICONS[status];
+                  const cfg = getStatusConfig(status);
                   return (
                     <div key={status} className="space-y-1.5">
                       <div className="flex items-center justify-between">
