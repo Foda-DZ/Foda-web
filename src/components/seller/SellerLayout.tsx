@@ -12,6 +12,7 @@ import ChevronRightOutlinedIcon from "@mui/icons-material/ChevronRightOutlined";
 import WarehouseOutlinedIcon from "@mui/icons-material/WarehouseOutlined";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import TrendingUpOutlinedIcon from "@mui/icons-material/TrendingUpOutlined";
+import MusicNoteOutlinedIcon from "@mui/icons-material/MusicNoteOutlined";
 import MenuOpenOutlinedIcon from "@mui/icons-material/MenuOpenOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import TranslateOutlinedIcon from "@mui/icons-material/TranslateOutlined";
@@ -87,6 +88,11 @@ const NAV_GROUPS = [
         labelKey: "metaAds",
         Icon: AdsClickOutlinedIcon,
       },
+      {
+        to: "/seller/tiktok-ads",
+        labelKey: "tiktokAds",
+        Icon: MusicNoteOutlinedIcon,
+      },
     ],
   },
   {
@@ -107,6 +113,7 @@ const LABEL_FALLBACKS: Record<string, { en: string; ar: string }> = {
   promotions: { en: "Promotions", ar: "العروض" },
   revenue: { en: "Revenue", ar: "الإيرادات" },
   metaAds: { en: "Meta Ads", ar: "إعلانات Meta" },
+  tiktokAds: { en: "TikTok Ads", ar: "إعلانات TikTok" },
   trafficAnalytics: { en: "Traffic Analytics", ar: "تحليلات حركة المرور" },
 };
 
