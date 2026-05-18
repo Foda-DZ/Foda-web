@@ -244,7 +244,6 @@ export interface TikTokStatusResponse {
 export interface AddProductPayload {
   name: string;
   price: number;
-  stock: number;
   mainCategory: string;
   subCategory: string;
   description?: string;
@@ -256,12 +255,20 @@ export interface AddProductPayload {
 export interface UpdateProductPayload {
   name: string;
   price: number;
-  stock: number;
   mainCategory: string;
   subCategory: string;
   description?: string;
   sizes: string[];
   colors: string[];
+}
+
+/** Single variant cell update sent to the Inventory bulk-save endpoint. */
+export interface InventoryVariantUpdate {
+  variantId?: string;
+  size: string;
+  color: string;
+  stock: number;
+  sku?: string;
 }
 
 export const sellerService = {
@@ -273,8 +280,7 @@ export const sellerService = {
   addProduct: (payload: AddProductPayload) => {
     const form = new FormData();
     form.append("name", payload.name);
-    form.append("price", String(payload.price));
-    form.append("stock", String(payload.stock));
+    form.append("price", Number(payload.price));
     form.append("mainCategory", payload.mainCategory);
     form.append("subCategory", payload.subCategory);
     if (payload.description) form.append("description", payload.description);
@@ -502,21 +508,58 @@ export const sellerService = {
     productId: string,
     body: { source?: string; visitorId?: string; deviceType?: string; referrer?: string },
   ) => api.post(`/products/${productId}/visit`, body).then((r) => r.data),
-  // Inventory & Promotions
+  // ─── Inventory ────────────────────────────────────────────────────────────
   getInventoryStats: (): Promise<{
     totalActive: number;
     lowStock: number;
     outOfStock: number;
     outOfStockVariants: number;
     totalUnits: number;
-    lowStockItems: { _id: string; name: string; stock: number; images: { url: string }[] }[];
-    outOfStockItems: { _id: string; name: string; stock: number; images: { url: string }[] }[];
+    lowStockItems: {
+      _id: string;
+      name: string;
+      totalStock: number;
+      minVariantStock?: number;
+      images: { url: string }[];
+      worstVariant?: { size: string; color: string; stock: number };
+    }[];
+    outOfStockItems: {
+      _id: string;
+      name: string;
+      totalStock: number;
+      images: { url: string }[];
+    }[];
   }> =>
     api.get(`/seller/inventory/stats`).then((r) => r.data.stats),
 
   getInventory: (params?: { page?: number; limit?: number; search?: string }) =>
-    api.get<{ inventory: { items: any[]; total: number; page: number; limit: number; totalPages: number } }>(`/seller/inventory`, { params }).then((r) => r.data.inventory),
-  updateInventory: (productId: string, payload: { stock?: number; sizeVariants?: { size: string; stock: number }[] }) => api.put(`/seller/inventory/${productId}`, payload).then((r) => r.data),
+    api
+      .get<{
+        inventory: {
+          items: Array<{
+            _id: string;
+            name: string;
+            sizes: string[];
+            colors: string[];
+            variants: Array<{ _id: string; size: string; color: string; stock: number; sku?: string }>;
+            totalStock: number;
+            inStock: boolean;
+            lowestVariantStock: number;
+            images: { url: string }[];
+          }>;
+          total: number;
+          page: number;
+          limit: number;
+          totalPages: number;
+        };
+      }>(`/seller/inventory`, { params })
+      .then((r) => r.data.inventory),
+
+  /** Bulk-update variant cells. Send only the cells the seller actually changed. */
+  updateInventory: (productId: string, payload: { variants: InventoryVariantUpdate[] }) =>
+    api
+      .put<{ message: string; product: ApiProduct }>(`/seller/inventory/${productId}`, payload)
+      .then((r) => r.data.product),
 
   getProductPromotion: (productId: string) =>
     api

@@ -192,7 +192,7 @@ export default function CartPage() {
                         onClick={() =>
                           updateQty(
                             item.key,
-                            Math.min(item.quantity + 1, item.product.stock),
+                            item.quantity + 1,
                           )
                         }
                         size="small"

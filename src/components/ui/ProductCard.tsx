@@ -49,8 +49,8 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
   const [hovered, setHovered] = useState(false);
   const liked = isCustomer && isInWishlist(product.id);
   const hasSecondImage = product.images.length > 1;
-  const isOutOfStock = product.stock === 0;
-  const isLowStock = !isOutOfStock && product.stock <= 5;
+  const isOutOfStock = !product.inStock || product.totalStock === 0;
+  const isLowStock = !isOutOfStock && product.totalStock <= 5;
   const hasDiscount =
     product.originalPrice && product.originalPrice > product.price;
   const discountPercent = hasDiscount
@@ -112,7 +112,7 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
           )}
           {isLowStock && (
             <span className="text-white bg-orange-500/90 text-[9px] font-bold tracking-widest px-2 py-0.5 uppercase">
-              {product.stock} left
+              {product.totalStock} left
             </span>
           )}
         </div>

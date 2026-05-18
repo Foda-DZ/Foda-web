@@ -298,13 +298,46 @@ export default function ProductPage() {
       ? Math.round((promo.value! / product.price) * 100)
       : 0;
 
-  const isOutOfStock = product ? product.stock === 0 : false;
+  const isOutOfStock = product ? !product.inStock || product.totalStock <= 0 : false;
   const hasSizes = product ? product.sizes.length > 0 : false;
   const hasColors = product ? product.colors.length > 0 : false;
+
+  // Variant-aware availability. A size is available when at least one variant
+  // for that size has stock > 0 (and matches the currently selected color, if any).
+  // Same logic for colors. Once both are picked, `selectedVariant.stock` is the cap.
+  const availableSizes = useMemo(() => {
+    if (!product) return new Set<string>();
+    return new Set(
+      product.variants
+        .filter((v) => v.stock > 0 && (!selectedColor || v.color === selectedColor))
+        .map((v) => v.size),
+    );
+  }, [product, selectedColor]);
+
+  const availableColors = useMemo(() => {
+    if (!product) return new Set<string>();
+    return new Set(
+      product.variants
+        .filter((v) => v.stock > 0 && (!selectedSize || v.size === selectedSize))
+        .map((v) => v.color),
+    );
+  }, [product, selectedSize]);
+
+  const selectedVariant = useMemo(() => {
+    if (!product || !selectedSize || !selectedColor) return null;
+    return (
+      product.variants.find(
+        (v) => v.size === selectedSize && v.color === selectedColor,
+      ) ?? null
+    );
+  }, [product, selectedSize, selectedColor]);
+
+  const variantStock = selectedVariant?.stock ?? 0;
   const canAdd =
     !isOutOfStock &&
-    (!hasSizes || selectedSize) &&
-    (!hasColors || selectedColor);
+    (!hasSizes || !!selectedSize) &&
+    (!hasColors || !!selectedColor) &&
+    (!selectedVariant || variantStock > 0);
 
   const reviewStats = useMemo(() => {
     const total = reviews.length;
@@ -347,7 +380,7 @@ export default function ProductPage() {
     }).format(new Date(date));
 
   const handleAddToCart = () => {
-    if (!product) return;
+    if (!product || !canAdd || !selectedSize || !selectedColor) return;
     if (!user || user.role !== "customer") {
       openLogin({
         customerOnly: true,
@@ -355,16 +388,15 @@ export default function ProductPage() {
       });
       return;
     }
-    const sizeToAdd = selectedSize ?? "One Size";
-    const colorToAdd = selectedColor ?? "Default";
-    addItem(product, sizeToAdd, colorToAdd, quantity);
+    const qty = Math.max(1, Math.min(quantity, variantStock));
+    addItem(product, selectedSize, selectedColor, qty);
     window.scrollTo({ top: 0, behavior: "smooth" });
     setCartAdded(true);
     setTimeout(() => setCartAdded(false), 4000);
   };
 
   const handleBuyNow = () => {
-    if (!product) return;
+    if (!product || !canAdd || !selectedSize || !selectedColor) return;
     if (!user || user.role !== "customer") {
       openLogin({
         customerOnly: true,
@@ -372,9 +404,8 @@ export default function ProductPage() {
       });
       return;
     }
-    const sizeToAdd = selectedSize ?? "One Size";
-    const colorToAdd = selectedColor ?? "Default";
-    addItem(product, sizeToAdd, colorToAdd, quantity);
+    const qty = Math.max(1, Math.min(quantity, variantStock));
+    addItem(product, selectedSize, selectedColor, qty);
     navigate("/checkout");
   };
 
@@ -717,14 +748,25 @@ export default function ProductPage() {
                 </div>
               )}
 
-              {/* Stock indicator */}
+              {/* Stock indicator — once a variant is picked, show its exact stock.
+                  Before that, fall back to the product total. */}
               {isOutOfStock ? (
                 <span className="text-sm font-semibold text-red-500">
                   {tr.shop.soldOut}
                 </span>
-              ) : product.stock <= 5 ? (
+              ) : selectedVariant ? (
+                variantStock === 0 ? (
+                  <span className="text-sm font-semibold text-red-500">
+                    {tr.shop.soldOut}
+                  </span>
+                ) : variantStock <= 5 ? (
+                  <span className="text-sm font-medium text-orange-500">
+                    {variantStock} {tr.shop.left}
+                  </span>
+                ) : null
+              ) : product.totalStock <= 5 ? (
                 <span className="text-sm font-medium text-orange-500">
-                  {product.stock} {tr.shop.left}
+                  {product.totalStock} {tr.shop.left}
                 </span>
               ) : null}
             </div>
@@ -740,19 +782,25 @@ export default function ProductPage() {
                   <span className="text-[#1A1A2E]">{selectedSize}</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setSelectedSize(s)}
-                      className={`px-4 py-2 text-sm font-semibold border-2 transition-all duration-200 ${
-                        selectedSize === s
-                          ? "border-[#C9A84C] text-[#C9A84C] bg-[#C9A84C]/5"
-                          : "border-[#1A1A2E]/12 text-[#1A1A2E]/60 hover:border-[#1A1A2E]/30"
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
+                  {product.sizes.map((s) => {
+                    const enabled = availableSizes.has(s);
+                    return (
+                      <button
+                        key={s}
+                        onClick={() => enabled && setSelectedSize(s)}
+                        disabled={!enabled}
+                        className={`px-4 py-2 text-sm font-semibold border-2 transition-all duration-200 ${
+                          selectedSize === s
+                            ? "border-[#C9A84C] text-[#C9A84C] bg-[#C9A84C]/5"
+                            : enabled
+                              ? "border-[#1A1A2E]/12 text-[#1A1A2E]/60 hover:border-[#1A1A2E]/30"
+                              : "border-[#1A1A2E]/8 text-[#1A1A2E]/25 line-through cursor-not-allowed"
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -765,23 +813,33 @@ export default function ProductPage() {
                   <span className="text-[#1A1A2E]">{selectedColor}</span>
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  {product.colors.map((c) => (
-                    <div key={c} className="flex flex-col items-center gap-1">
-                      <button
-                        onClick={() => setSelectedColor(c)}
-                        title={c}
-                        className={`w-8 h-8 rounded-full flex-shrink-0 transition-all duration-200 ${
-                          selectedColor === c
-                            ? "ring-2 ring-[#C9A84C] ring-offset-2"
-                            : "ring-1 ring-inset ring-black/15 hover:ring-black/30"
-                        }`}
-                        style={{ backgroundColor: colorToHex(c) }}
-                      />
-                      <span className="text-[9px] text-[#1A1A2E]/40 capitalize">
-                        {c}
-                      </span>
-                    </div>
-                  ))}
+                  {product.colors.map((c) => {
+                    const enabled = availableColors.has(c);
+                    return (
+                      <div key={c} className="flex flex-col items-center gap-1">
+                        <button
+                          onClick={() => enabled && setSelectedColor(c)}
+                          disabled={!enabled}
+                          title={enabled ? c : `${c} — ${tr.shop.soldOut}`}
+                          className={`w-8 h-8 rounded-full flex-shrink-0 transition-all duration-200 ${
+                            selectedColor === c
+                              ? "ring-2 ring-[#C9A84C] ring-offset-2"
+                              : enabled
+                                ? "ring-1 ring-inset ring-black/15 hover:ring-black/30"
+                                : "ring-1 ring-inset ring-black/10 opacity-40 cursor-not-allowed"
+                          }`}
+                          style={{ backgroundColor: colorToHex(c) }}
+                        />
+                        <span
+                          className={`text-[9px] capitalize ${
+                            enabled ? "text-[#1A1A2E]/40" : "text-[#1A1A2E]/25 line-through"
+                          }`}
+                        >
+                          {c}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -803,7 +861,12 @@ export default function ProductPage() {
                 </span>
                 <button
                   onClick={() =>
-                    setQuantity(Math.min(product.stock, quantity + 1))
+                    setQuantity(
+                      Math.min(
+                        selectedVariant ? variantStock : product.totalStock,
+                        quantity + 1,
+                      ),
+                    )
                   }
                   className="w-10 h-10 text-lg font-medium text-[#1A1A2E]/60 hover:text-[#C9A84C] transition-colors"
                 >

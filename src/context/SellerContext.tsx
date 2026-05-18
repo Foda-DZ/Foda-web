@@ -98,7 +98,7 @@ export function SellerProvider({ children }: { children: ReactNode }) {
       const revenue = sellerOrders
         .filter((o) => o.status === "delivered")
         .reduce((sum, o) => sum + o.totalAmount, 0);
-      const lowStock = products.filter((p) => p.stock <= 5);
+      const lowStock = products.filter((p) => p.totalStock <= 5);
       return {
         totalOrders: sellerOrders.length,
         revenue,

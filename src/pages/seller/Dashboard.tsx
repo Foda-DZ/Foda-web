@@ -557,7 +557,7 @@ export default function Dashboard() {
                       <span className="w-1.5 h-1.5 bg-amber-500 rounded-full shrink-0" />
                       <span className="font-medium">{p.name}</span>
                       <span className="text-amber-500">
-                        — {p.stock} {t.left}
+                        — {p.totalStock} {t.left}
                       </span>
                     </li>
                   ))}

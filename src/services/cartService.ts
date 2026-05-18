@@ -19,15 +19,26 @@ export const cartService = {
       .get<{ message: string; cart: ApiCart }>("/cart")
       .then((r) => r.data.cart),
 
-  addItem: (productId: string, size: string, color: string) =>
+  /**
+   * Add a (size, color) variant to the cart. One request per click — `quantity`
+   * is sent in the body so the server applies the per-variant stock guard atomically.
+   */
+  addItem: (productId: string, size: string, color: string, quantity: number = 1) =>
     api
-      .post<{ message: string }>(`/cart/items/${productId}`, { size, color })
-      .then((r) => r.data),
+      .post<{ message: string; cart: ApiCart }>(`/cart/items/${productId}`, {
+        size,
+        color,
+        quantity,
+      })
+      .then((r) => r.data.cart),
 
-  removeItem: (productId: string) =>
+  /** Remove a specific cart line. Caller identifies the exact variant. */
+  removeItem: (productId: string, identifier: { variantId?: string; size?: string; color?: string }) =>
     api
-      .delete<{ message: string }>(`/cart/items/${productId}`)
-      .then((r) => r.data),
+      .delete<{ message: string; cart: ApiCart }>(`/cart/items/${productId}`, {
+        data: identifier,
+      })
+      .then((r) => r.data.cart),
 
   checkout: (shippingDetails: ApiShippingDetails, shippingFees?: { sellerId: string; shippingFee: number }[]) =>
     api

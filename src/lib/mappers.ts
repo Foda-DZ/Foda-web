@@ -1,5 +1,5 @@
-import type { Product } from "../types";
-import type { ApiProduct } from "../types/api";
+import type { Product, Variant } from "../types";
+import type { ApiProduct, ApiVariant } from "../types/api";
 
 /** Map a raw API product to the frontend Product shape */
 export function apiProductToProduct(p: ApiProduct): Product {
@@ -14,6 +14,19 @@ export function apiProductToProduct(p: ApiProduct): Product {
     );
   };
 
+  const apiVariants: ApiVariant[] = Array.isArray(p.variants) ? p.variants : [];
+  const variants: Variant[] = apiVariants.map((v) => ({
+    variantId: v._id,
+    size: v.size,
+    color: v.color,
+    stock: Number(v.stock) || 0,
+    sku: v.sku,
+  }));
+  const totalStock =
+    typeof p.totalStock === "number"
+      ? p.totalStock
+      : variants.reduce((sum, v) => sum + v.stock, 0);
+
   return {
     id: p._id,
     name: p.name,
@@ -24,8 +37,10 @@ export function apiProductToProduct(p: ApiProduct): Product {
     images: apiImages.map((img) => img.url),
     sizes: normArr(p.sizes),
     colors: normArr(p.colors),
+    variants,
+    totalStock,
+    inStock: typeof p.inStock === "boolean" ? p.inStock : totalStock > 0,
     description: p.description ?? "",
-    stock: p.stock ?? 0,
     isNew: new Date(p.createdAt).getTime() > sevenDaysAgo,
     sellerId: p.sellerId,
     sellerName: (p as Record<string, unknown>).sellerName as string | undefined,

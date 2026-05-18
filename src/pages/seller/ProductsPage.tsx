@@ -691,17 +691,17 @@ export default function ProductsPage() {
                     {/* Stock */}
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex items-center gap-1 text-xs font-semibold ${product.stock <= 5 ? "text-red-500" : "text-[#1A1A2E]/60"}`}
+                        className={`inline-flex items-center gap-1 text-xs font-semibold ${product.totalStock <= 5 ? "text-red-500" : "text-[#1A1A2E]/60"}`}
                       >
-                        {product.stock <= 5 && product.stock > 0 && (
+                        {product.totalStock <= 5 && product.totalStock > 0 && (
                           <WarningIcon sx={{ fontSize: 11 }} />
                         )}
-                        {product.stock} {t.units}
+                        {product.totalStock} {t.units}
                       </span>
                     </td>
 
                     {/* Status */}
-                    <td className="px-4 py-3">{stockChip(product.stock)}</td>
+                    <td className="px-4 py-3">{stockChip(product.totalStock)}</td>
 
                     {/* Actions */}
                     <td className="px-4 py-3">

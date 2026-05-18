@@ -547,6 +547,7 @@ export interface Translations {
       required: string;
       validPrice: string;
       validStock: string;
+      variantsHelper: string;
       selectSize: string;
       selectColor: string;
       euSizes: string;
@@ -627,6 +628,27 @@ export interface Translations {
       units: string;
       updateStock: string;
       searchPlaceholder: string;
+      matrixTitle: string;
+      matrixSubtitle: string;
+      matrixEmpty: string;
+      saveChanges: string;
+      saving: string;
+      saved: string;
+      unsavedChanges: string;
+      resetAll: string;
+      setAllTo: string;
+      apply: string;
+      undo: string;
+      showSkus: string;
+      hideSkus: string;
+      sku: string;
+      totalStockLabel: string;
+      worstVariantLabel: string;
+      filterAll: string;
+      filterLow: string;
+      filterOut: string;
+      selectAProduct: string;
+      noProductsForFilter: string;
     };
     productAnalyticsPage: {
       title: string;
@@ -1373,6 +1395,8 @@ export const ar: Translations = {
       required: "مطلوب.",
       validPrice: "أدخل سعراً صالحاً.",
       validStock: "أدخل كمية مخزون صالحة.",
+      variantsHelper:
+        "سيتم إنشاء متغيرات المنتج (المقاس × اللون) برصيد صفر — يمكنك ضبط الكميات لاحقاً من صفحة المخزون.",
       selectSize: "اختر مقاساً واحداً على الأقل.",
       selectColor: "اختر لوناً واحداً على الأقل.",
       euSizes: "مقاسات EU",
@@ -1453,6 +1477,27 @@ export const ar: Translations = {
       units: "وحدة",
       updateStock: "تحديث المخزون",
       searchPlaceholder: "البحث عن منتج...",
+      matrixTitle: "مصفوفة المتغيرات",
+      matrixSubtitle: "ضبط الكمية لكل (مقاس × لون)",
+      matrixEmpty: "اختر منتجاً من القائمة لتعديل مخزون متغيراته.",
+      saveChanges: "حفظ التغييرات",
+      saving: "جارٍ الحفظ...",
+      saved: "تم الحفظ",
+      unsavedChanges: "تغييرات غير محفوظة",
+      resetAll: "إعادة تعيين الكل إلى 0",
+      setAllTo: "تعيين الكل إلى",
+      apply: "تطبيق",
+      undo: "تراجع",
+      showSkus: "عرض رموز SKU",
+      hideSkus: "إخفاء رموز SKU",
+      sku: "SKU",
+      totalStockLabel: "إجمالي المخزون",
+      worstVariantLabel: "أقل كمية",
+      filterAll: "الكل",
+      filterLow: "منخفض",
+      filterOut: "نفد",
+      selectAProduct: "اختر منتجاً للبدء",
+      noProductsForFilter: "لا توجد منتجات تطابق هذا الفلتر.",
     },
     productAnalyticsPage: {
       title: "تحليلات المنتج",
@@ -2199,6 +2244,8 @@ export const en: Translations = {
       required: "Required.",
       validPrice: "Enter a valid price.",
       validStock: "Enter a valid stock quantity.",
+      variantsHelper:
+        "Product variants (size × color) start at 0 stock — set quantities on the Inventory page.",
       selectSize: "Select at least one size.",
       selectColor: "Select at least one color.",
       euSizes: "EU Sizes",
@@ -2279,6 +2326,27 @@ export const en: Translations = {
       units: "units",
       updateStock: "Update Stock",
       searchPlaceholder: "Search products...",
+      matrixTitle: "Variant matrix",
+      matrixSubtitle: "Set stock per (size × color)",
+      matrixEmpty: "Select a product from the list to edit its variant stock.",
+      saveChanges: "Save changes",
+      saving: "Saving...",
+      saved: "Saved",
+      unsavedChanges: "Unsaved changes",
+      resetAll: "Reset all to 0",
+      setAllTo: "Set all to",
+      apply: "Apply",
+      undo: "Undo",
+      showSkus: "Show SKUs",
+      hideSkus: "Hide SKUs",
+      sku: "SKU",
+      totalStockLabel: "Total stock",
+      worstVariantLabel: "Lowest variant",
+      filterAll: "All",
+      filterLow: "Low",
+      filterOut: "Out",
+      selectAProduct: "Select a product to start",
+      noProductsForFilter: "No products match this filter.",
     },
     productAnalyticsPage: {
       title: "Product Analytics",

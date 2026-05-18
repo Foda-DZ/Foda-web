@@ -169,8 +169,7 @@ interface FormState {
   name: string;
   mainCategory: string;
   subCategory: string;
-  price: string;
-  stock: string;
+  price: number;
   description: string;
   sizes: string[];
   colors: string[];
@@ -182,8 +181,7 @@ const defaultForm: FormState = {
   name: "",
   mainCategory: "Women",
   subCategory: "Dresses",
-  price: "",
-  stock: "",
+  price: 0,
   description: "",
   sizes: [],
   colors: [],
@@ -242,8 +240,7 @@ export default function ProductFormPage() {
         name: existingProduct.name,
         mainCategory: existingProduct.category,
         subCategory: existingProduct.subCategory || "Other",
-        price: String(existingProduct.price),
-        stock: String(existingProduct.stock),
+        price: existingProduct.price,
         description: existingProduct.description || "",
         sizes: existingProduct.sizes,
         colors: existingProduct.colors,
@@ -309,13 +306,16 @@ export default function ProductFormPage() {
     }
   }, [form.subCategory, availableSizes]);
 
+  // Strip thousands separators / whitespace so a typed "1,500" parses cleanly.
+  const parsePrice = (raw: string): number =>
+    Number(String(raw).trim().replace(/,/g, ""));
+
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = t.required;
-    if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0)
+    const priceNum = form.price;
+    if (!form.price || Number.isNaN(priceNum) || priceNum <= 0)
       e.price = t.validPrice;
-    if (!form.stock || isNaN(Number(form.stock)) || Number(form.stock) < 0)
-      e.stock = t.validStock;
     if (!form.sizes.length) e.sizes = t.selectSize;
     if (!form.colors.length) e.colors = t.selectColor;
     if (!form.imageFiles[0] && !(isEdit && form.imagePreviews[0]))
@@ -338,8 +338,7 @@ export default function ProductFormPage() {
       if (isEdit && id) {
         await updateProduct(id, {
           name: form.name.trim(),
-          price: Number(form.price),
-          stock: Number(form.stock),
+          price: form.price,
           mainCategory: form.mainCategory,
           subCategory: form.subCategory,
           description: form.description.trim() || undefined,
@@ -349,8 +348,7 @@ export default function ProductFormPage() {
       } else {
         await createProduct({
           name: form.name.trim(),
-          price: Number(form.price),
-          stock: Number(form.stock),
+          price: form.price,
           mainCategory: form.mainCategory,
           subCategory: form.subCategory,
           description: form.description.trim() || undefined,
@@ -361,7 +359,12 @@ export default function ProductFormPage() {
       }
 
       setSaved(true);
-      setTimeout(() => navigate("/seller/products"), 900);
+      // After create, send the seller to the Inventory page so they can set
+      // stock for the new size × color matrix. On edit, return to products list.
+      setTimeout(
+        () => navigate(isEdit ? "/seller/products" : "/seller/inventory"),
+        900,
+      );
     } catch (err) {
       setApiError(
         err instanceof Error
@@ -476,25 +479,19 @@ export default function ProductFormPage() {
                 label={t.price}
                 type="number"
                 value={form.price}
-                onChange={(e) => set("price", e.target.value)}
+                onChange={(e) => set("price", Number(e.target.value))}
                 placeholder="8900"
                 error={!!errors.price}
                 helperText={errors.price}
                 fullWidth
                 sx={inputSx}
               />
-              <TextField
-                label={t.stockQty}
-                type="number"
-                value={form.stock}
-                onChange={(e) => set("stock", e.target.value)}
-                placeholder="50"
-                error={!!errors.stock}
-                helperText={errors.stock}
-                fullWidth
-                sx={inputSx}
-              />
+              {/* Stock per (size, color) lives on the Inventory page — keeping
+                  product creation focused on identity + visuals + variant axes. */}
             </div>
+            <p className="text-[11px] text-[#1A1A2E]/45 -mt-2">
+              {t.variantsHelper}
+            </p>
           </div>
 
           {/* ── Images ────────────────────────────────────────────────── */}

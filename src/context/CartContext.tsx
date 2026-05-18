@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import type { ReactNode } from "react";
-import type { Product, CartItem, CartState, CartAction } from "../types";
+import type { Product, CartItem, CartState, CartAction, Variant } from "../types";
 import type { ApiCartItem } from "../types/api";
 import { useAuth } from "./AuthContext";
 import { cartService } from "../services/cartService";
@@ -20,7 +20,7 @@ interface CartContextValue extends CartState {
     size: string,
     color: string,
     quantity?: number,
-  ) => void;
+  ) => Promise<void>;
   removeItem: (key: string) => void;
   updateQty: (key: string, quantity: number) => void;
   clearCart: () => void;
@@ -29,12 +29,15 @@ interface CartContextValue extends CartState {
   totalItems: number;
   subtotal: number;
   loading: boolean;
+  lastError: string | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+/** Build a CartItem from an API cart line. variantId is the line identity. */
 function mapApiItem(item: ApiCartItem): CartItem {
   return {
-    key: `${item.productId}-${item.selectedChoices.size}-${item.selectedChoices.color}`,
+    key: `${item.productId}-${item.variantId}`,
+    variantId: item.variantId,
     product: {
       id: item.productId,
       name: item.name,
@@ -44,8 +47,10 @@ function mapApiItem(item: ApiCartItem): CartItem {
       category: "",
       sizes: [],
       colors: [],
+      variants: [],
+      totalStock: 0,
+      inStock: true,
       description: "",
-      stock: 999,
       isNew: false,
       sellerId: item.sellerId,
     },
@@ -61,25 +66,27 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case "SET_ITEMS":
       return { ...state, items: action.payload };
     case "ADD_ITEM": {
-      const { product, size, color, quantity } = action.payload;
-      const key = `${product.id}-${size}-${color}`;
+      const { product, variantId, size, color, quantity } = action.payload;
+      const key = `${product.id}-${variantId}`;
       const existing = state.items.find((i) => i.key === key);
+      const variantStock =
+        product.variants.find((v) => v.variantId === variantId)?.stock ?? Infinity;
       if (existing) {
         return {
           ...state,
           items: state.items.map((i) =>
             i.key === key
-              ? {
-                  ...i,
-                  quantity: Math.min(i.quantity + quantity, product.stock),
-                }
+              ? { ...i, quantity: Math.min(i.quantity + quantity, variantStock) }
               : i,
           ),
         };
       }
       return {
         ...state,
-        items: [...state.items, { key, product, size, color, quantity }],
+        items: [
+          ...state.items,
+          { key, product, variantId, size, color, quantity: Math.min(quantity, variantStock) },
+        ],
       };
     }
     case "REMOVE_ITEM":
@@ -115,14 +122,13 @@ const CartContext = createContext<CartContextValue | null>(null);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
   const [loading, setLoading] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
   const { user } = useAuth();
   const isCustomer = user?.role === "customer";
 
-  // Keep a ref to items for async callbacks
   const itemsRef = useRef(state.items);
   itemsRef.current = state.items;
 
-  // ── Fetch cart from backend ───────────────────────────────────────────────
   const fetchCart = useCallback(async () => {
     if (!isCustomer) return;
     try {
@@ -130,13 +136,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const cart = await cartService.getCart();
       dispatch({ type: "SET_ITEMS", payload: cart.items.map(mapApiItem) });
     } catch {
-      // Cart doesn't exist yet — keep empty
+      /* cart not created yet — keep empty */
     } finally {
       setLoading(false);
     }
   }, [isCustomer]);
 
-  // Fetch or clear when auth changes
   useEffect(() => {
     if (isCustomer) {
       fetchCart();
@@ -147,27 +152,34 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // ── Add item ──────────────────────────────────────────────────────────────
   const addItem = useCallback(
-    (product: Product, size: string, color: string, quantity = 1) => {
+    async (product: Product, size: string, color: string, quantity = 1) => {
       if (!isCustomer) return;
+      setLastError(null);
 
-      // Optimistic update
+      const variant: Variant | undefined = product.variants.find(
+        (v) => v.size === size && v.color === color,
+      );
+      if (!variant) {
+        setLastError("That size/color is not available");
+        return;
+      }
+
+      // Optimistic update keyed by variantId.
       dispatch({
         type: "ADD_ITEM",
-        payload: { product, size, color, quantity },
+        payload: { product, variantId: variant.variantId, size, color, quantity },
       });
 
-      // Backend sync
-      (async () => {
-        try {
-          for (let i = 0; i < quantity; i++) {
-            await cartService.addItem(product.id, size, color);
-          }
-          const cart = await cartService.getCart();
-          dispatch({ type: "SET_ITEMS", payload: cart.items.map(mapApiItem) });
-        } catch {
-          fetchCart();
-        }
-      })();
+      try {
+        const cart = await cartService.addItem(product.id, size, color, quantity);
+        dispatch({ type: "SET_ITEMS", payload: cart.items.map(mapApiItem) });
+      } catch (err: unknown) {
+        const message =
+          (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+          (err instanceof Error ? err.message : "Could not add to cart");
+        setLastError(message);
+        await fetchCart(); // rollback to server truth
+      }
     },
     [isCustomer, fetchCart],
   );
@@ -178,15 +190,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const item = itemsRef.current.find((i) => i.key === key);
       if (!item) return;
 
-      // Optimistic update
       dispatch({ type: "REMOVE_ITEM", payload: key });
-
       if (!isCustomer) return;
 
       (async () => {
         try {
-          await cartService.removeItem(item.product.id);
-          const cart = await cartService.getCart();
+          const cart = await cartService.removeItem(item.product.id, {
+            variantId: item.variantId,
+          });
           dispatch({ type: "SET_ITEMS", payload: cart.items.map(mapApiItem) });
         } catch {
           fetchCart();
@@ -207,9 +218,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Optimistic update
       dispatch({ type: "UPDATE_QTY", payload: { key, quantity } });
-
       if (!isCustomer) return;
 
       const diff = quantity - item.quantity;
@@ -217,19 +226,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
       (async () => {
         try {
           if (diff > 0) {
-            // Increment: call addItem diff times
-            for (let i = 0; i < diff; i++) {
-              await cartService.addItem(item.product.id, item.size, item.color);
-            }
+            const cart = await cartService.addItem(
+              item.product.id,
+              item.size,
+              item.color,
+              diff,
+            );
+            dispatch({ type: "SET_ITEMS", payload: cart.items.map(mapApiItem) });
           } else {
-            // Decrement: remove then re-add with new quantity
-            await cartService.removeItem(item.product.id);
-            for (let i = 0; i < quantity; i++) {
-              await cartService.addItem(item.product.id, item.size, item.color);
+            await cartService.removeItem(item.product.id, { variantId: item.variantId });
+            if (quantity > 0) {
+              const cart = await cartService.addItem(
+                item.product.id,
+                item.size,
+                item.color,
+                quantity,
+              );
+              dispatch({ type: "SET_ITEMS", payload: cart.items.map(mapApiItem) });
+            } else {
+              await fetchCart();
             }
           }
-          const cart = await cartService.getCart();
-          dispatch({ type: "SET_ITEMS", payload: cart.items.map(mapApiItem) });
         } catch {
           fetchCart();
         }
@@ -241,9 +258,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // ── Clear cart ────────────────────────────────────────────────────────────
   const clearCart = useCallback(() => {
     dispatch({ type: "CLEAR" });
-
     if (!isCustomer) return;
-
     (async () => {
       try {
         await cartService.clearCart();
@@ -276,6 +291,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         totalItems,
         subtotal,
         loading,
+        lastError,
       }}
     >
       {children}

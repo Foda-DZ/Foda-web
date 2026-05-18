@@ -61,6 +61,14 @@ export interface ApiPromotion {
   endDate?: string | null;
 }
 
+export interface ApiVariant {
+  _id: string;
+  size: string;
+  color: string;
+  stock: number;
+  sku?: string;
+}
+
 export interface ApiProduct {
   _id: string;
   sellerId: string;
@@ -68,10 +76,11 @@ export interface ApiProduct {
   images: ApiImageObject[];
   price: number;
   inStock: boolean;
+  totalStock: number;
   description: string;
-  stock: number;
   sizes: string[];
   colors: string[];
+  variants: ApiVariant[];
   mainCategory: ApiCategory;
   subCategory: ApiSubCategory;
   promotion?: ApiPromotion;
@@ -174,6 +183,7 @@ export interface TrafficRangeParams {
 export interface ApiCartItem {
   productId: string;
   sellerId: string;
+  variantId: string;
   name: string;
   quantity: number;
   price: number;

@@ -7,6 +7,14 @@ export interface ProductPromotion {
   endDate?: string | null;
 }
 
+export interface Variant {
+  variantId: string;
+  size: string;
+  color: string;
+  stock: number;
+  sku?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -17,8 +25,10 @@ export interface Product {
   images: string[];
   sizes: string[];
   colors: string[];
+  variants: Variant[];
+  totalStock: number;
+  inStock: boolean;
   description: string;
-  stock: number;
   isNew: boolean;
   sellerId?: string;
   sellerName?: string;
@@ -29,8 +39,9 @@ export interface Product {
 
 // ─── Cart ──────────────────────────────────────────────────────────────────────
 export interface CartItem {
-  key: string;     // `${productId}-${size}-${color}`
+  key: string;       // `${productId}-${variantId}`
   product: Product;
+  variantId: string;
   size: string;
   color: string;
   quantity: number;
@@ -43,7 +54,7 @@ export interface CartState {
 
 export type CartAction =
   | { type: "SET_ITEMS"; payload: CartItem[] }
-  | { type: "ADD_ITEM"; payload: { product: Product; size: string; color: string; quantity: number } }
+  | { type: "ADD_ITEM"; payload: { product: Product; variantId: string; size: string; color: string; quantity: number } }
   | { type: "REMOVE_ITEM"; payload: string }
   | { type: "UPDATE_QTY"; payload: { key: string; quantity: number } }
   | { type: "CLEAR" }
