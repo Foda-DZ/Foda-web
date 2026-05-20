@@ -583,4 +583,37 @@ export const sellerService = {
     daily: { _id: string; revenue: number; orders: number }[];
     recentOrders: { _id: string; status: string; totalAmount: number; createdAt: string; shippingDetails: { wilaya: string } }[];
   }> => api.get(`/seller/analytics/revenue`).then((r) => r.data.analytics),
+
+  // ── Confirmators ────────────────────────────────────────────────────────────
+  getConfirmators: () =>
+    api
+      .get<{ confirmators: import("../types/api").ApiConfirmator[] }>("/seller/confirmators")
+      .then((r) => r.data.confirmators),
+
+  inviteConfirmator: (email: string, fullName: string) =>
+    api
+      .post<{ confirmator: import("../types/api").ApiConfirmator; message: string }>(
+        "/seller/confirmators",
+        { email, fullName },
+      )
+      .then((r) => r.data),
+
+  removeConfirmator: (id: string) =>
+    api.delete<{ message: string }>(`/seller/confirmators/${id}`).then((r) => r.data),
+
+  // ── Order label ─────────────────────────────────────────────────────────────
+  downloadOrderLabel: async (orderId: string): Promise<void> => {
+    const response = await api.get(`/seller/orders/${orderId}/label`, {
+      responseType: "blob",
+    });
+    const blob = new Blob([response.data as BlobPart], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `label-${orderId.slice(-8).toUpperCase()}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  },
 };

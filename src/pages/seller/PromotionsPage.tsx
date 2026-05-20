@@ -6,6 +6,7 @@ import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined";
 import PauseCircleOutlineOutlinedIcon from "@mui/icons-material/PauseCircleOutlineOutlined";
+import ImageNotSupportedOutlinedIcon from "@mui/icons-material/ImageNotSupportedOutlined";
 import { sellerService } from "../../services/sellerService";
 import { useLang } from "../../context/LangContext";
 import SellerLayout from "../../components/seller/SellerLayout";
@@ -22,71 +23,37 @@ interface PromoProduct {
   _id: string;
   name: string;
   price: number;
+  category?: string;
   images?: { url: string }[];
   promotion?: Promotion;
 }
 
 type PromoFilter = "all" | "active" | "inactive" | "no-promo";
 
-function CardSkeleton() {
+function SkeletonRow() {
   return (
-    <div className="bg-white border border-[#1A1A2E]/8 overflow-hidden animate-pulse">
-      <div className="aspect-[4/3] bg-[#F0EBE3]" />
-      <div className="p-4 space-y-3">
-        <div className="h-3 bg-[#1A1A2E]/8 rounded w-3/4" />
-        <div className="h-3 bg-[#1A1A2E]/6 rounded w-1/2" />
-        <div className="h-6 bg-[#1A1A2E]/6 rounded w-1/3" />
-        <div className="h-8 bg-[#1A1A2E]/6 rounded" />
-      </div>
-    </div>
-  );
-}
-
-function DiscountBadge({
-  promotion,
-  price,
-  noPromoLabel,
-  dzd,
-}: {
-  promotion?: Promotion;
-  price: number;
-  noPromoLabel: string;
-  dzd: string;
-}) {
-  if (!promotion?.value || promotion.value <= 0) {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#1A1A2E]/30 border border-[#1A1A2E]/10 bg-[#FAF7F2]">
-        {noPromoLabel}
-      </span>
-    );
-  }
-
-  const isPercent = promotion.type === "percentage";
-  const discounted = isPercent
-    ? price * (1 - promotion.value / 100)
-    : Math.max(0, price - promotion.value);
-
-  return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 gold-gradient text-[10px] font-bold uppercase tracking-wide text-[#1A1A2E]">
-        {isPercent ? (
-          <>
-            <PercentOutlinedIcon sx={{ fontSize: 10 }} />
-            {promotion.value}% OFF
-          </>
-        ) : (
-          <>−{promotion.value} {dzd}</>
-        )}
-      </span>
-      <span className="text-xs text-emerald-600 font-semibold">
-        {discounted.toFixed(0)} {dzd}
-      </span>
-    </div>
+    <tr className="border-b border-[#1A1A2E]/5 animate-pulse">
+      <td className="px-4 py-3.5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#1A1A2E]/8 shrink-0" />
+          <div className="space-y-1.5">
+            <div className="h-3 bg-[#1A1A2E]/8 rounded w-32" />
+            <div className="h-2.5 bg-[#1A1A2E]/5 rounded w-20" />
+          </div>
+        </div>
+      </td>
+      <td className="px-4 py-3.5"><div className="h-3 bg-[#1A1A2E]/8 rounded w-20" /></td>
+      <td className="px-4 py-3.5"><div className="h-3 bg-[#1A1A2E]/8 rounded w-16" /></td>
+      <td className="px-4 py-3.5"><div className="h-5 bg-[#1A1A2E]/6 rounded w-16" /></td>
+      <td className="px-4 py-3.5"><div className="h-5 bg-[#C9A84C]/10 rounded w-20" /></td>
+      <td className="px-4 py-3.5"><div className="h-3 bg-[#1A1A2E]/5 rounded w-28" /></td>
+      <td className="px-4 py-3.5"><div className="h-7 bg-[#1A1A2E]/5 rounded w-8" /></td>
+    </tr>
   );
 }
 
 export default function PromotionsPage() {
-  const { tr, isRTL } = useLang();
+  const { tr, isRTL, lang } = useLang();
   const t = tr.seller.promotionsPage;
   const dzd = tr.common.dzd;
 
@@ -155,7 +122,7 @@ export default function PromotionsPage() {
   });
 
   const formatDate = (iso: string) =>
-    new Intl.DateTimeFormat(isRTL ? "ar-DZ" : "en-GB", {
+    new Intl.DateTimeFormat(lang === "ar" ? "ar-DZ" : "en-GB", {
       day: "numeric",
       month: "short",
     }).format(new Date(iso));
@@ -166,6 +133,16 @@ export default function PromotionsPage() {
     inactive: t.filterInactive,
     "no-promo": t.filterNoPromo,
   };
+
+  const tableHeaders = [
+    t.colProduct,
+    lang === "ar" ? "الفئة" : "Category",
+    lang === "ar" ? "السعر" : "Price",
+    t.colActive,
+    t.colDiscount,
+    lang === "ar" ? "الفترة" : "Period",
+    "",
+  ];
 
   return (
     <SellerLayout>
@@ -230,12 +207,23 @@ export default function PromotionsPage() {
           </div>
         )}
 
-        {/* ── Grid ────────────────────────────────────────────────────────── */}
+        {/* ── Table ───────────────────────────────────────────────────────── */}
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <CardSkeleton key={i} />
-            ))}
+          <div className="bg-white border border-[#1A1A2E]/8 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#1A1A2E]/8 bg-[#FAF7F2]">
+                  {tableHeaders.map((h, i) => (
+                    <th key={i} className="px-4 py-3 text-start text-[10px] font-semibold tracking-widest uppercase text-[#1A1A2E]/40 whitespace-nowrap">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)}
+              </tbody>
+            </table>
           </div>
         ) : promos.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 bg-white border border-[#1A1A2E]/8">
@@ -249,144 +237,178 @@ export default function PromotionsPage() {
           <div className="flex flex-col items-center justify-center py-16 bg-white border border-[#1A1A2E]/8 gap-3">
             <LocalOfferOutlinedIcon sx={{ fontSize: 24, color: "rgba(26,26,46,0.15)" }} />
             <p className="text-[#1A1A2E]/40 text-sm">
-              {isRTL ? "لا توجد منتجات في هذا التصنيف" : "No products match this filter"}
+              {lang === "ar" ? "لا توجد منتجات في هذا التصنيف" : "No products match this filter"}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {filtered.map((product) => {
-              const hasPromo = Boolean(product.promotion?.value && product.promotion.value > 0);
-              const isActive = Boolean(product.promotion?.active);
-              const isExpired = Boolean(
-                product.promotion?.endDate && new Date(product.promotion.endDate) < now,
-              );
-              const isRemoving = removingId === product._id;
+          <div className="bg-white border border-[#1A1A2E]/8 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#1A1A2E]/8 bg-[#FAF7F2]">
+                  {tableHeaders.map((h, i) => (
+                    <th
+                      key={i}
+                      className={`px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-[#1A1A2E]/40 whitespace-nowrap ${i === tableHeaders.length - 1 ? "text-end" : "text-start"}`}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((product) => {
+                  const hasPromo = Boolean(product.promotion?.value && product.promotion.value > 0);
+                  const isActive = Boolean(product.promotion?.active);
+                  const isExpired = Boolean(
+                    product.promotion?.endDate && new Date(product.promotion.endDate) < now,
+                  );
+                  const isRemoving = removingId === product._id;
+                  const isPercent = product.promotion?.type === "percentage";
+                  const discounted = hasPromo
+                    ? isPercent
+                      ? product.price * (1 - (product.promotion!.value! / 100))
+                      : Math.max(0, product.price - (product.promotion!.value!))
+                    : null;
 
-              return (
-                <div
-                  key={product._id}
-                  className={`group relative bg-white border overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
-                    hasPromo
-                      ? isExpired
-                        ? "border-red-200"
-                        : isActive
-                        ? "border-emerald-200"
-                        : "border-amber-200"
-                      : "border-[#1A1A2E]/8"
-                  }`}
-                >
-                  {/* Product image */}
-                  <div className="relative aspect-[4/3] bg-[#F0EBE3] overflow-hidden">
-                    {product.images?.[0]?.url ? (
-                      <img
-                        src={product.images[0].url}
-                        alt={product.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <LocalOfferOutlinedIcon sx={{ fontSize: 24, color: "rgba(201,168,76,0.3)" }} />
-                      </div>
-                    )}
+                  return (
+                    <tr
+                      key={product._id}
+                      className="border-b border-[#1A1A2E]/5 hover:bg-[#FAF7F2]/60 transition-colors duration-150"
+                    >
+                      {/* Product image + name */}
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-[#F0EBE3] overflow-hidden shrink-0 flex items-center justify-center">
+                            {product.images?.[0]?.url ? (
+                              <img
+                                src={product.images[0].url}
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = "none";
+                                }}
+                              />
+                            ) : (
+                              <ImageNotSupportedOutlinedIcon sx={{ fontSize: 14, color: "rgba(201,168,76,0.3)" }} />
+                            )}
+                          </div>
+                          <p className="text-xs font-semibold text-[#1A1A2E] truncate max-w-[160px]" title={product.name}>
+                            {product.name}
+                          </p>
+                        </div>
+                      </td>
 
-                    {/* Status pill */}
-                    {hasPromo && (
-                      <div
-                        className={`absolute top-2 ${isRTL ? "left-2" : "right-2"} flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
-                          isExpired
-                            ? "bg-red-500 text-white"
-                            : isActive
-                            ? "bg-emerald-500 text-white"
-                            : "bg-[#1A1A2E]/60 text-white"
-                        }`}
-                      >
-                        {isExpired ? (
-                          <ErrorOutlineOutlinedIcon sx={{ fontSize: 9 }} />
-                        ) : isActive ? (
-                          <CheckCircleOutlinedIcon sx={{ fontSize: 9 }} />
+                      {/* Category */}
+                      <td className="px-4 py-3.5">
+                        <span className="text-[10px] font-medium text-[#1A1A2E]/40 uppercase tracking-wide">
+                          {product.category ?? "—"}
+                        </span>
+                      </td>
+
+                      {/* Price */}
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <span className="text-xs font-semibold text-[#1A1A2E]">
+                          {product.price.toLocaleString()} {dzd}
+                        </span>
+                        {discounted !== null && (
+                          <p className="text-[10px] text-emerald-600 font-medium mt-0.5">
+                            → {discounted.toFixed(0)} {dzd}
+                          </p>
+                        )}
+                      </td>
+
+                      {/* Status */}
+                      <td className="px-4 py-3.5">
+                        {hasPromo ? (
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
+                              isExpired
+                                ? "bg-red-50 text-red-600 border border-red-200"
+                                : isActive
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : "bg-[#1A1A2E]/5 text-[#1A1A2E]/40 border border-[#1A1A2E]/10"
+                            }`}
+                          >
+                            {isExpired ? (
+                              <ErrorOutlineOutlinedIcon sx={{ fontSize: 9 }} />
+                            ) : isActive ? (
+                              <CheckCircleOutlinedIcon sx={{ fontSize: 9 }} />
+                            ) : (
+                              <PauseCircleOutlineOutlinedIcon sx={{ fontSize: 9 }} />
+                            )}
+                            {isExpired ? t.statusExpired : isActive ? t.statusActive : t.statusInactive}
+                          </span>
                         ) : (
-                          <PauseCircleOutlineOutlinedIcon sx={{ fontSize: 9 }} />
+                          <span className="text-[10px] text-[#1A1A2E]/25 font-medium">—</span>
                         )}
-                        {isExpired ? t.statusExpired : isActive ? t.statusActive : t.statusInactive}
-                      </div>
-                    )}
+                      </td>
 
-                    {/* Delete button — hover only (desktop) */}
-                    {hasPromo && (
-                      <button
-                        onClick={() => setConfirmRemove(product._id)}
-                        disabled={isRemoving}
-                        className={`absolute top-2 ${isRTL ? "right-2" : "left-2"} w-7 h-7 flex items-center justify-center bg-white/90 border border-red-200 text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-500 hover:text-white hover:border-red-500 disabled:opacity-30`}
-                        title={t.removeTooltip}
-                      >
-                        {isRemoving ? (
-                          <span className="w-3 h-3 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                      {/* Discount */}
+                      <td className="px-4 py-3.5">
+                        {hasPromo && product.promotion?.value ? (
+                          <span className="inline-flex items-center gap-0.5 px-2 py-0.5 gold-gradient text-[10px] font-bold uppercase tracking-wide text-[#1A1A2E]">
+                            {isPercent ? (
+                              <>
+                                <PercentOutlinedIcon sx={{ fontSize: 9 }} />
+                                {product.promotion.value}% OFF
+                              </>
+                            ) : (
+                              <>−{product.promotion.value} {dzd}</>
+                            )}
+                          </span>
                         ) : (
-                          <DeleteOutlineOutlinedIcon sx={{ fontSize: 13 }} />
-                        )}
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Card body */}
-                  <div className="p-3 space-y-2">
-                    <p className="text-xs font-semibold text-[#1A1A2E] leading-tight line-clamp-2" title={product.name}>
-                      {product.name}
-                    </p>
-
-                    <p className="text-[10px] text-[#1A1A2E]/40 font-medium">
-                      {product.price} {dzd}
-                    </p>
-
-                    <DiscountBadge
-                      promotion={product.promotion}
-                      price={product.price}
-                      noPromoLabel={t.noPromoLabel}
-                      dzd={dzd}
-                    />
-
-                    {/* Promotion date range */}
-                    {hasPromo && (product.promotion?.startDate || product.promotion?.endDate) && (
-                      <div className="flex items-center gap-1 text-[9px] text-[#1A1A2E]/35 flex-wrap">
-                        <CalendarTodayOutlinedIcon sx={{ fontSize: 9 }} />
-                        {product.promotion?.startDate && (
-                          <span>{formatDate(product.promotion.startDate)}</span>
-                        )}
-                        {product.promotion?.startDate && product.promotion?.endDate && (
-                          <span>→</span>
-                        )}
-                        {product.promotion?.endDate && (
-                          <span className={isExpired ? "text-red-500 font-semibold" : ""}>
-                            {product.promotion.startDate
-                              ? formatDate(product.promotion.endDate)
-                              : `${t.expiresOn} ${formatDate(product.promotion.endDate)}`}
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold text-[#1A1A2E]/25 border border-[#1A1A2E]/8 bg-[#FAF7F2]">
+                            {t.noPromoLabel}
                           </span>
                         )}
-                      </div>
-                    )}
+                      </td>
 
-                    {/* Remove button — mobile only */}
-                    {hasPromo && (
-                      <button
-                        onClick={() => setConfirmRemove(product._id)}
-                        disabled={isRemoving}
-                        className="sm:hidden w-full mt-1 h-7 flex items-center justify-center gap-1.5 border border-red-200 text-red-500 text-[10px] font-bold uppercase tracking-wide hover:bg-red-500 hover:text-white transition-colors disabled:opacity-40"
-                      >
-                        {isRemoving ? (
-                          <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      {/* Date range */}
+                      <td className="px-4 py-3.5">
+                        {hasPromo && (product.promotion?.startDate || product.promotion?.endDate) ? (
+                          <div className="flex items-center gap-1 text-[10px] text-[#1A1A2E]/40 whitespace-nowrap">
+                            <CalendarTodayOutlinedIcon sx={{ fontSize: 9, flexShrink: 0 }} />
+                            {product.promotion?.startDate && (
+                              <span>{formatDate(product.promotion.startDate)}</span>
+                            )}
+                            {product.promotion?.startDate && product.promotion?.endDate && (
+                              <span className="mx-0.5">→</span>
+                            )}
+                            {product.promotion?.endDate && (
+                              <span className={isExpired ? "text-red-500 font-semibold" : ""}>
+                                {product.promotion.startDate
+                                  ? formatDate(product.promotion.endDate)
+                                  : `${t.expiresOn} ${formatDate(product.promotion.endDate)}`}
+                              </span>
+                            )}
+                          </div>
                         ) : (
-                          <DeleteOutlineOutlinedIcon sx={{ fontSize: 11 }} />
+                          <span className="text-[10px] text-[#1A1A2E]/20">—</span>
                         )}
-                        {t.remove}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                      </td>
+
+                      {/* Delete action */}
+                      <td className="px-4 py-3.5 text-end">
+                        {hasPromo && (
+                          <button
+                            onClick={() => setConfirmRemove(product._id)}
+                            disabled={isRemoving}
+                            className="w-7 h-7 inline-flex items-center justify-center border border-red-200 text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-200 disabled:opacity-30"
+                            title={t.removeTooltip}
+                          >
+                            {isRemoving ? (
+                              <span className="w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <DeleteOutlineOutlinedIcon sx={{ fontSize: 13 }} />
+                            )}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

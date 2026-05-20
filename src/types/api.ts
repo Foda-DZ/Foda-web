@@ -231,8 +231,23 @@ export interface ApiOrder {
   shippingDetails: ApiShippingDetails;
   status: ApiOrderStatus;
   totalAmount: number;
+  tracking_id?: string;
+  managedBy?: string;
+  reason?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// ─── Confirmator ──────────────────────────────────────────────────────────────
+export interface ApiConfirmator {
+  _id: string;
+  email: string;
+  fullName: string;
+  phoneNumber?: number | null;
+  isActive: boolean;
+  confirmedOrders: number;
+  cancelledOrders: number;
+  createdAt: string;
 }
 
 export interface ApiManageOrderResponse {
@@ -336,4 +351,19 @@ export interface ApiCompleteSellerSetupResponse {
     };
     company_code: string;
   };
+}
+
+// ─── Seller Storefront (public) ───────────────────────────────────────────────
+export interface ApiSellerProfile {
+  id: string;
+  shopName: string;
+  logoUrl: string | null;
+  phone: number | null;
+  address: { wilaya: string; commune: string } | null;
+  isVerified: boolean;
+  verifiedBadge: boolean;
+  memberSince: string;
+  productCount: number;
+  followers: number;
+  isFollowing: boolean;
 }

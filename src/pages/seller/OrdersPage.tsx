@@ -16,14 +16,15 @@ import SearchIcon from "@mui/icons-material/Search";
 import SortIcon from "@mui/icons-material/Sort";
 import StraightenOutlinedIcon from "@mui/icons-material/StraightenOutlined";
 import PaletteOutlinedIcon from "@mui/icons-material/PaletteOutlined";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import { useSellerContext } from "../../context/SellerContext";
 import { useLang } from "../../context/LangContext";
+import { sellerService } from "../../services/sellerService";
 import SellerLayout from "../../components/seller/SellerLayout";
 import type {
   ApiOrderStatus,
-  ApiOrder,
   ApiOrderCustomer,
 } from "../../types/api";
 
@@ -103,12 +104,14 @@ function StatusBadge({
 
 function OrderActionButtons({
   disabled,
-  isRTL,
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   onCancel,
 }: {
   disabled: boolean;
-  isRTL: boolean;
+  confirmLabel: string;
+  cancelLabel: string;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -118,14 +121,10 @@ function OrderActionButtons({
         type="button"
         disabled={disabled}
         onClick={onConfirm}
-        className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-all duration-200 border shadow-sm hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none ${
-          isRTL
-            ? "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600"
-            : "bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600"
-        }`}
+        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-all duration-200 border shadow-sm hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600"
       >
         <CheckCircleIcon sx={{ fontSize: 14 }} />
-        {isRTL ? "تأكيد" : "Confirm"}
+        {confirmLabel}
       </button>
       <button
         type="button"
@@ -134,7 +133,7 @@ function OrderActionButtons({
         className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-white text-red-600 border border-red-200 shadow-sm transition-all duration-200 hover:bg-red-50 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
       >
         <CancelIcon sx={{ fontSize: 14 }} />
-        {isRTL ? "إلغاء" : "Cancel"}
+        {cancelLabel}
       </button>
     </div>
   );
@@ -159,6 +158,7 @@ export default function OrdersPage() {
   const { tr, lang, isRTL } = useLang();
   const t = tr.seller.ordersList;
   const sl = tr.seller.statusLabels;
+  const ta = tr.seller.orderActions;
   const location = useLocation();
 
   const statusLabelMap: Record<ApiOrderStatus, string> = {
@@ -188,6 +188,8 @@ export default function OrdersPage() {
   const [actionError, setActionError] = useState("");
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("newest");
+  const [downloadingLabelId, setDownloadingLabelId] = useState<string | null>(null);
+  const [labelError, setLabelError] = useState<string | null>(null);
 
   // Allow Dashboard pending button to set the initial tab
   useEffect(() => {
@@ -250,25 +252,29 @@ export default function OrdersPage() {
       setActionTarget(null);
     } catch (err) {
       setActionError(
-        err instanceof Error
-          ? err.message
-          : isRTL
-            ? "تعذر تحديث حالة الطلب"
-            : "Unable to update order status",
+        err instanceof Error ? err.message : ta.unableToUpdate,
       );
     } finally {
       setUpdatingId(null);
     }
   };
 
-  const pendingActionLabel =
-    actionTarget?.nextStatus === "confirmed"
-      ? isRTL
-        ? "تأكيد"
-        : "Confirm"
-      : isRTL
-        ? "إلغاء"
-        : "Cancel";
+  const handleDownloadLabel = async (orderId: string) => {
+    setDownloadingLabelId(orderId);
+    setLabelError(null);
+    try {
+      await sellerService.downloadOrderLabel(orderId);
+    } catch (err) {
+      setLabelError(
+        err instanceof Error
+          ? err.message
+          : isRTL ? "تعذر تحميل ملصق الشحن" : "Failed to download shipping label",
+      );
+      setTimeout(() => setLabelError(null), 4000);
+    } finally {
+      setDownloadingLabelId(null);
+    }
+  };
 
   const tabCount = (key: string) =>
     key === "all"
@@ -562,7 +568,8 @@ export default function OrdersPage() {
                             <div className="flex flex-col gap-2">
                               <OrderActionButtons
                                 disabled={isUpdating}
-                                isRTL={isRTL}
+                                confirmLabel={ta.confirm}
+                                cancelLabel={ta.cancel}
                                 onConfirm={() => {
                                   setActionError("");
                                   setActionTarget({
@@ -580,19 +587,22 @@ export default function OrdersPage() {
                               />
                               {isUpdating && (
                                 <span className="text-[10px] font-medium text-[#1A1A2E]/40">
-                                  {isRTL ? "جارٍ التحديث..." : "Updating..."}
+                                  {ta.updating}
                                 </span>
                               )}
                             </div>
                           ) : (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <StatusBadge
                                 status={order.status}
                                 label={statusLabelMap[order.status]}
                               />
-                              <span className="text-[10px] text-[#1A1A2E]/35">
-                                {isRTL ? "تمت المعالجة" : "Managed"}
-                              </span>
+                              {order.managedBy && (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-[#1A1A2E]/45 bg-[#1A1A2E]/5 px-2 py-0.5">
+                                  <PersonOutlineIcon sx={{ fontSize: 10 }} />
+                                  {order.managedBy}
+                                </span>
+                              )}
                             </div>
                           )}
                         </td>
@@ -734,6 +744,30 @@ export default function OrdersPage() {
                                     {tr.common.dzd}
                                   </span>
                                 </div>
+
+                                {/* Label download — only for confirmed/shipped/delivered orders with a tracking_id */}
+                                {order.tracking_id &&
+                                  (order.status === "confirmed" ||
+                                    order.status === "shipped" ||
+                                    order.status === "delivered") && (
+                                    <button
+                                      onClick={() => handleDownloadLabel(order._id)}
+                                      disabled={downloadingLabelId === order._id}
+                                      className="mt-2 w-full h-9 flex items-center justify-center gap-2 border border-[#C9A84C]/40 text-[#C9A84C] text-[11px] font-bold uppercase tracking-wide hover:bg-[#C9A84C]/8 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                      {downloadingLabelId === order._id ? (
+                                        <>
+                                          <span className="w-3.5 h-3.5 border-2 border-[#C9A84C] border-t-transparent rounded-full animate-spin" />
+                                          {isRTL ? "جارٍ التحميل..." : "Downloading..."}
+                                        </>
+                                      ) : (
+                                        <>
+                                          <FileDownloadOutlinedIcon sx={{ fontSize: 14 }} />
+                                          {isRTL ? "تحميل ملصق الشحن" : "Download Label"}
+                                        </>
+                                      )}
+                                    </button>
+                                  )}
                               </div>
 
                               {/* Shipping details */}
@@ -814,8 +848,7 @@ export default function OrdersPage() {
                                         stepIdx <= currentIdx &&
                                         order.status !== "cancelled";
                                       const isCurrent =
-                                        order.status === s &&
-                                        order.status !== "cancelled";
+                                        order.status === s;
                                       const cfg = STATUS_STYLE[s];
 
                                       return (
@@ -918,18 +951,10 @@ export default function OrdersPage() {
 
           <div className="text-center space-y-1">
             <h3 className="font-display font-bold text-[#1A1A2E] text-lg">
-              {isRTL
-                ? `هل تريد ${pendingActionLabel} هذا الطلب؟`
-                : `Are you sure you want to ${pendingActionLabel.toLowerCase()} this order?`}
+              {actionTarget?.nextStatus === "confirmed" ? ta.confirmTitle : ta.cancelTitle}
             </h3>
             <p className="text-[#1A1A2E]/50 text-sm leading-relaxed">
-              {isRTL
-                ? actionTarget?.nextStatus === "confirmed"
-                  ? "سيتم تحديث حالة الطلب إلى تم التأكيد."
-                  : "سيتم تحديث حالة الطلب إلى ملغى."
-                : actionTarget?.nextStatus === "confirmed"
-                  ? "This will update the order status to confirmed."
-                  : "This will update the order status to cancelled."}
+              {actionTarget?.nextStatus === "confirmed" ? ta.confirmDesc : ta.cancelDesc}
             </p>
           </div>
 
@@ -947,7 +972,7 @@ export default function OrdersPage() {
               fullWidth
               sx={{ borderRadius: 0 }}
             >
-              {isRTL ? "رجوع" : "Back"}
+              {ta.back}
             </Button>
             <Button
               variant="contained"
@@ -981,20 +1006,25 @@ export default function OrdersPage() {
               }
             >
               {updatingId
-                ? isRTL
-                  ? "جارٍ الحفظ..."
-                  : "Saving..."
-                : isRTL
-                  ? actionTarget?.nextStatus === "confirmed"
-                    ? "تأكيد"
-                    : "إلغاء"
-                  : actionTarget?.nextStatus === "confirmed"
-                    ? "Confirm"
-                    : "Cancel"}
+                ? ta.saving
+                : actionTarget?.nextStatus === "confirmed"
+                  ? ta.confirm
+                  : ta.cancel}
             </Button>
           </div>
         </div>
       </Dialog>
+
+      {/* ── Label download error toast ─────────────────────────────────── */}
+      {labelError && (
+        <div
+          className={`fixed bottom-6 ${isRTL ? "left-6" : "right-6"} z-50 flex items-center gap-2.5 px-4 py-3 shadow-xl text-sm font-medium bg-red-600 text-white`}
+          dir={isRTL ? "rtl" : "ltr"}
+        >
+          <CancelIcon sx={{ fontSize: 16 }} />
+          {labelError}
+        </div>
+      )}
     </SellerLayout>
   );
 }

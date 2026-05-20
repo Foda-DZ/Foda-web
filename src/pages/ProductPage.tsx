@@ -14,23 +14,37 @@ import FacebookIcon from "@mui/icons-material/Facebook";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import LoopIcon from "@mui/icons-material/Loop";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import StarIcon from "@mui/icons-material/Star";
 import StarHalfIcon from "@mui/icons-material/StarHalf";
-import StarOutlineIcon from "@mui/icons-material/StarOutline";
+import StarOutlineIcon from "@mui/icons-material/StarBorderOutlined";
 import Footer from "../components/Footer";
 import ImageGallery from "../components/product/ImageGallery";
 import ProductCard from "../components/ui/ProductCard";
 import { productsService } from "../services/productsService";
 import { sellerService } from "../services/sellerService";
+import { storefrontService } from "../services/storefrontService";
 import { apiProductToProduct } from "../lib/mappers";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
 import type { Product } from "../types";
-import type { ApiProductReview, ApiProductShare } from "../types/api";
+import type { ApiProductReview, ApiProductShare, ApiSellerProfile } from "../types/api";
+
+function RatingStars({ rating }: { rating: number }) {
+  const stars = [];
+  const full = Math.floor(rating);
+  const half = rating - full >= 0.5;
+  for (let i = 0; i < full; i++)
+    stars.push(<StarIcon key={`f${i}`} sx={{ fontSize: 16, color: "#C9A84C" }} />);
+  if (half)
+    stars.push(<StarHalfIcon key="h" sx={{ fontSize: 16, color: "#C9A84C" }} />);
+  const empty = 5 - stars.length;
+  for (let i = 0; i < empty; i++)
+    stars.push(<StarOutlineIcon key={`e${i}`} sx={{ fontSize: 16, color: "#C9A84C33" }} />);
+  return <div className="flex items-center gap-px">{stars}</div>;
+}
 
 const COLOR_HEX: Record<string, string> = {
   black: "#1a1a1a",
@@ -130,28 +144,6 @@ function setOpenGraphTags(product: Product | null) {
   });
 }
 
-function RatingStars({ rating }: { rating: number }) {
-  const stars = [];
-  const full = Math.floor(rating);
-  const half = rating - full >= 0.5;
-  for (let i = 0; i < full; i++)
-    stars.push(
-      <StarIcon key={`f${i}`} sx={{ fontSize: 18, color: "#C9A84C" }} />,
-    );
-  if (half)
-    stars.push(
-      <StarHalfIcon key="h" sx={{ fontSize: 18, color: "#C9A84C" }} />,
-    );
-  const empty = 5 - stars.length;
-  for (let i = 0; i < empty; i++)
-    stars.push(
-      <StarOutlineIcon
-        key={`e${i}`}
-        sx={{ fontSize: 18, color: "#C9A84C33" }}
-      />,
-    );
-  return <div className="flex items-center gap-px">{stars}</div>;
-}
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
@@ -186,6 +178,10 @@ export default function ProductPage() {
   const [shareCopied, setShareCopied] = useState(false);
   const [shareData, setShareData] = useState<ApiProductShare | null>(null);
   const [cartAdded, setCartAdded] = useState(false);
+  const [sellerProfile, setSellerProfile] = useState<ApiSellerProfile | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followLoading, setFollowLoading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -194,6 +190,10 @@ export default function ProductPage() {
     setReviews([]);
     setReviewsError("");
     setReviewsLoading(true);
+    setSellerProfile(null);
+    setIsFollowing(false);
+    setFollowersCount(0);
+    let resolvedSellerId: string | undefined;
     productsService
       .getById(id)
       .then((ap) => {
@@ -202,6 +202,7 @@ export default function ProductPage() {
         setSelectedSize(mapped.sizes[0] ?? null);
         setSelectedColor(mapped.colors[0] ?? null);
         setQuantity(1);
+        resolvedSellerId = ap.sellerId;
         return productsService.getAll({ category: mapped.category });
       })
       .then((all) => {
@@ -211,10 +212,42 @@ export default function ProductPage() {
             .filter((p) => p.id !== id)
             .slice(0, 4),
         );
+        if (resolvedSellerId) {
+          storefrontService
+            .getSellerProfile(resolvedSellerId)
+            .then((profile) => {
+              setSellerProfile(profile);
+              setIsFollowing(profile.isFollowing);
+              setFollowersCount(profile.followers);
+            })
+            .catch(() => undefined);
+        }
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const handleFollowToggle = async () => {
+    if (!isCustomer) { openLogin(); return; }
+    if (!sellerProfile || followLoading) return;
+    setFollowLoading(true);
+    const wasFollowing = isFollowing;
+    // Optimistic update
+    setIsFollowing(!wasFollowing);
+    setFollowersCount((n) => wasFollowing ? Math.max(0, n - 1) : n + 1);
+    try {
+      const result = wasFollowing
+        ? await storefrontService.unfollowSeller(sellerProfile.id)
+        : await storefrontService.followSeller(sellerProfile.id);
+      setFollowersCount(result.followers);
+    } catch {
+      // Revert on error
+      setIsFollowing(wasFollowing);
+      setFollowersCount((n) => wasFollowing ? n + 1 : Math.max(0, n - 1));
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   // Update Open Graph meta tags when product loads for rich share preview
   useEffect(() => {
@@ -495,9 +528,7 @@ export default function ProductPage() {
         ? product.description.slice(0, 137) + "..."
         : product.description
       : "";
-    const image = product.images?.[0] ?? "";
-
-    const message = `${title} — ${price}${desc ? "\n\n" + desc : ""}\n\n${url}`;
+    const message =`${title} — ${price}${desc ? "\n\n" + desc : ""}\n\n${url}`;
 
     // Close share modal
     setIsShareOpen(false);
@@ -648,16 +679,11 @@ export default function ProductPage() {
 
           {/* Right: Product info */}
           <div className="flex flex-col gap-5">
-            {/* Category + seller */}
-            <div className="flex items-center gap-3">
+            {/* Category chip */}
+            <div>
               <span className="inline-flex items-center px-3 py-1 bg-[#C9A84C]/10 text-[10px] font-bold tracking-[0.14em] uppercase text-[#C9A84C]">
                 {product.category}
               </span>
-              {product.sellerName && (
-                <span className="text-xs text-[#1A1A2E]/40">
-                  {tr.productPage.by} {product.sellerName}
-                </span>
-              )}
             </div>
 
             {/* Title */}
@@ -665,111 +691,128 @@ export default function ProductPage() {
               {product.name}
             </h1>
 
-            {/* Rating */}
-            {product.rating != null && product.rating > 0 && (
-              <div className="flex items-center gap-2">
-                <RatingStars rating={product.rating} />
-                <span className="text-sm font-medium text-[#1A1A2E]/50">
-                  {product.rating.toFixed(1)}
-                </span>
-              </div>
-            )}
-
-            {/* Promotion banner */}
-            {promo && (
-              <div className="relative overflow-hidden border border-[#C9A84C]/30 bg-gradient-to-r from-[#C9A84C]/8 via-[#C9A84C]/5 to-transparent px-4 py-3 flex items-center gap-3">
-                <div className="shrink-0 w-8 h-8 gold-gradient flex items-center justify-center">
-                  <LocalOfferIcon sx={{ fontSize: 15, color: "#1A1A2E" }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#C9A84C]">
-                    {isRTL ? "عرض خاص" : "Special Offer"}
-                  </p>
-                  <p className="text-xs font-semibold text-[#1A1A2E] mt-0.5">
-                    {promo.type === "percentage"
-                      ? isRTL
-                        ? `خصم ${promo.value}% على هذا المنتج`
-                        : `${promo.value}% off this product`
-                      : isRTL
-                        ? `خصم ${promo.value} ${tr.common.dzd} على السعر`
-                        : `Save ${promo.value} ${tr.common.dzd} on this item`}
-                  </p>
-                </div>
-                <div className="shrink-0 text-end">
-                  <p className="text-[10px] text-[#1A1A2E]/40 uppercase tracking-wide font-semibold">
-                    {isRTL ? "توفير" : "Save"}
-                  </p>
-                  <p className="text-sm font-bold text-[#C9A84C]">
-                    -{promoPercent}%
-                  </p>
-                </div>
-                {/* Decorative stripe */}
-                <div className="absolute inset-y-0 right-0 w-1 gold-gradient opacity-60" />
-              </div>
-            )}
-
-            {/* Price + Stock panel */}
-            <div className="bg-[#FAF7F2] border border-[#C9A84C]/10 px-5 py-4 space-y-2">
+            {/* Price row */}
+            <div className="flex items-baseline gap-3 flex-wrap">
               {promo && promoDiscountedPrice !== null ? (
-                <div className="space-y-1">
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-2xl font-bold text-[#1A1A2E]">
-                      {Math.round(promoDiscountedPrice).toLocaleString()}{" "}
-                      <span className="text-sm font-normal text-[#1A1A2E]/45">
-                        {tr.common.dzd}
-                      </span>
-                    </span>
-                    <span className="text-base text-[#1A1A2E]/35 line-through">
-                      {product.price.toLocaleString()}
-                    </span>
-                    <span className="inline-flex items-center px-2 py-0.5 gold-gradient text-[10px] font-bold text-[#1A1A2E] uppercase tracking-wide">
-                      -{promoPercent}%
-                    </span>
-                  </div>
-                </div>
+                <>
+                  <span className="text-4xl font-extrabold text-[#1A1A2E] tracking-tight">
+                    {Math.round(promoDiscountedPrice).toLocaleString()}
+                  </span>
+                  <span className="text-sm font-medium text-[#1A1A2E]/45 -ml-1">
+                    {tr.common.dzd}
+                  </span>
+                  <span className="text-lg text-[#1A1A2E]/35 line-through">
+                    {product.price.toLocaleString()}
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-red-50 text-red-500 text-sm font-bold">
+                    -{promoPercent}%
+                  </span>
+                </>
               ) : (
-                <div className="flex items-baseline gap-3">
-                  <span className="text-2xl font-bold text-[#1A1A2E]">
-                    {product.price.toLocaleString()}{" "}
-                    <span className="text-sm font-normal text-[#1A1A2E]/45">
-                      {tr.common.dzd}
-                    </span>
+                <>
+                  <span className="text-4xl font-extrabold text-[#1A1A2E] tracking-tight">
+                    {product.price.toLocaleString()}
+                  </span>
+                  <span className="text-sm font-medium text-[#1A1A2E]/45 -ml-1">
+                    {tr.common.dzd}
                   </span>
                   {hasDiscount && (
                     <>
-                      <span className="text-lg text-[#1A1A2E]/30 line-through">
+                      <span className="text-lg text-[#1A1A2E]/35 line-through">
                         {product.originalPrice!.toLocaleString()}
                       </span>
-                      <span className="text-sm font-bold text-red-500">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-red-50 text-red-500 text-sm font-bold">
                         -{discountPercent}%
                       </span>
                     </>
                   )}
-                </div>
+                </>
               )}
-
-              {/* Stock indicator — once a variant is picked, show its exact stock.
-                  Before that, fall back to the product total. */}
-              {isOutOfStock ? (
-                <span className="text-sm font-semibold text-red-500">
-                  {tr.shop.soldOut}
-                </span>
-              ) : selectedVariant ? (
-                variantStock === 0 ? (
-                  <span className="text-sm font-semibold text-red-500">
-                    {tr.shop.soldOut}
-                  </span>
-                ) : variantStock <= 5 ? (
-                  <span className="text-sm font-medium text-orange-500">
-                    {variantStock} {tr.shop.left}
-                  </span>
-                ) : null
-              ) : product.totalStock <= 5 ? (
-                <span className="text-sm font-medium text-orange-500">
-                  {product.totalStock} {tr.shop.left}
-                </span>
-              ) : null}
             </div>
+
+            {/* Stock indicator */}
+            {isOutOfStock ? (
+              <span className="text-sm font-semibold text-red-500">{tr.shop.soldOut}</span>
+            ) : selectedVariant ? (
+              variantStock === 0 ? (
+                <span className="text-sm font-semibold text-red-500">{tr.shop.soldOut}</span>
+              ) : variantStock <= 5 ? (
+                <span className="text-sm font-medium text-orange-500">{variantStock} {tr.shop.left}</span>
+              ) : null
+            ) : product.totalStock <= 5 ? (
+              <span className="text-sm font-medium text-orange-500">{product.totalStock} {tr.shop.left}</span>
+            ) : null}
+
+            {/* Seller card */}
+            {product.sellerId && (
+              <div dir="ltr" className="flex items-center gap-3 bg-[#FAF7F2] border border-[#1A1A2E]/8 rounded-2xl px-4 py-3 w-full">
+                {/* Follow button — always left */}
+                <button
+                  onClick={handleFollowToggle}
+                  disabled={followLoading}
+                  className={`shrink-0 text-sm font-bold transition-all duration-200 disabled:opacity-60 ${
+                    isFollowing
+                      ? "text-[#1A1A2E]/40 hover:text-red-400"
+                      : "text-[#C9A84C] hover:text-[#b8943d]"
+                  }`}
+                >
+                  {followLoading
+                    ? "..."
+                    : isFollowing
+                      ? (isRTL ? "متابَع" : "Following")
+                      : (isRTL ? "متابعة" : "Follow")}
+                </button>
+
+                {/* Name + meta — clickable, fills middle */}
+                <button
+                  onClick={() => navigate(`/storefront/${product.sellerId}`)}
+                  className="flex flex-col items-end min-w-0 flex-1 focus:outline-none"
+                >
+                  <div className="flex items-center gap-1">
+                    {sellerProfile?.verifiedBadge && (
+                      <VerifiedIcon sx={{ fontSize: 13, color: "#C9A84C" }} />
+                    )}
+                    <span className="text-sm font-bold text-[#1A1A2E] truncate hover:text-[#C9A84C] transition-colors">
+                      {sellerProfile?.shopName ?? product.sellerName ?? "View seller"}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-[#1A1A2E]/50 truncate mt-px">
+                    {[
+                      sellerProfile?.address?.wilaya,
+                      product.rating != null && product.rating > 0
+                        ? `${product.rating.toFixed(1)} ★`
+                        : null,
+                      followersCount > 0
+                        ? `${followersCount.toLocaleString()} ${isRTL ? "متابع" : "followers"}`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                </button>
+
+                {/* Logo / initials — always right */}
+                <button
+                  onClick={() => navigate(`/storefront/${product.sellerId}`)}
+                  className="shrink-0 focus:outline-none"
+                  aria-label="View seller storefront"
+                >
+                  {sellerProfile?.logoUrl ? (
+                    <img
+                      src={sellerProfile.logoUrl}
+                      alt={sellerProfile.shopName}
+                      className="w-11 h-11 rounded-xl object-cover ring-1 ring-[#C9A84C]/30"
+                    />
+                  ) : (
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-[#C9A84C] text-[#1A1A2E] font-bold text-base select-none">
+                      {(sellerProfile?.shopName ?? product.sellerName ?? "?")
+                        .charAt(0)
+                        .toUpperCase()}
+                    </div>
+                  )}
+                </button>
+              </div>
+            )}
 
             {/* Divider */}
             <div className="h-px bg-gradient-to-r from-transparent via-[#C9A84C]/20 to-transparent" />

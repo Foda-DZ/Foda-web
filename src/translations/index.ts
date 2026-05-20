@@ -846,6 +846,61 @@ export interface Translations {
       copyAll: string;
       hint: string;
     };
+    confirmatorsPage: {
+      title: string;
+      subtitle: string;
+      invite: string;
+      totalLabel: string;
+      ordersConfirmedLabel: string;
+      ordersCancelledLabel: string;
+      activeStatus: string;
+      inactiveStatus: string;
+      contactSection: string;
+      noPhone: string;
+      joinedLabel: string;
+      orderActivitySection: string;
+      noOrdersYet: string;
+      confirmedLabel: string;
+      cancelledLabel: string;
+      confirmRateLabel: string;
+      totalLabel2: string;
+      collapseTitle: string;
+      viewDetailsTitle: string;
+      removeTitle2: string;
+      emptyTitle: string;
+      emptyDesc: string;
+      inviteFirst: string;
+      loadError: string;
+      removeError: string;
+      inviteModalTitle: string;
+      inviteModalSub: string;
+      fullNameLabel: string;
+      fullNamePlaceholder: string;
+      emailLabel: string;
+      emailPlaceholder: string;
+      fieldsRequired: string;
+      failedInvite: string;
+      cancel: string;
+      sending: string;
+      sendInvitation: string;
+      removeConfirmatorTitle: string;
+      removeConfirmatorDesc: string;
+      keep: string;
+      removing: string;
+      remove: string;
+    };
+    orderActions: {
+      confirmTitle: string;
+      cancelTitle: string;
+      confirmDesc: string;
+      cancelDesc: string;
+      confirm: string;
+      cancel: string;
+      back: string;
+      updating: string;
+      saving: string;
+      unableToUpdate: string;
+    };
   };
 }
 
@@ -1695,6 +1750,61 @@ export const ar: Translations = {
       copyAll: "نسخ الكل",
       hint: "كل رابط يحمل وسم المنصة لتعرف من أين يأتي الزوار.",
     },
+    confirmatorsPage: {
+      title: "المؤكدون",
+      subtitle: "إدارة من يمكنه تأكيد الطلبات وإلغاؤها نيابةً عنك.",
+      invite: "دعوة",
+      totalLabel: "الإجمالي",
+      ordersConfirmedLabel: "طلبات مؤكدة",
+      ordersCancelledLabel: "طلبات ملغاة",
+      activeStatus: "نشط",
+      inactiveStatus: "غير نشط",
+      contactSection: "التواصل",
+      noPhone: "لا يوجد هاتف",
+      joinedLabel: "انضم",
+      orderActivitySection: "نشاط الطلبات",
+      noOrdersYet: "لا توجد طلبات بعد.",
+      confirmedLabel: "مؤكدة:",
+      cancelledLabel: "ملغاة:",
+      confirmRateLabel: "معدل التأكيد:",
+      totalLabel2: "الإجمالي",
+      collapseTitle: "طيّ",
+      viewDetailsTitle: "عرض التفاصيل",
+      removeTitle2: "إزالة المؤكد",
+      emptyTitle: "لا يوجد مؤكدون بعد",
+      emptyDesc: "ادعُ شخصاً لتأكيد الطلبات وإلغائها نيابةً عنك.",
+      inviteFirst: "ادعُ أول مؤكد",
+      loadError: "تعذر تحميل المؤكدين.",
+      removeError: "تعذر الإزالة. حاول مجدداً.",
+      inviteModalTitle: "دعوة مؤكد",
+      inviteModalSub: "سيتلقّى بيانات الدخول عبر البريد الإلكتروني",
+      fullNameLabel: "الاسم الكامل",
+      fullNamePlaceholder: "مثال: أحمد بن علي",
+      emailLabel: "عنوان البريد الإلكتروني",
+      emailPlaceholder: "مثال: ahmed@example.com",
+      fieldsRequired: "الحقلان مطلوبان.",
+      failedInvite: "تعذر إرسال الدعوة.",
+      cancel: "إلغاء",
+      sending: "جارٍ الإرسال…",
+      sendInvitation: "إرسال الدعوة",
+      removeConfirmatorTitle: "إزالة المؤكد",
+      removeConfirmatorDesc: "هل أنت متأكد من إزالة {name}؟ سيفقد الوصول إلى متجرك فوراً.",
+      keep: "إبقاء",
+      removing: "جارٍ الإزالة…",
+      remove: "إزالة",
+    },
+    orderActions: {
+      confirmTitle: "هل تريد تأكيد هذا الطلب؟",
+      cancelTitle: "هل تريد إلغاء هذا الطلب؟",
+      confirmDesc: "سيتم تحديث حالة الطلب إلى تم التأكيد.",
+      cancelDesc: "سيتم تحديث حالة الطلب إلى ملغى.",
+      confirm: "تأكيد",
+      cancel: "إلغاء",
+      back: "رجوع",
+      updating: "جارٍ التحديث...",
+      saving: "جارٍ الحفظ...",
+      unableToUpdate: "تعذر تحديث حالة الطلب",
+    },
   },
 };
 
@@ -2543,6 +2653,61 @@ export const en: Translations = {
       copied: "Copied",
       copyAll: "Copy all",
       hint: "Each link carries a platform tag so you can see which channel drives traffic.",
+    },
+    confirmatorsPage: {
+      title: "Confirmators",
+      subtitle: "Manage who can confirm and cancel orders on your behalf.",
+      invite: "Invite",
+      totalLabel: "Total",
+      ordersConfirmedLabel: "Orders Confirmed",
+      ordersCancelledLabel: "Orders Cancelled",
+      activeStatus: "Active",
+      inactiveStatus: "Inactive",
+      contactSection: "Contact",
+      noPhone: "No phone",
+      joinedLabel: "Joined",
+      orderActivitySection: "Order Activity",
+      noOrdersYet: "No orders handled yet.",
+      confirmedLabel: "Confirmed:",
+      cancelledLabel: "Cancelled:",
+      confirmRateLabel: "Confirm rate:",
+      totalLabel2: "total",
+      collapseTitle: "Collapse",
+      viewDetailsTitle: "View details",
+      removeTitle2: "Remove confirmator",
+      emptyTitle: "No confirmators yet",
+      emptyDesc: "Invite someone to confirm and cancel orders for you.",
+      inviteFirst: "Invite your first confirmator",
+      loadError: "Failed to load confirmators.",
+      removeError: "Failed to remove. Please try again.",
+      inviteModalTitle: "Invite Confirmator",
+      inviteModalSub: "They will receive login credentials by email",
+      fullNameLabel: "Full Name",
+      fullNamePlaceholder: "e.g. Ahmed Benali",
+      emailLabel: "Email Address",
+      emailPlaceholder: "e.g. ahmed@example.com",
+      fieldsRequired: "Both fields are required.",
+      failedInvite: "Failed to send invitation.",
+      cancel: "Cancel",
+      sending: "Sending…",
+      sendInvitation: "Send Invitation",
+      removeConfirmatorTitle: "Remove Confirmator",
+      removeConfirmatorDesc: "Are you sure you want to remove {name}? They will immediately lose access to your store.",
+      keep: "Keep",
+      removing: "Removing…",
+      remove: "Remove",
+    },
+    orderActions: {
+      confirmTitle: "Are you sure you want to confirm this order?",
+      cancelTitle: "Are you sure you want to cancel this order?",
+      confirmDesc: "This will update the order status to confirmed.",
+      cancelDesc: "This will update the order status to cancelled.",
+      confirm: "Confirm",
+      cancel: "Cancel",
+      back: "Back",
+      updating: "Updating...",
+      saving: "Saving...",
+      unableToUpdate: "Unable to update order status",
     },
   },
 };
