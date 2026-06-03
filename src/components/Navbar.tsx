@@ -75,7 +75,6 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
-  const [navHidden, setNavHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [authPopupOpen, setAuthPopupOpen] = useState(false);
@@ -83,7 +82,6 @@ export default function Navbar() {
   const accountRef = useRef<HTMLDivElement>(null);
   const authPopupRef = useRef<HTMLDivElement>(null);
   const authCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastScrollY = useRef(0);
   const navRef = useRef<HTMLElement>(null);
   const [navHeight, setNavHeight] = useState(0);
   const { totalItems } = useCart();
@@ -116,30 +114,14 @@ export default function Navbar() {
     authCloseTimer.current = setTimeout(() => setAuthPopupOpen(false), 200);
   }, []);
 
-  // Hide on scroll down, show on scroll up
+  // Keep the navbar fixed; only toggle the shadow after scrolling
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY;
       setScrolled(y > 10);
-
-      const delta = y - lastScrollY.current;
-
-      if (y <= 10) {
-        // At the top — always show
-        setNavHidden(false);
-        lastScrollY.current = y;
-      } else if (delta > 10) {
-        // Scrolling down by 10+px — hide
-        setNavHidden(true);
-        lastScrollY.current = y;
-      } else if (delta < -10) {
-        // Scrolling up by 10+px — show
-        setNavHidden(false);
-        lastScrollY.current = y;
-      }
-      // Ignore small movements (keep current state, don't update lastScrollY)
     };
     window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -195,9 +177,9 @@ export default function Navbar() {
       {/* ── Main navbar (fixed) ────────────────────────────────────── */}
       <nav
         ref={navRef}
-        className={`fixed top-0 inset-x-0 z-50 bg-white transition-transform duration-300 ${
+        className={`fixed top-0 inset-x-0 z-50 bg-white transition-shadow duration-300 ${
           scrolled ? "shadow-md shadow-black/5" : ""
-        } ${navHidden ? "-translate-y-full" : "translate-y-0"}`}
+        }`}
       >
         {/* ── Promo bar ──────────────────────────────────────────── */}
         <div className="gold-gradient py-2 px-4">

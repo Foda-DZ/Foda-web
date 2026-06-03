@@ -93,6 +93,7 @@ interface SellerSetupRecord {
   status: SellerSetupStatus;
   deliveryCompany?: string;
   seller_delivery_token?: string;
+  connectionLabel?: string;
   address?: { wilaya: string; commune: string };
 }
 
@@ -133,6 +134,9 @@ function applySellerSetup(session: SessionUser): SessionUser {
     }),
     ...(record.seller_delivery_token !== undefined && {
       seller_delivery_token: record.seller_delivery_token,
+    }),
+    ...(record.connectionLabel !== undefined && {
+      connectionLabel: record.connectionLabel,
     }),
     ...(record.address !== undefined && { address: record.address }),
   };
@@ -386,11 +390,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Call API to complete setup
       const response = await sellerService.completeSellerSetup(params);
 
+      const connectionLabel = response.seller.connection_label;
+
       // Persist local seller setup record and update session
       saveSellerSetupRecord(user.id, {
         status: "complete",
         deliveryCompany: params.deliveryCompany,
         seller_delivery_token: params.seller_delivery_token,
+        connectionLabel,
         address: { wilaya: params.wilaya, commune: params.commune },
       });
 
@@ -399,6 +406,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sellerSetupStatus: "complete",
         deliveryCompany: params.deliveryCompany,
         seller_delivery_token: params.seller_delivery_token,
+        connectionLabel,
         address: { wilaya: params.wilaya, commune: params.commune },
       };
       saveSession(updated);

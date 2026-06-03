@@ -33,7 +33,10 @@ import PromotionsPage from "./pages/seller/PromotionsPage";
 import ProductAnalyticsPage from "./pages/seller/ProductAnalyticsPage";
 import RevenueAnalyticsPage from "./pages/seller/RevenueAnalyticsPage";
 import ConfirmatorsPage from "./pages/seller/ConfirmatorsPage";
+import CollectionsPage from "./pages/seller/CollectionsPage";
 import SellerStorefrontPage from "./pages/SellerStorefrontPage";
+import CollectionPage from "./pages/CollectionPage";
+import ProductReviewsPage from "./pages/ProductReviewsPage";
 
 // ─── Scroll Restoration ────────────────────────────────────────────────────────
 
@@ -97,7 +100,9 @@ export default function App() {
                     <Route index element={<HomeOrSellerRedirect />} />
                     <Route path="shop" element={<ShopPage />} />
                     <Route path="products/:id" element={<ProductPage />} />
+                    <Route path="products/:id/reviews" element={<ProductReviewsPage />} />
                     <Route path="storefront/:sellerId" element={<SellerStorefrontPage />} />
+                    <Route path="collections/:id" element={<CollectionPage />} />
                     <Route path="wishlist" element={<WishlistPage />} />
                     <Route path="cart" element={<CartPage />} />
                     <Route path="checkout" element={<CheckoutPage />} />
@@ -223,6 +228,14 @@ export default function App() {
                       element={
                         <RequireActiveSeller>
                           <ConfirmatorsPage />
+                        </RequireActiveSeller>
+                      }
+                    />
+                    <Route
+                      path="collections"
+                      element={
+                        <RequireActiveSeller>
+                          <CollectionsPage />
                         </RequireActiveSeller>
                       }
                     />

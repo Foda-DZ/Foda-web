@@ -167,6 +167,7 @@ type ImageFiles = [
 
 interface FormState {
   name: string;
+  brand: string;
   mainCategory: string;
   subCategory: string;
   price: number;
@@ -179,6 +180,7 @@ interface FormState {
 
 const defaultForm: FormState = {
   name: "",
+  brand: "",
   mainCategory: "Women",
   subCategory: "Dresses",
   price: 0,
@@ -238,6 +240,7 @@ export default function ProductFormPage() {
     if (isEdit && existingProduct) {
       setForm({
         name: existingProduct.name,
+        brand: existingProduct.brand || "",
         mainCategory: existingProduct.category,
         subCategory: existingProduct.subCategory || "Other",
         price: existingProduct.price,
@@ -313,6 +316,7 @@ export default function ProductFormPage() {
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = t.required;
+    if (!form.brand.trim()) e.brand = "Brand is required";
     const priceNum = form.price;
     if (!form.price || Number.isNaN(priceNum) || priceNum <= 0)
       e.price = t.validPrice;
@@ -338,6 +342,7 @@ export default function ProductFormPage() {
       if (isEdit && id) {
         await updateProduct(id, {
           name: form.name.trim(),
+          brand: form.brand.trim(),
           price: form.price,
           mainCategory: form.mainCategory,
           subCategory: form.subCategory,
@@ -348,6 +353,7 @@ export default function ProductFormPage() {
       } else {
         await createProduct({
           name: form.name.trim(),
+          brand: form.brand.trim(),
           price: form.price,
           mainCategory: form.mainCategory,
           subCategory: form.subCategory,
@@ -415,6 +421,8 @@ export default function ProductFormPage() {
           {/* ── Basic info ────────────────────────────────────────────── */}
           <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
             <SectionHeader title={t.basicInfo} Icon={InfoOutlinedIcon} />
+
+            {/* Row 1: Name + Brand */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <TextField
                 label={t.productName}
@@ -426,39 +434,50 @@ export default function ProductFormPage() {
                 fullWidth
                 sx={inputSx}
               />
-              <div className="grid grid-cols-2 gap-4">
-                <TextField
-                  label="Main Category"
-                  value={form.mainCategory}
-                  onChange={(e) => set("mainCategory", e.target.value)}
-                  select
-                  fullWidth
-                  sx={inputSx}
-                  slotProps={{ select: { native: true } }}
-                >
-                  {mainCategories.map((c) => (
-                    <option key={c.value} value={c.value}>
-                      {c.label}
-                    </option>
-                  ))}
-                </TextField>
-                <TextField
-                  label="Sub Category"
-                  value={form.subCategory}
-                  onChange={(e) => set("subCategory", e.target.value)}
-                  select
-                  fullWidth
-                  sx={inputSx}
-                  slotProps={{ select: { native: true } }}
-                >
-                  {subCategories.map((c) => (
-                    <option key={c.value} value={c.value}>
-                      {c.label}
-                    </option>
-                  ))}
-                </TextField>
-              </div>
+              <TextField
+                label="Brand *"
+                value={form.brand}
+                onChange={(e) => set("brand", e.target.value)}
+                placeholder="e.g. Nike, Zara, Local Brand…"
+                error={!!errors.brand}
+                helperText={errors.brand}
+                fullWidth
+                sx={inputSx}
+                slotProps={{ htmlInput: { maxLength: 80 } }}
+              />
             </div>
+
+            {/* Row 2: Categories */}
+            <div className="grid grid-cols-2 gap-4">
+              <TextField
+                label="Main Category"
+                value={form.mainCategory}
+                onChange={(e) => set("mainCategory", e.target.value)}
+                select
+                fullWidth
+                sx={inputSx}
+                slotProps={{ select: { native: true } }}
+              >
+                {mainCategories.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </TextField>
+              <TextField
+                label="Sub Category"
+                value={form.subCategory}
+                onChange={(e) => set("subCategory", e.target.value)}
+                select
+                fullWidth
+                sx={inputSx}
+                slotProps={{ select: { native: true } }}
+              >
+                {subCategories.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </TextField>
+            </div>
+
+            {/* Row 3: Description */}
             <TextField
               label={t.description}
               value={form.description}

@@ -11,6 +11,7 @@ import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import ChevronRightOutlinedIcon from "@mui/icons-material/ChevronRightOutlined";
 import WarehouseOutlinedIcon from "@mui/icons-material/WarehouseOutlined";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
+import CollectionsBookmarkOutlinedIcon from "@mui/icons-material/CollectionsBookmarkOutlined";
 import TrendingUpOutlinedIcon from "@mui/icons-material/TrendingUpOutlined";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import MenuOpenOutlinedIcon from "@mui/icons-material/MenuOpenOutlined";
@@ -55,6 +56,11 @@ const NAV_GROUPS = [
         to: "/seller/promotions",
         labelKey: "promotions",
         Icon: LocalOfferOutlinedIcon,
+      },
+      {
+        to: "/seller/collections",
+        labelKey: "collections",
+        Icon: CollectionsBookmarkOutlinedIcon,
       },
     ],
   },
@@ -111,6 +117,7 @@ const NAV_GROUPS = [
 const LABEL_FALLBACKS: Record<string, { en: string; ar: string }> = {
   inventory: { en: "Inventory", ar: "المخزون" },
   promotions: { en: "Promotions", ar: "العروض" },
+  collections: { en: "Collections", ar: "المجموعات" },
   revenue: { en: "Revenue", ar: "الإيرادات" },
   metaAds: { en: "Meta Ads", ar: "إعلانات Meta" },
   trafficAnalytics: { en: "Traffic Analytics", ar: "تحليلات حركة المرور" },

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -15,7 +15,6 @@ import { useNavigate, Navigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
-import wilayasData from "../data/wilayas.json";
 import { cartService } from "../services/cartService";
 import type { CartItem } from "../types";
 import type {
@@ -27,64 +26,138 @@ import Field from "../components/ui/Field";
 import TextInput from "../components/ui/TextInput";
 import Button from "../components/ui/Button";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-type WilayaEntry = {
-  wilayaCode: number;
-  nameFr: string;
-  nameAr: string;
-  communes: Array<{
-    id: number;
-    nameFr: string;
-    nameAr: string;
-  }>;
+// ─── Dolivroo API ─────────────────────────────────────────────────────────────
+const DOLIVROO_BASE = import.meta.env.VITE_DOLIVROO_BASE;
+const DOLIVROO_TOKEN = import.meta.env.VITE_DOLIVROO_TOKEN;
+const dlvHeaders = { Authorization: `Bearer ${DOLIVROO_TOKEN}` };
+
+type DlvWilaya = {
+  id: number;
+  name: string;
+  ar: string;
+  aliases?: string[];
 };
 
-const WILAYAS_DATA = wilayasData as WilayaEntry[];
+type DlvCommune = {
+  id: number;
+  name: string;
+  arabic_name: string;
+  wilaya_id: number;
+  post_code: string;
+  has_stop_desk: number;
+  has_home_delivery: number;
+};
 
-const WILAYAS = WILAYAS_DATA.slice()
-  .sort((a, b) => a.wilayaCode - b.wilayaCode)
-  .map((wilaya) => ({
-    code: wilaya.wilayaCode,
-    nameFr: wilaya.nameFr,
-    nameAr: wilaya.nameAr,
-  }));
-
-function getWilayaByName(
-  wilayaName: string,
-): (typeof WILAYAS)[number] | undefined {
-  return WILAYAS.find((w) => w.nameFr === wilayaName);
+async function fetchWilayas(): Promise<DlvWilaya[]> {
+  const res = await fetch(`${DOLIVROO_BASE}/wilayas`, { headers: dlvHeaders });
+  if (!res.ok) throw new Error("Failed to fetch wilayas");
+  const data = await res.json();
+  // API may return { wilayas: [...] } or [...] directly
+  return Array.isArray(data) ? data : (data.wilayas ?? data.data ?? []);
 }
 
-function getCommunesByWilaya(wilayaName: string) {
-  const wilaya = WILAYAS_DATA.find((w) => w.nameFr === wilayaName);
-  return wilaya?.communes ?? [];
+async function fetchCommunes(
+  companyCode: string,
+  wilayaId: number,
+): Promise<DlvCommune[]> {
+  const url = `${DOLIVROO_BASE}/communes?company_code=${encodeURIComponent(companyCode)}&wilaya_id=${wilayaId}`;
+  const res = await fetch(url, { headers: dlvHeaders });
+  if (!res.ok) throw new Error("Failed to fetch communes");
+  const data = await res.json();
+  return Array.isArray(data) ? data : (data.communes ?? data.data ?? []);
 }
 
-function getCommuneArName(wilayaName: string, communeName: string): string {
-  const communes = getCommunesByWilaya(wilayaName);
-  const commune = communes.find((c) => c.nameFr === communeName);
-  return commune?.nameAr || communeName;
-}
+type StopDeskCheckResult =
+  | { ok: true }
+  | { ok: false; reason: "no_stopdesk" }
+  | { ok: false; reason: "api_error" };
 
-function getWilayaArName(wilayaName: string): string {
-  const wilaya = getWilayaByName(wilayaName);
-  return wilaya?.nameAr || wilayaName;
-}
-
-function getWilayaCodeByName(wilayaName: string): number {
-  const wilaya = getWilayaByName(wilayaName);
-  return wilaya?.code ?? 0;
+async function checkStopDesk(
+  companyCode: string,
+  connectionLabel: string,
+  originWilaya: string,
+  destWilaya: string,
+  destCommune: string,
+  phone: string,
+  total: number,
+): Promise<StopDeskCheckResult> {
+  try {
+    const res = await fetch(`${DOLIVROO_BASE}/parcels`, {
+      method: "POST",
+      headers: { ...dlvHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        company_code: companyCode,
+        connection_label: connectionLabel,
+        order: {
+          reference: `Foda-CHK-${Date.now()}`,
+          customer: {
+            first_name: "Client",
+            last_name: "Foda",
+            phone: phone || "0555000000",
+            phone_secondary: "",
+            address: destCommune,
+          },
+          destination: { wilaya: destWilaya, commune: destCommune },
+          origin: { wilaya: originWilaya },
+          package: {
+            products: "Order",
+            weight: 1,
+            length: 20,
+            width: 15,
+            height: 10,
+          },
+          payment: {
+            amount: total,
+            declared_value: total,
+            free_shipping: false,
+          },
+          options: {
+            delivery_type: "stopdesk",
+            exchange: false,
+            confirmed: false,
+            insurance: false,
+          },
+          notes: "",
+        },
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      // treat explicit "no stop desk" errors from the API
+      const msg: string = (err?.message ?? err?.error ?? "").toLowerCase();
+      if (
+        msg.includes("stop desk") ||
+        msg.includes("stopdesk") ||
+        msg.includes("no desk") ||
+        res.status === 422
+      ) {
+        return { ok: false, reason: "no_stopdesk" };
+      }
+      return { ok: false, reason: "api_error" };
+    }
+    const data = await res.json();
+    // some providers return a flag directly
+    const hasDesk =
+      data?.parcel?.has_stop_desk ??
+      data?.has_stop_desk ??
+      data?.data?.has_stop_desk;
+    if (hasDesk === 0 || hasDesk === false)
+      return { ok: false, reason: "no_stopdesk" };
+    return { ok: true };
+  } catch {
+    return { ok: false, reason: "api_error" };
+  }
 }
 
 function getShippingFeeAmount(
   shippingFees: ApiCheckoutShippingFeesResponse["shippingFees"] | null,
-  wilayaCode: number,
+  wilayaId: number,
   shippingType: DeliveryInfo["shippingType"],
 ) {
   if (!shippingFees?.data?.length) return null;
 
   const matchedFee =
-    shippingFees.data.find((entry) => entry.wilaya_id === wilayaCode) ??
+    shippingFees.data.find((entry) => entry.wilaya_id === wilayaId) ??
     shippingFees.data[0];
 
   if (!matchedFee) return null;
@@ -117,7 +190,9 @@ interface PaymentInfo {
 
 // ─── Shipping Skeleton ────────────────────────────────────────────────────────
 function ShippingSkeleton() {
-  return <span className="inline-block h-4 w-16 bg-charcoal/10 animate-pulse rounded" />;
+  return (
+    <span className="inline-block h-4 w-16 bg-charcoal/10 animate-pulse rounded" />
+  );
 }
 
 // ─── Order Summary ────────────────────────────────────────────────────────────
@@ -178,10 +253,14 @@ function OrderSummary({
               <div className="text-end shrink-0">
                 {hasDiscount && (
                   <p className="text-charcoal/35 text-xs line-through">
-                    {((item.product.originalPrice ?? 0) * item.quantity).toLocaleString()}
+                    {(
+                      (item.product.originalPrice ?? 0) * item.quantity
+                    ).toLocaleString()}
                   </p>
                 )}
-                <p className={`font-bold text-sm ${hasDiscount ? "text-gold" : "text-charcoal"}`}>
+                <p
+                  className={`font-bold text-sm ${hasDiscount ? "text-gold" : "text-charcoal"}`}
+                >
                   {(item.product.price * item.quantity).toLocaleString()}
                 </p>
               </div>
@@ -199,7 +278,9 @@ function OrderSummary({
         {savingsTotal > 0 && (
           <div className="flex justify-between text-sm font-medium text-emerald-600">
             <span>You save</span>
-            <span>-{savingsTotal.toLocaleString()} {tr.common.dzd}</span>
+            <span>
+              -{savingsTotal.toLocaleString()} {tr.common.dzd}
+            </span>
           </div>
         )}
         <div className="flex justify-between text-sm text-charcoal/60">
@@ -250,33 +331,64 @@ function DeliveryForm({
   setInfo,
   errors,
   onNext,
+  wilayas,
+  wilayasLoading,
+  communes,
+  communesLoading,
+  onWilayaChange,
+  stopDeskChecking,
+  stopDeskWarning,
+  onDismissStopDeskWarning,
+  onProceedAnyway,
 }: {
   info: DeliveryInfo;
   setInfo: React.Dispatch<React.SetStateAction<DeliveryInfo>>;
   errors: Record<string, string>;
   onNext: () => void;
+  wilayas: DlvWilaya[];
+  wilayasLoading: boolean;
+  communes: DlvCommune[];
+  communesLoading: boolean;
+  onWilayaChange: (wilayaName: string, wilayaId: number) => void;
+  stopDeskChecking: boolean;
+  stopDeskWarning: boolean;
+  onDismissStopDeskWarning: () => void;
+  onProceedAnyway: () => void;
 }) {
   const { tr } = useLang();
   const isRtl = tr.dir === "rtl";
   const set = (key: keyof DeliveryInfo) => (val: string) =>
     setInfo((f) => ({ ...f, [key]: val }));
 
-  const wilayaOptions = WILAYAS.map((wilaya) => ({
-    value: wilaya.nameFr,
-    label: `${String(wilaya.code).padStart(2, "0")} - ${isRtl ? wilaya.nameAr || wilaya.nameFr : wilaya.nameFr}`,
+  const wilayaOptions = wilayas.map((wilaya) => ({
+    value: wilaya.name,
+    id: wilaya.id,
+    label: `${String(wilaya.id).padStart(2, "0")} - ${isRtl ? wilaya.ar || wilaya.name : wilaya.name}`,
   }));
 
-  const communes = getCommunesByWilaya(info.wilaya);
   const communeOptions = communes.map((commune) => ({
-    value: commune.nameFr,
-    label: isRtl ? commune.nameAr || commune.nameFr : commune.nameFr,
+    value: commune.name,
+    label: isRtl ? commune.arabic_name || commune.name : commune.name,
+    postCode: commune.post_code,
   }));
 
-  const handleWilayaChange = (nextWilaya: string) => {
+  const handleWilayaChange = (nextWilayaName: string) => {
+    const found = wilayas.find((w) => w.name === nextWilayaName);
     setInfo((f) => ({
       ...f,
-      wilaya: nextWilaya,
+      wilaya: nextWilayaName,
       commune: "",
+      postalCode: "",
+    }));
+    onWilayaChange(nextWilayaName, found?.id ?? 0);
+  };
+
+  const handleCommuneChange = (nextCommuneName: string) => {
+    const found = communeOptions.find((c) => c.value === nextCommuneName);
+    setInfo((f) => ({
+      ...f,
+      commune: nextCommuneName,
+      postalCode: found?.postCode || f.postalCode,
     }));
   };
 
@@ -373,6 +485,7 @@ function DeliveryForm({
           <select
             value={info.wilaya}
             onChange={(e) => handleWilayaChange(e.target.value)}
+            disabled={wilayasLoading}
             className={`w-full border bg-white py-2.5 px-3 text-sm text-charcoal focus:outline-none transition-colors appearance-none cursor-pointer ${
               errors.wilaya
                 ? "border-red-400"
@@ -381,11 +494,13 @@ function DeliveryForm({
               !info.wilaya
                 ? "text-charcoal/70 font-medium"
                 : "text-charcoal font-semibold"
-            }`}
+            } ${wilayasLoading ? "opacity-60 cursor-not-allowed" : ""}`}
           >
-            <option value="">{tr.checkout.selectWilaya}</option>
+            <option value="">
+              {wilayasLoading ? "Loading wilayas…" : tr.checkout.selectWilaya}
+            </option>
             {wilayaOptions.map((wilaya) => (
-              <option key={wilaya.value} value={wilaya.value}>
+              <option key={wilaya.id} value={wilaya.value}>
                 {wilaya.label}
               </option>
             ))}
@@ -398,16 +513,20 @@ function DeliveryForm({
           <Field label="Commune" error={errors.commune}>
             <select
               value={info.commune}
-              onChange={(e) => set("commune")(e.target.value)}
-              disabled={!info.wilaya}
+              onChange={(e) => handleCommuneChange(e.target.value)}
+              disabled={!info.wilaya || communesLoading}
               className={`w-full border bg-white py-2.5 px-3 text-sm text-charcoal focus:outline-none transition-colors appearance-none cursor-pointer ${
                 errors.commune
                   ? "border-red-400"
                   : "border-charcoal/15 focus:border-gold"
-              } ${!info.wilaya ? "opacity-60 cursor-not-allowed" : ""}`}
+              } ${!info.wilaya || communesLoading ? "opacity-60 cursor-not-allowed" : ""}`}
             >
               <option value="">
-                {isRtl ? "اختر البلدية" : "Select commune"}
+                {communesLoading
+                  ? "Loading communes…"
+                  : isRtl
+                    ? "اختر البلدية"
+                    : "Select commune"}
               </option>
               {communeOptions.map((commune) => (
                 <option key={commune.value} value={commune.value}>
@@ -426,8 +545,66 @@ function DeliveryForm({
         </div>
       </div>
 
-      <Button onClick={onNext} className="h-11 gap-2">
-        {tr.checkout.nextPayment} <ArrowForwardIcon sx={{ fontSize: 15 }} />
+      {stopDeskWarning && (
+        <div className="border border-amber-300 bg-amber-50 p-4 space-y-3">
+          <div className="flex items-start gap-3">
+            <ErrorOutlineIcon
+              sx={{ fontSize: 20, color: "#d97706", flexShrink: 0, mt: 0.1 }}
+            />
+            <div className="flex-1 space-y-1">
+              <p className="text-sm font-semibold text-amber-800">
+                {tr.dir === "rtl"
+                  ? "لا يوجد مكتب توصيل في هذه البلدية"
+                  : "No stop desk available in this commune"}
+              </p>
+              <p className="text-xs text-amber-700 leading-relaxed">
+                {tr.dir === "rtl"
+                  ? `لا تتوفر نقطة استلام في ${info.commune}. يمكنك التحويل إلى التوصيل المنزلي أو المتابعة على مسؤوليتك.`
+                  : `There is no pickup desk in ${info.commune}. You can switch to home delivery or continue at your own discretion.`}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 ps-8">
+            <button
+              type="button"
+              onClick={() => {
+                setInfo((f) => ({ ...f, shippingType: "home_delivery" }));
+                onDismissStopDeskWarning();
+              }}
+              className="flex-1 border-2 border-gold bg-gold/5 text-charcoal text-sm font-semibold py-2 px-4 hover:bg-gold/10 transition-colors"
+            >
+              {tr.dir === "rtl"
+                ? "التحويل إلى توصيل منزلي"
+                : "Switch to Home Delivery"}
+            </button>
+            <button
+              type="button"
+              onClick={onProceedAnyway}
+              className="flex-1 border-2 border-charcoal/15 text-charcoal/60 text-sm font-semibold py-2 px-4 hover:border-charcoal/30 transition-colors"
+            >
+              {tr.dir === "rtl" ? "متابعة على أي حال" : "Continue Anyway"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <Button
+        onClick={onNext}
+        loading={stopDeskChecking}
+        disabled={stopDeskChecking}
+        className="h-11 gap-2"
+      >
+        {stopDeskChecking ? (
+          tr.dir === "rtl" ? (
+            "جارٍ التحقق…"
+          ) : (
+            "Checking availability…"
+          )
+        ) : (
+          <>
+            {tr.checkout.nextPayment} <ArrowForwardIcon sx={{ fontSize: 15 }} />
+          </>
+        )}
       </Button>
     </div>
   );
@@ -667,10 +844,15 @@ function ReviewConfirmStep({
                 <div className="text-end ms-3 shrink-0">
                   {hasDiscount && (
                     <span className="block text-charcoal/35 text-xs line-through">
-                      {((item.product.originalPrice ?? 0) * item.quantity).toLocaleString()} {tr.common.dzd}
+                      {(
+                        (item.product.originalPrice ?? 0) * item.quantity
+                      ).toLocaleString()}{" "}
+                      {tr.common.dzd}
                     </span>
                   )}
-                  <span className={`font-semibold ${hasDiscount ? "text-gold" : "text-charcoal"}`}>
+                  <span
+                    className={`font-semibold ${hasDiscount ? "text-gold" : "text-charcoal"}`}
+                  >
                     {(item.product.price * item.quantity).toLocaleString()}{" "}
                     {tr.common.dzd}
                   </span>
@@ -688,15 +870,22 @@ function ReviewConfirmStep({
           </div>
           {(() => {
             const savingsTotal = items.reduce((sum, i) => {
-              if (i.product.originalPrice && i.product.originalPrice > i.product.price) {
-                return sum + (i.product.originalPrice - i.product.price) * i.quantity;
+              if (
+                i.product.originalPrice &&
+                i.product.originalPrice > i.product.price
+              ) {
+                return (
+                  sum + (i.product.originalPrice - i.product.price) * i.quantity
+                );
               }
               return sum;
             }, 0);
             return savingsTotal > 0 ? (
               <div className="flex justify-between text-sm font-medium text-emerald-600">
                 <span>You save</span>
-                <span>-{savingsTotal.toLocaleString()} {tr.common.dzd}</span>
+                <span>
+                  -{savingsTotal.toLocaleString()} {tr.common.dzd}
+                </span>
               </div>
             ) : null;
           })()}
@@ -907,9 +1096,8 @@ function OrderSuccess({
                       {isRtl ? "العنوان" : tr.checkout.deliveryInfo}
                     </p>
                     <p>
-                      {isRtl
-                        ? `${getCommuneArName(order.shippingDetails.wilaya, order.shippingDetails.commune)}, ${getWilayaArName(order.shippingDetails.wilaya)}`
-                        : `${order.shippingDetails.commune}, ${order.shippingDetails.wilaya}`}
+                      {order.shippingDetails.commune},{" "}
+                      {order.shippingDetails.wilaya}
                     </p>
                     {order.shippingDetails.postalCode && (
                       <p>
@@ -1067,7 +1255,6 @@ export default function CheckoutPage() {
   const { tr } = useLang();
 
   const [step, setStep] = useState<Step>("Shipping");
-  // (previously tracked a single shippingFees response) kept out to avoid unused variable
   const [shippingPerSeller, setShippingPerSeller] = useState<
     Record<string, number>
   >({});
@@ -1096,15 +1283,77 @@ export default function CheckoutPage() {
   const [placedOrders, setPlacedOrders] = useState<ApiOrder[] | null>(null);
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState("");
+  const [stopDeskChecking, setStopDeskChecking] = useState(false);
+  const [stopDeskWarning, setStopDeskWarning] = useState(false);
   const shippingCacheRef = useRef(
     new Map<string, ApiCheckoutShippingFeesResponse["shippingFees"]>(),
   );
 
+  // ── Wilayas from Dolivroo ─────────────────────────────────────────────────
+  const [wilayas, setWilayas] = useState<DlvWilaya[]>([]);
+  const [wilayasLoading, setWilayasLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    fetchWilayas()
+      .then((data) => {
+        if (active) setWilayas(data);
+      })
+      .catch(() => {
+        /* silently degrade — select stays empty */
+      })
+      .finally(() => {
+        if (active) setWilayasLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // ── Communes from Dolivroo ────────────────────────────────────────────────
+  const [communes, setCommunes] = useState<DlvCommune[]>([]);
+  const [communesLoading, setCommunesLoading] = useState(false);
+  // selected wilaya id used to fetch communes
+  const [selectedWilayaId, setSelectedWilayaId] = useState<number>(0);
+  // company_code and connection_label sourced from shipping fees meta / seller id
+  const companyCodeRef = useRef<string>("");
+  const connectionLabelRef = useRef<string>("");
+
+  const loadCommunes = useCallback(async (wilayaId: number) => {
+    if (!wilayaId) {
+      setCommunes([]);
+      return;
+    }
+    const code = companyCodeRef.current;
+    if (!code) {
+      setCommunes([]);
+      return;
+    }
+    setCommunesLoading(true);
+    try {
+      const data = await fetchCommunes(code, wilayaId);
+      setCommunes(data);
+    } catch {
+      setCommunes([]);
+    } finally {
+      setCommunesLoading(false);
+    }
+  }, []);
+
+  const handleWilayaChange = useCallback(
+    (_wilayaName: string, wilayaId: number) => {
+      setSelectedWilayaId(wilayaId);
+      loadCommunes(wilayaId);
+    },
+    [loadCommunes],
+  );
+
   const shippingWilayaName = useMemo(() => info.wilaya, [info.wilaya]);
 
-  const shippingWilayaCode = useMemo(
-    () => getWilayaCodeByName(shippingWilayaName),
-    [shippingWilayaName],
+  // derive wilaya_id from the wilayas list for shipping fee matching
+  const shippingWilayaId = useMemo(
+    () => wilayas.find((w) => w.name === shippingWilayaName)?.id ?? 0,
+    [wilayas, shippingWilayaName],
   );
 
   // compute per-seller shipping fees in parallel and cache results per product:wilaya
@@ -1121,7 +1370,6 @@ export default function CheckoutPage() {
     setShippingLoading(true);
     setShippingError("");
 
-    // group items by sellerId
     const groups = new Map<string, typeof items>();
     for (const it of items) {
       const sellerId = it.product.sellerId ?? "__unknown";
@@ -1140,8 +1388,14 @@ export default function CheckoutPage() {
       const cached = shippingCacheRef.current.get(cacheKey);
 
       if (cached) {
+        if (cached.meta?.company_code && !companyCodeRef.current) {
+          companyCodeRef.current = cached.meta.company_code;
+        }
+        if (!connectionLabelRef.current) {
+          connectionLabelRef.current = `foda_seller_${sellerId}`;
+        }
         const fee =
-          getShippingFeeAmount(cached, shippingWilayaCode, info.shippingType) ??
+          getShippingFeeAmount(cached, shippingWilayaId, info.shippingType) ??
           0;
         nextPerSeller[sellerId] = fee;
         nextTotal += fee;
@@ -1151,19 +1405,21 @@ export default function CheckoutPage() {
           .then((fees) => {
             if (!active) return;
             shippingCacheRef.current.set(cacheKey, fees);
+            if (fees.meta?.company_code && !companyCodeRef.current) {
+              companyCodeRef.current = fees.meta.company_code;
+              if (selectedWilayaId) loadCommunes(selectedWilayaId);
+            }
+            if (!connectionLabelRef.current) {
+              connectionLabelRef.current = `foda_seller_${sellerId}`;
+            }
             const fee =
-              getShippingFeeAmount(
-                fees,
-                shippingWilayaCode,
-                info.shippingType,
-              ) ?? 0;
+              getShippingFeeAmount(fees, shippingWilayaId, info.shippingType) ??
+              0;
             nextPerSeller[sellerId] = fee;
             nextTotal += fee;
-            // not storing single 'shippingFees' state anymore
           })
           .catch((err) => {
             if (!active) return;
-            // mark this seller fee as 0 but note error
             nextPerSeller[sellerId] = 0;
             setShippingError(
               (e) =>
@@ -1181,7 +1437,6 @@ export default function CheckoutPage() {
     Promise.all(promises)
       .then(() => {
         if (!active) return;
-        // merge any previously computed (cached) values and compute total
         setShippingPerSeller((prev) => {
           const merged = { ...prev, ...nextPerSeller };
           const sum = Object.values(merged).reduce((s, v) => s + v, 0);
@@ -1193,12 +1448,17 @@ export default function CheckoutPage() {
         if (active) setShippingLoading(false);
       });
 
-    // no helper needed
-
     return () => {
       active = false;
     };
-  }, [items, shippingWilayaName, shippingWilayaCode, info.shippingType]);
+  }, [
+    items,
+    shippingWilayaName,
+    shippingWilayaId,
+    info.shippingType,
+    selectedWilayaId,
+    loadCommunes,
+  ]);
 
   // shippingTotal is the sum of per-seller shipping fees
   const shipping = shippingTotal;
@@ -1211,15 +1471,47 @@ export default function CheckoutPage() {
     return <Navigate to="/shop" replace />;
   }
 
-  const handleNextFromDelivery = () => {
+  const proceedToPayment = () => {
+    setStopDeskWarning(false);
+    setStep("Payment");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleNextFromDelivery = async () => {
     const e = validateDelivery(info);
     if (Object.keys(e).length) {
       setInfoErrors(e);
       return;
     }
     setInfoErrors({});
-    setStep("Payment");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    if (info.shippingType === "desk_pickup") {
+      const cachedFees = shippingCacheRef.current.values().next().value as
+        | ApiCheckoutShippingFeesResponse["shippingFees"]
+        | undefined;
+      const companyCode = cachedFees?.meta?.company_code ?? companyCodeRef.current;
+      const connectionLabel = connectionLabelRef.current;
+      const originWilaya = user.address?.wilaya ?? "";
+
+      setStopDeskChecking(true);
+      setStopDeskWarning(false);
+      const result = await checkStopDesk(
+        companyCode,
+        connectionLabel,
+        originWilaya,
+        info.wilaya,
+        info.commune,
+        info.phone,
+        total,
+      );
+      setStopDeskChecking(false);
+      if (result.ok === false && result.reason === "no_stopdesk") {
+        setStopDeskWarning(true);
+        return;
+      }
+    }
+
+    proceedToPayment();
   };
 
   const handleNextFromPayment = () => {
@@ -1311,6 +1603,15 @@ export default function CheckoutPage() {
                 setInfo={setInfo}
                 errors={infoErrors}
                 onNext={handleNextFromDelivery}
+                wilayas={wilayas}
+                wilayasLoading={wilayasLoading}
+                communes={communes}
+                communesLoading={communesLoading}
+                onWilayaChange={handleWilayaChange}
+                stopDeskChecking={stopDeskChecking}
+                stopDeskWarning={stopDeskWarning}
+                onDismissStopDeskWarning={() => setStopDeskWarning(false)}
+                onProceedAnyway={proceedToPayment}
               />
             )}
             {step === "Payment" && (

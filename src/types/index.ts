@@ -18,6 +18,7 @@ export interface Variant {
 export interface Product {
   id: string;
   name: string;
+  brand: string;
   category: string;
   subCategory?: string;
   price: number;
@@ -32,7 +33,6 @@ export interface Product {
   isNew: boolean;
   sellerId?: string;
   sellerName?: string;
-  brand?: string;
   rating?: number;
   promotion?: ProductPromotion;
 }
@@ -77,10 +77,32 @@ export interface SessionUser {
   address?: { wilaya: string; commune: string } | null;
   deliveryCompany?: string;
   deliveryToken?: string;
+  connectionLabel?: string;
   sellerSetupStatus?: "pending" | "complete";
 }
 
 export type AuthModalView = "login" | "register" | "reset" | "verify" | null;
+
+// ─── Collections ──────────────────────────────────────────────────────────────
+export interface CollectionProduct {
+  id: string;
+  name: string;
+  brand: string;
+  image: string | null;
+  price: number;
+  totalStock: number;
+  inStock: boolean;
+}
+
+export interface Collection {
+  id: string;
+  name: string;
+  description: string;
+  coverImage: string | null;
+  productCount: number;
+  products: CollectionProduct[];
+  createdAt: string;
+}
 
 // ─── Orders ────────────────────────────────────────────────────────────────────
 export type OrderStatus =

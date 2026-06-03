@@ -73,6 +73,7 @@ export interface ApiProduct {
   _id: string;
   sellerId: string;
   name: string;
+  brand: string;
   images: ApiImageObject[];
   price: number;
   inStock: boolean;
@@ -350,7 +351,30 @@ export interface ApiCompleteSellerSetupResponse {
       commune: string;
     };
     company_code: string;
+    connection_label: string;
   };
+}
+
+// ─── Collections ─────────────────────────────────────────────────────────────
+export interface ApiCollectionProduct {
+  _id: string;
+  name: string;
+  brand?: string;
+  images: ApiImageObject[];
+  price: number;
+  totalStock: number;
+  inStock: boolean;
+}
+
+export interface ApiCollection {
+  _id: string;
+  sellerId: string;
+  name: string;
+  description?: string;
+  coverImage?: ApiImageObject;
+  products: string[] | ApiCollectionProduct[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ─── Seller Storefront (public) ───────────────────────────────────────────────

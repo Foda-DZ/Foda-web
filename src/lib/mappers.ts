@@ -1,5 +1,5 @@
-import type { Product, Variant } from "../types";
-import type { ApiProduct, ApiVariant } from "../types/api";
+import type { Product, Variant, Collection, CollectionProduct } from "../types";
+import type { ApiProduct, ApiVariant, ApiCollection, ApiCollectionProduct } from "../types/api";
 
 /** Map a raw API product to the frontend Product shape */
 export function apiProductToProduct(p: ApiProduct): Product {
@@ -30,6 +30,7 @@ export function apiProductToProduct(p: ApiProduct): Product {
   return {
     id: p._id,
     name: p.name,
+    brand: p.brand ?? "",
     category: p.mainCategory,
     subCategory: p.subCategory,
     price: p.price,
@@ -44,8 +45,33 @@ export function apiProductToProduct(p: ApiProduct): Product {
     isNew: new Date(p.createdAt).getTime() > sevenDaysAgo,
     sellerId: p.sellerId,
     sellerName: (p as Record<string, unknown>).sellerName as string | undefined,
-    brand: (p as Record<string, unknown>).brand as string | undefined,
     rating: (p as Record<string, unknown>).rating as number | undefined,
     promotion: p.promotion,
+  };
+}
+
+export function apiCollectionToCollection(c: ApiCollection): Collection {
+  const rawProducts = Array.isArray(c.products) ? c.products : [];
+
+  const products: CollectionProduct[] = rawProducts
+    .filter((p): p is ApiCollectionProduct => typeof p === "object" && p !== null && "_id" in p)
+    .map((p) => ({
+      id: p._id,
+      name: p.name,
+      brand: p.brand ?? "",
+      image: Array.isArray(p.images) && p.images.length > 0 ? p.images[0].url : null,
+      price: p.price,
+      totalStock: p.totalStock,
+      inStock: p.inStock,
+    }));
+
+  return {
+    id: c._id,
+    name: c.name,
+    description: c.description ?? "",
+    coverImage: c.coverImage?.url ?? null,
+    productCount: rawProducts.length,
+    products,
+    createdAt: c.createdAt,
   };
 }

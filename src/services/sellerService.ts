@@ -11,6 +11,7 @@ import type {
   TrafficOverview,
   TrafficSourceRow,
   TrafficRangeParams,
+  ApiCollection,
 } from "../types/api";
 
 export type MetaDatePreset = "today" | "yesterday" | "last_7d" | "last_30d";
@@ -243,6 +244,7 @@ export interface TikTokStatusResponse {
 
 export interface AddProductPayload {
   name: string;
+  brand: string;
   price: number;
   mainCategory: string;
   subCategory: string;
@@ -254,6 +256,7 @@ export interface AddProductPayload {
 
 export interface UpdateProductPayload {
   name: string;
+  brand: string;
   price: number;
   mainCategory: string;
   subCategory: string;
@@ -280,6 +283,7 @@ export const sellerService = {
   addProduct: (payload: AddProductPayload) => {
     const form = new FormData();
     form.append("name", payload.name);
+    form.append("brand", payload.brand);
     form.append("price", Number(payload.price));
     form.append("mainCategory", payload.mainCategory);
     form.append("subCategory", payload.subCategory);
@@ -600,6 +604,54 @@ export const sellerService = {
 
   removeConfirmator: (id: string) =>
     api.delete<{ message: string }>(`/seller/confirmators/${id}`).then((r) => r.data),
+
+  // ── Collections ──────────────────────────────────────────────────────────────
+  getCollections: (params?: { page?: number; limit?: number; search?: string }) =>
+    api
+      .get<{ collections: ApiCollection[]; total: number; page: number; limit: number; totalPages: number }>(
+        "/seller/collections",
+        { params },
+      )
+      .then((r) => r.data),
+
+  getCollectionById: (id: string) =>
+    api
+      .get<{ collection: ApiCollection }>(`/seller/collections/${id}`)
+      .then((r) => r.data.collection),
+
+  createCollection: (payload: { name: string; description?: string; products?: string[]; coverImage?: File }) => {
+    const form = new FormData();
+    form.append("name", payload.name);
+    if (payload.description) form.append("description", payload.description);
+    payload.products?.forEach((id) => form.append("products", id));
+    if (payload.coverImage) form.append("coverImage", payload.coverImage);
+    return api
+      .post<{ message: string; collection: ApiCollection }>("/seller/collections", form, {
+        headers: { "Content-Type": undefined },
+      })
+      .then((r) => r.data.collection);
+  },
+
+  updateCollection: (
+    id: string,
+    payload: { name?: string; description?: string; products?: string[]; coverImage?: File },
+  ) => {
+    const form = new FormData();
+    if (payload.name !== undefined) form.append("name", payload.name);
+    if (payload.description !== undefined) form.append("description", payload.description);
+    if (payload.products !== undefined) {
+      payload.products.forEach((pid) => form.append("products", pid));
+    }
+    if (payload.coverImage) form.append("coverImage", payload.coverImage);
+    return api
+      .put<{ message: string; collection: ApiCollection }>(`/seller/collections/${id}`, form, {
+        headers: { "Content-Type": undefined },
+      })
+      .then((r) => r.data.collection);
+  },
+
+  deleteCollection: (id: string) =>
+    api.delete<{ message: string }>(`/seller/collections/${id}`).then((r) => r.data),
 
   // ── Order label ─────────────────────────────────────────────────────────────
   downloadOrderLabel: async (orderId: string): Promise<void> => {
