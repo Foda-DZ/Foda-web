@@ -23,9 +23,9 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  background-color: #FAF7F2;
-  color: #1A1A2E;
+  font-family: var(--font-body);
+  background-color: var(--color-cream);
+  color: var(--color-charcoal);
 }
 
 /* ─── Animations ─────────────────────────────────────────── */
@@ -70,8 +70,8 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(201,168,76,0.3); }
-  50%       { box-shadow: 0 0 50px rgba(201,168,76,0.7); }
+  0%, 100% { box-shadow: 0 0 20px color-mix(in srgb, var(--color-gold) 30%, transparent); }
+  50%       { box-shadow: 0 0 50px color-mix(in srgb, var(--color-gold) 70%, transparent); }
 }
 
 @keyframes gradient-shift {
@@ -85,6 +85,16 @@ body {
 .animate-marquee    { animation: marquee 30s linear infinite; }
 .animate-spin-slow  { animation: spin-slow 25s linear infinite; }
 .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+.animate-dropdown { animation: dropdownIn 0.18s cubic-bezier(.4,0,.2,1) forwards; }
+
+/* Hide scrollbar utility */
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
 
 .anim-fade-up    { animation: fadeInUp 0.9s cubic-bezier(.4,0,.2,1) forwards; }
 .anim-fade-left  { animation: fadeInLeft 0.9s cubic-bezier(.4,0,.2,1) forwards; }
@@ -102,18 +112,18 @@ body {
 
 /* ─── Gradients & Effects ─────────────────────────────────── */
 .gold-gradient {
-  background: linear-gradient(135deg, #C9A84C 0%, #E8C96B 45%, #A07830 100%);
+  background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 45%, var(--color-gold-dark) 100%);
 }
 
 .gold-text {
-  background: linear-gradient(135deg, #C9A84C 0%, #F0D875 50%, #A07830 100%);
+  background: linear-gradient(135deg, var(--color-gold) 0%, #F0D875 50%, var(--color-gold-dark) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .animated-gold-text {
-  background: linear-gradient(270deg, #C9A84C, #F0D875, #C9A84C, #A07830);
+  background: linear-gradient(270deg, var(--color-gold), #F0D875, var(--color-gold), var(--color-gold-dark));
   background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -122,7 +132,7 @@ body {
 }
 
 .dark-gradient {
-  background: linear-gradient(135deg, #1A1A2E 0%, #16213E 60%, #0F3460 100%);
+  background: linear-gradient(135deg, var(--color-charcoal) 0%, var(--color-charcoal-light) 60%, #0F3460 100%);
 }
 
 .glass {
@@ -133,10 +143,10 @@ body {
 }
 
 .glass-warm {
-  background: rgba(250,247,242,0.8);
+  background: color-mix(in srgb, var(--color-cream) 80%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(201,168,76,0.15);
+  border: 1px solid color-mix(in srgb, var(--color-gold) 15%, transparent);
 }
 
 /* ─── Card hover effects ─────────────────────────────────── */
@@ -146,7 +156,7 @@ body {
 }
 .card-lift:hover {
   transform: translateY(-10px);
-  box-shadow: 0 30px 60px rgba(201,168,76,0.18);
+  box-shadow: 0 30px 60px color-mix(in srgb, var(--color-gold) 18%, transparent);
 }
 
 .card-img-zoom img {
@@ -158,10 +168,10 @@ body {
 
 /* ─── Buttons ────────────────────────────────────────────── */
 .btn-gold {
-  background: linear-gradient(135deg, #C9A84C, #E8C96B);
-  color: #1A1A2E;
+  background: linear-gradient(135deg, var(--color-gold), var(--color-gold-light));
+  color: var(--color-charcoal);
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 0.8rem;
@@ -184,15 +194,15 @@ body {
 .btn-gold:hover::after { left: 100%; }
 .btn-gold:hover {
   transform: translateY(-3px);
-  box-shadow: 0 15px 40px rgba(201,168,76,0.45);
+  box-shadow: 0 15px 40px color-mix(in srgb, var(--color-gold) 45%, transparent);
 }
 
 .btn-outline-gold {
-  border: 1.5px solid #C9A84C;
-  color: #C9A84C;
+  border: 1.5px solid var(--color-gold);
+  color: var(--color-gold);
   background: transparent;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 0.8rem;
@@ -201,17 +211,17 @@ body {
   transition: all 0.3s ease;
 }
 .btn-outline-gold:hover {
-  background: #C9A84C;
-  color: #1A1A2E;
+  background: var(--color-gold);
+  color: var(--color-charcoal);
   transform: translateY(-3px);
-  box-shadow: 0 12px 35px rgba(201,168,76,0.35);
+  box-shadow: 0 12px 35px color-mix(in srgb, var(--color-gold) 35%, transparent);
 }
 
 .btn-dark {
-  background: #1A1A2E;
-  color: #FAF7F2;
+  background: var(--color-charcoal);
+  color: var(--color-cream);
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 0.8rem;
@@ -221,44 +231,44 @@ body {
   transition: all 0.3s ease;
 }
 .btn-dark:hover {
-  border-color: #C9A84C;
-  color: #C9A84C;
+  border-color: var(--color-gold);
+  color: var(--color-gold);
   transform: translateY(-3px);
-  box-shadow: 0 12px 35px rgba(26,26,46,0.35);
+  box-shadow: 0 12px 35px color-mix(in srgb, var(--color-charcoal) 35%, transparent);
 }
 
 /* ─── Heading font ───────────────────────────────────────── */
 .font-display {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-heading);
 }
 
 /* ─── Section divider ────────────────────────────────────── */
 .divider-gold {
   width: 60px;
   height: 2px;
-  background: linear-gradient(90deg, #C9A84C, #E8C96B);
+  background: linear-gradient(90deg, var(--color-gold), var(--color-gold-light));
   margin: 1rem auto;
 }
 
 /* Small additional design token utilities used across components */
 .text-burgundy { color: var(--color-burgundy); }
 .bg-burgundy-10 { background-color: rgba(114,47,55,0.10); }
-.border-gold-20 { border: 1px solid rgba(201,168,76,0.2); }
-.border-t-gold-60 { border-top-color: rgba(201,168,76,0.6); }
+.border-gold-20 { border: 1px solid color-mix(in srgb, var(--color-gold) 20%, transparent); }
+.border-t-gold-60 { border-top-color: color-mix(in srgb, var(--color-gold) 60%, transparent); }
 .border-t-gold { border-top-color: var(--color-gold); }
 
 /* ─── Scrollbar ─────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: #1A1A2E; }
+::-webkit-scrollbar-track { background: var(--color-charcoal); }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(#C9A84C, #A07830);
+  background: linear-gradient(var(--color-gold), var(--color-gold-dark));
   border-radius: 3px;
 }
 
 /* ─── Selection ─────────────────────────────────────────── */
 ::selection {
-  background: rgba(201,168,76,0.3);
-  color: #1A1A2E;
+  background: color-mix(in srgb, var(--color-gold) 30%, transparent);
+  color: var(--color-charcoal);
 }
 
 /* ─── Arabic / RTL ───────────────────────────────────────── */
@@ -270,7 +280,7 @@ body {
 
 /* Override display/heading font for Arabic – Playfair Display has no Arabic glyphs */
 [dir="rtl"] .font-display {
-  font-family: 'Tajawal', sans-serif;
+  font-family: 'Tajawal', sans-serif; /* Playfair Display has no Arabic glyphs */
   font-weight: 800;
 }
 

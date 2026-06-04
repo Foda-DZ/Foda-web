@@ -1,513 +1,733 @@
-import { useState, useMemo, useEffect, useRef } from "react";
-import SearchIcon from "@mui/icons-material/Search";
-import GridViewIcon from "@mui/icons-material/GridView";
-import ViewListIcon from "@mui/icons-material/ViewList";
+import {
+  useState, useMemo, useEffect, useRef, useCallback,
+} from "react";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import CloseIcon from "@mui/icons-material/Close";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import CheckIcon from "@mui/icons-material/Check";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import TuneIcon from "@mui/icons-material/Tune";
-import IconButton from "@mui/material/IconButton";
-import CircularProgress from "@mui/material/CircularProgress";
-import Fuse from "fuse.js";
-import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { categories } from "../data/products";
+import SearchOffIcon from "@mui/icons-material/SearchOff";
+import { useSearchParams, useLocation } from "react-router-dom";
 import type { Product } from "../types";
 import Footer from "../components/Footer";
 import { useLang } from "../context/LangContext";
 import { productsService } from "../services/productsService";
 import { apiProductToProduct } from "../lib/mappers";
 import ProductCard from "../components/ui/ProductCard";
-import FilterPanel, {
-  defaultFilters,
-  type Filters,
-} from "../components/filters/FilterPanel";
-import FilterChips from "../components/filters/FilterChips";
 import Pagination from "../components/ui/Pagination";
+import {
+  COLOR_HEX, SUB_CATEGORIES, defaultFilters, type Filters,
+} from "../components/filters/FilterPanel";
 
-type ViewMode = "grid" | "list";
+const ITEMS_PER_PAGE = 24;
 
-const ITEMS_PER_PAGE = 12;
+// Sub-category Arabic translations
+const SUB_CAT_AR: Record<string, string> = {
+  "Shirts":   "قمصان",
+  "Pants":    "سراويل",
+  "Dresses":  "فساتين",
+  "Shoes":    "أحذية",
+  "Jackets":  "جاكيتات",
+  "Hoodies":  "هوديز",
+  "Jeans":    "جينز",
+  "Shorts":   "شورتات",
+  "T-Shirts": "تيشيرتات",
+  "Sweaters": "كنزات",
+  "Coats":    "معاطف",
+  "Bags":     "حقائب",
+  "Hats":     "قبعات",
+  "Other":    "أخرى",
+};
 
+// ─── Single dropdown — fixes the "closes on open" bug by using mousedown on
+//     document but only after a tick, so the opening click doesn't propagate.
+function FilterDropdown({
+  label,
+  active,
+  badge,
+  children,
+}: {
+  label: string;
+  active: boolean;
+  badge?: number;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click — attached only while open, and deferred one tick
+  // so the button's own mousedown doesn't immediately close the panel.
+  useEffect(() => {
+    if (!open) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    timer = setTimeout(() => document.addEventListener("mousedown", handler), 0);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("mousedown", handler);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`h-10 px-4 flex items-center gap-1.5 border text-sm font-semibold transition-colors duration-150 whitespace-nowrap select-none ${
+          active
+            ? "border-charcoal bg-charcoal text-white"
+            : open
+            ? "border-charcoal/60 bg-white text-charcoal"
+            : "border-charcoal/25 bg-white text-charcoal/70 hover:border-charcoal/55 hover:text-charcoal"
+        }`}
+      >
+        {label}
+        {badge != null && badge > 0 && (
+          <span className="ms-0.5 min-w-4 h-4 px-0.5 rounded-full gold-gradient text-charcoal text-[9px] font-black flex items-center justify-center leading-none">
+            {badge}
+          </span>
+        )}
+        <KeyboardArrowDownIcon
+          sx={{ fontSize: 15 }}
+          className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute top-full inset-s-0 mt-0 z-50 bg-white border border-charcoal/15 shadow-xl overflow-hidden animate-dropdown">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Price dual slider ────────────────────────────────────────────────────────
+function PriceSlider({
+  min, max, value, onChange, onSave, isRTL,
+}: {
+  min: number; max: number;
+  value: [number, number];
+  onChange: (v: [number, number]) => void;
+  onSave: () => void;
+  isRTL: boolean;
+}) {
+  const snap = useCallback(
+    (v: number) => Math.round(Math.max(min, Math.min(max, v)) / 500) * 500,
+    [min, max],
+  );
+  const range   = max - min || 1;
+  const lowPct  = ((value[0] - min) / range) * 100;
+  const highPct = ((value[1] - min) / range) * 100;
+
+  return (
+    <div className="w-72">
+      <div className="p-5">
+        {/* Min / Max boxes */}
+        <div className="flex items-center gap-2 mb-6">
+          <div className="flex-1 border border-charcoal/20 px-3 py-2.5">
+            <p className="text-[9px] font-black tracking-widest uppercase text-charcoal/40 mb-0.5">
+              {isRTL ? "أدنى" : "Min"}
+            </p>
+            <p className="text-sm font-bold text-charcoal tabular-nums">
+              {value[0].toLocaleString()}
+              <span className="text-[10px] font-normal text-charcoal/40 ms-0.5">DZD</span>
+            </p>
+          </div>
+          <div className="w-4 h-px bg-charcoal/20 shrink-0" />
+          <div className="flex-1 border border-charcoal/20 px-3 py-2.5">
+            <p className="text-[9px] font-black tracking-widest uppercase text-charcoal/40 mb-0.5">
+              {isRTL ? "أقصى" : "Max"}
+            </p>
+            <p className="text-sm font-bold text-charcoal tabular-nums">
+              {value[1].toLocaleString()}
+              <span className="text-[10px] font-normal text-charcoal/40 ms-0.5">DZD</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Track */}
+        <div className="relative h-5 flex items-center mb-3">
+          <div className="w-full h-px bg-charcoal/15">
+            <div
+              className="absolute h-px bg-charcoal"
+              style={{ left: `${lowPct}%`, right: `${100 - highPct}%` }}
+            />
+          </div>
+          <input type="range" min={min} max={max} step={500} value={value[0]}
+            onChange={(e) => { const v = snap(+e.target.value); if (v < value[1]) onChange([v, value[1]]); }}
+            className="absolute w-full h-full opacity-0 cursor-pointer"
+            style={{ zIndex: value[0] > max * 0.5 ? 5 : 3 }}
+          />
+          <input type="range" min={min} max={max} step={500} value={value[1]}
+            onChange={(e) => { const v = snap(+e.target.value); if (v > value[0]) onChange([value[0], v]); }}
+            className="absolute w-full h-full opacity-0 cursor-pointer"
+            style={{ zIndex: 4 }}
+          />
+          <div className="absolute w-4 h-4 bg-white border border-charcoal shadow-sm pointer-events-none"
+            style={{ left: `calc(${lowPct}% - 8px)`, zIndex: 6 }} />
+          <div className="absolute w-4 h-4 bg-white border border-charcoal shadow-sm pointer-events-none"
+            style={{ left: `calc(${highPct}% - 8px)`, zIndex: 6 }} />
+        </div>
+
+        <div className="flex justify-between text-[10px] text-charcoal/35 font-medium">
+          <span>0 DZD</span>
+          <span>{max.toLocaleString()} DZD</span>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="flex border-t border-charcoal/10">
+        <button
+          onClick={() => onChange([0, max])}
+          className="flex-1 py-3 text-xs font-semibold text-charcoal/40 hover:text-charcoal transition-colors border-e border-charcoal/10"
+        >
+          {isRTL ? "مسح" : "Reset"}
+        </button>
+        <button
+          onClick={onSave}
+          className="flex-1 py-3 text-xs font-bold text-white bg-charcoal hover:bg-charcoal/85 transition-colors"
+        >
+          {isRTL ? "تطبيق" : "Save"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Skeleton card ────────────────────────────────────────────────────────────
+function SkeletonCard() {
+  return (
+    <div className="animate-pulse">
+      <div className="aspect-3/4 bg-[#EDEAE4]" />
+      <div className="pt-3 space-y-2">
+        <div className="h-2.5 bg-[#EDEAE4] rounded w-1/3" />
+        <div className="h-3.5 bg-[#EDEAE4] rounded w-3/4" />
+        <div className="h-3 bg-[#EDEAE4] rounded w-1/2" />
+      </div>
+    </div>
+  );
+}
+
+// ─── Active chip ──────────────────────────────────────────────────────────────
+function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <button
+      onClick={onRemove}
+      className="group flex items-center gap-1.5 px-3 py-1.5 border border-charcoal/20 bg-white text-[11px] font-semibold text-charcoal/70 hover:border-red-300 hover:text-red-500 transition-all duration-150 capitalize"
+    >
+      {label}
+      <CloseRoundedIcon sx={{ fontSize: 10 }} className="opacity-50 group-hover:opacity-100" />
+    </button>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
 export default function ShopPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { tr } = useLang();
+  const location  = useLocation();
+  const { isRTL } = useLang();
   const [searchParams, setSearchParams] = useSearchParams();
-  const productsRef = useRef<HTMLDivElement>(null);
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const topRef    = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerStuck, setHeaderStuck] = useState(false);
+
+  // ── Data ──────────────────────────────────────────────────────────────────
+  const [products,   setProducts]   = useState<Product[]>([]);
+  const [loading,    setLoading]    = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const loadProducts = () => {
+  const loadProducts = useCallback(() => {
     setLoading(true);
     setFetchError(null);
     productsService
       .getAll()
       .then((ap) => setProducts(ap.map(apiProductToProduct)))
-      .catch((err) =>
-        setFetchError(
-          err instanceof Error ? err.message : "Failed to load products.",
-        ),
-      )
+      .catch((err) => setFetchError(err instanceof Error ? err.message : "Failed to load products."))
       .finally(() => setLoading(false));
-  };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    setFetchError(null);
     productsService
       .getAll()
-      .then((ap) => {
-        if (!cancelled) setProducts(ap.map(apiProductToProduct));
-      })
-      .catch((err) => {
-        if (!cancelled)
-          setFetchError(
-            err instanceof Error ? err.message : "Failed to load products.",
-          );
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+      .then((ap)  => { if (!cancelled) setProducts(ap.map(apiProductToProduct)); })
+      .catch((err) => { if (!cancelled) setFetchError(err instanceof Error ? err.message : "Failed."); })
+      .finally(()  => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
-  const sortOptions = [
-    { value: "featured", label: "Featured" },
-    { value: "newest", label: "Newest First" },
-    { value: "price-asc", label: "Price: Low to High" },
-    { value: "price-desc", label: "Price: High to Low" },
-  ];
-
-  const [activeCategory, setActiveCategory] = useState(
-    () => searchParams.get("category") ?? "All",
-  );
-  const [sortBy, setSortBy] = useState(() => {
-    const s = searchParams.get("sort");
-    return s && ["featured", "newest", "price-asc", "price-desc"].includes(s)
-      ? s
-      : "featured";
-  });
-  const initialSearch = searchParams.get("search") ?? "";
-  const [search, setSearch] = useState(initialSearch);
-  const [view, setView] = useState<ViewMode>("grid");
-  const [showSortMenu, setShowSortMenu] = useState(false);
-  const [filters, setFilters] = useState<Filters>(defaultFilters);
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  // ── State ─────────────────────────────────────────────────────────────────
+  const [sortBy,      setSortBy]      = useState("featured");
+  const [filters,     setFilters]     = useState<Filters>(defaultFilters);
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const cat = searchParams.get("category");
-    if (cat) setActiveCategory(cat);
     const sort = searchParams.get("sort");
-    if (
-      sort &&
-      ["featured", "newest", "price-asc", "price-desc"].includes(sort)
-    ) {
-      setSortBy(sort);
-    }
-    const s = searchParams.get("search");
-    if (s) setSearch(s);
+    if (sort && ["featured", "newest", "price-asc", "price-desc"].includes(sort)) setSortBy(sort);
   }, [searchParams]);
 
-  // Scroll to products section when navigating from navbar category links
   useEffect(() => {
-    if (location.state?.scrollToProducts && productsRef.current) {
-      // Small delay to let the layout settle after navigation
-      setTimeout(() => {
-        productsRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 100);
-      // Clear the state so back-navigation doesn't re-trigger
+    if (location.state?.scrollToProducts && topRef.current) {
+      setTimeout(() => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
       window.history.replaceState({}, "");
     }
   }, [location.state]);
 
-  // Available filter options
-  const availableSizes = useMemo(() => {
-    const sizes = new Set<string>();
-    products.forEach((p) => p.sizes.forEach((s) => sizes.add(s)));
-    const order = ["XS", "S", "M", "L", "XL", "XXL", "One Size"];
-    return Array.from(sizes).sort(
-      (a, b) =>
-        (order.indexOf(a) === -1 ? 99 : order.indexOf(a)) -
-        (order.indexOf(b) === -1 ? 99 : order.indexOf(b)),
+  // Sticky header
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => setHeaderStuck(!e.isIntersecting),
+      { threshold: 1, rootMargin: "-1px 0px 0px 0px" },
     );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // ── Real derived filter options ───────────────────────────────────────────
+  const availableSizes = useMemo(() => {
+    const s = new Set<string>();
+    products.forEach((p) => p.sizes.forEach((x) => s.add(x)));
+    const order = ["XS", "S", "M", "L", "XL", "XXL", "One Size"];
+    return Array.from(s).sort((a, b) => {
+      const ai = order.indexOf(a), bi = order.indexOf(b);
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    });
   }, [products]);
 
   const availableColors = useMemo(() => {
-    const colors = new Set<string>();
-    products.forEach((p) => p.colors.forEach((c) => colors.add(c)));
-    return Array.from(colors).sort();
-  }, [products]);
-
-  const availableSellers = useMemo(() => {
-    const sellers = new Set<string>();
-    products.forEach((p) => {
-      if (p.sellerName) sellers.add(p.sellerName);
-    });
-    return Array.from(sellers).sort();
+    const s = new Set<string>();
+    products.forEach((p) => p.colors.forEach((c) => {
+      if (c && c.trim()) s.add(c.trim().toLowerCase());
+    }));
+    return Array.from(s).sort();
   }, [products]);
 
   const maxPrice = useMemo(
-    () => Math.max(...products.map((p) => p.price), 40000),
+    () => (products.length ? Math.max(...products.map((p) => p.price)) : 40000),
     [products],
   );
 
-  // Fuse.js for fuzzy search
-  const fuse = useMemo(
-    () =>
-      new Fuse(products, {
-        keys: [
-          { name: "name", weight: 0.5 },
-          { name: "category", weight: 0.25 },
-          { name: "sellerName", weight: 0.15 },
-          { name: "brand", weight: 0.1 },
-        ],
-        threshold: 0.4,
-        minMatchCharLength: 2,
-      }),
-    [products],
-  );
+  // Sync priceRange ceiling with real maxPrice once loaded
+  useEffect(() => {
+    if (!loading && products.length > 0) {
+      setFilters((f) => ({
+        ...f,
+        priceRange: [f.priceRange[0], maxPrice],
+      }));
+    }
+  }, [loading, maxPrice, products.length]);
 
-  // Apply all filters
+  // ── Filtering & sorting ───────────────────────────────────────────────────
   const filtered = useMemo(() => {
     let list = [...products];
 
-    if (activeCategory !== "All")
-      list = list.filter((p) => p.category === activeCategory);
-
-    if (search.trim() && search.trim().length >= 2) {
-      const fuseResults = fuse.search(search.trim());
-      const matchedIds = new Set(fuseResults.map((r) => r.item.id));
-      list = list.filter((p) => matchedIds.has(p.id));
-      const scoreMap = new Map(
-        fuseResults.map((r) => [r.item.id, r.score ?? 1]),
-      );
-      list.sort(
-        (a, b) => (scoreMap.get(a.id) ?? 1) - (scoreMap.get(b.id) ?? 1),
+    if (filters.subCategory) {
+      const sub = filters.subCategory.toLowerCase();
+      list = list.filter((p) =>
+        p.name.toLowerCase().includes(sub) ||
+        (p.subCategory ?? "").toLowerCase().includes(sub) ||
+        (p.description ?? "").toLowerCase().includes(sub),
       );
     }
 
     list = list.filter(
-      (p) =>
-        p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1],
+      (p) => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1],
     );
 
-    if (filters.sizes.length > 0)
+    if (filters.sizes.length)
       list = list.filter((p) => filters.sizes.some((s) => p.sizes.includes(s)));
 
-    if (filters.colors.length > 0)
+    if (filters.colors.length)
       list = list.filter((p) =>
-        filters.colors.some((c) => p.colors.includes(c)),
+        filters.colors.some((c) => p.colors.map((x) => x.toLowerCase()).includes(c)),
       );
 
-    if (filters.sellers.length > 0)
-      list = list.filter(
-        (p) => p.sellerName && filters.sellers.includes(p.sellerName),
-      );
-
-    if (filters.rating > 0)
-      list = list.filter((p) => (p.rating ?? 0) >= filters.rating);
-
-    if (filters.availability === "instock")
-      list = list.filter((p) => p.stock > 0);
-
-    if (!search.trim()) {
-      switch (sortBy) {
-        case "newest":
-          list = list
-            .filter((p) => p.isNew)
-            .concat(list.filter((p) => !p.isNew));
-          break;
-        case "price-asc":
-          list.sort((a, b) => a.price - b.price);
-          break;
-        case "price-desc":
-          list.sort((a, b) => b.price - a.price);
-          break;
-      }
-    }
+    if      (sortBy === "newest")     list = list.filter((p) => p.isNew).concat(list.filter((p) => !p.isNew));
+    else if (sortBy === "price-asc")  list.sort((a, b) => a.price - b.price);
+    else if (sortBy === "price-desc") list.sort((a, b) => b.price - a.price);
 
     return list;
-  }, [activeCategory, search, sortBy, filters, products, fuse]);
+  }, [sortBy, filters, products]);
 
-  // Pagination
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const totalPages        = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginatedProducts = useMemo(
-    () =>
-      filtered.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE,
-      ),
+    () => filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
     [filtered, currentPage],
   );
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeCategory, search, sortBy, filters]);
-
-  const handleCategoryChange = (cat: string) => {
-    setActiveCategory(cat);
-    const params = new URLSearchParams(searchParams);
-    if (cat === "All") params.delete("category");
-    else params.set("category", cat);
-    setSearchParams(params, { replace: true });
-  };
+  useEffect(() => setCurrentPage(1), [sortBy, filters]);
 
   const handleSortChange = (sort: string) => {
     setSortBy(sort);
-    setShowSortMenu(false);
-    const params = new URLSearchParams(searchParams);
-    if (sort === "featured") params.delete("sort");
-    else params.set("sort", sort);
-    setSearchParams(params, { replace: true });
+    const p = new URLSearchParams(searchParams);
+    sort === "featured" ? p.delete("sort") : p.set("sort", sort);
+    setSearchParams(p, { replace: true });
   };
 
-  const activeFilterCount =
-    (filters.priceRange[1] < maxPrice ? 1 : 0) +
+  const clearAll = () => setFilters({ ...defaultFilters, priceRange: [0, maxPrice] });
+
+  const priceActive = filters.priceRange[0] > 0 || filters.priceRange[1] < maxPrice;
+  const activeCount =
+    (filters.subCategory ? 1 : 0) +
     filters.sizes.length +
     filters.colors.length +
-    filters.sellers.length +
-    (filters.rating > 0 ? 1 : 0) +
-    (filters.availability === "instock" ? 1 : 0);
+    (priceActive ? 1 : 0);
 
+  const handlePageChange = (p: number) => {
+    setCurrentPage(p);
+    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const sortLabels: Record<string, string> = {
+    featured:     isRTL ? "الأبرز"         : "Featured",
+    newest:       isRTL ? "الأحدث"         : "Newest first",
+    "price-asc":  isRTL ? "السعر: الأقل"   : "Price: Low to High",
+    "price-desc": isRTL ? "السعر: الأعلى"  : "Price: High to Low",
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#FAF7F2]">
-      {/* Header */}
-      <div className="dark-gradient pt-28 pb-12 px-6 lg:px-12 relative overflow-hidden">
-        <div
-          className="absolute inset-0 bg-[#C9A84C]/5 opacity-50"
-          style={{
-            backgroundImage:
-              "linear-gradient(45deg, transparent 45%, rgba(201,168,76,.05) 50%, transparent 55%)",
-            backgroundSize: "40px 40px",
-          }}
-        />
-        <div className="max-w-7xl mx-auto relative z-10">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2 text-white/50 hover:text-[#C9A84C] transition-colors duration-200 mb-6 text-sm"
-          >
-            <ArrowBackIcon sx={{ fontSize: 15 }} className="rtl:rotate-180" />{" "}
-            {tr.common.back}
-          </button>
-          <p className="text-[#C9A84C] text-xs font-semibold tracking-widest uppercase mb-2">
-            {tr.shop.title.split(" ")[0]}
-          </p>
-          <h1 className="font-display text-5xl lg:text-7xl font-black text-white">
-            {tr.shop.title.split(" ").slice(1).join(" ") || tr.shop.title}{" "}
-            <span className="animated-gold-text">{tr.categories.category}</span>
-          </h1>
-          <p className="text-white/50 font-light mt-3">
-            {tr.shop.subtitle.replace("{count}", String(filtered.length))}
-          </p>
+    <div className="min-h-screen bg-white">
+
+      {/* Navbar spacer */}
+      <div style={{ height: "80px" }} />
+      <div ref={headerRef} className="h-px w-full" />
+
+      {/* ── Sticky filter bar ── */}
+      <div className={`sticky top-0 z-30 bg-white border-b transition-all duration-200 ${
+        headerStuck ? "border-charcoal/15 shadow-sm" : "border-charcoal/10"
+      }`}>
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="flex items-center gap-0 py-0 overflow-x-auto scrollbar-none">
+
+            {/* ── Sort by ── */}
+            <FilterDropdown
+              label={isRTL ? "الترتيب" : "Sort by"}
+              active={sortBy !== "featured"}
+            >
+              <div className="min-w-52">
+                {Object.entries(sortLabels).map(([val, lbl]) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => handleSortChange(val)}
+                    className={`w-full flex items-center justify-between px-5 py-3.5 text-sm border-b border-charcoal/8 last:border-0 transition-colors duration-100 ${
+                      sortBy === val
+                        ? "font-bold text-charcoal bg-charcoal/5"
+                        : "text-charcoal/60 hover:bg-charcoal/3 hover:text-charcoal"
+                    }`}
+                  >
+                    {lbl}
+                    {sortBy === val && <CheckIcon sx={{ fontSize: 15, color: "#1A1A2E" }} />}
+                  </button>
+                ))}
+              </div>
+            </FilterDropdown>
+
+            <div className="w-px h-10 bg-charcoal/10 shrink-0" />
+
+            {/* ── Size ── */}
+            <FilterDropdown
+              label={isRTL ? "المقاس" : "Size"}
+              active={filters.sizes.length > 0}
+              badge={filters.sizes.length || undefined}
+            >
+              <div className="min-w-52">
+                {loading ? (
+                  <div className="p-4 space-y-2">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="h-9 bg-charcoal/6 animate-pulse" />
+                    ))}
+                  </div>
+                ) : availableSizes.length === 0 ? (
+                  <p className="px-5 py-4 text-sm text-charcoal/40 italic">
+                    {isRTL ? "لا توجد مقاسات" : "No sizes available"}
+                  </p>
+                ) : (
+                  <>
+                    <div className="max-h-72 overflow-y-auto">
+                      {availableSizes.map((size) => {
+                        const active = filters.sizes.includes(size);
+                        return (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() =>
+                              setFilters((f) => ({
+                                ...f,
+                                sizes: active
+                                  ? f.sizes.filter((s) => s !== size)
+                                  : [...f.sizes, size],
+                              }))
+                            }
+                            className={`w-full flex items-center justify-between px-5 py-3.5 text-sm border-b border-charcoal/8 last:border-0 transition-colors duration-100 ${
+                              active
+                                ? "font-bold text-charcoal bg-charcoal/5"
+                                : "text-charcoal/60 hover:bg-charcoal/3 hover:text-charcoal"
+                            }`}
+                          >
+                            {size}
+                            {active && <CheckIcon sx={{ fontSize: 15, color: "#1A1A2E" }} />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="flex border-t border-charcoal/10">
+                      <button
+                        type="button"
+                        onClick={() => setFilters((f) => ({ ...f, sizes: [] }))}
+                        className="flex-1 py-3 text-xs font-semibold text-charcoal/40 hover:text-charcoal transition-colors border-e border-charcoal/10"
+                      >
+                        {isRTL ? "مسح" : "Reset"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {/* keep open — user sees selection */}}
+                        className="flex-1 py-3 text-xs font-bold text-white bg-charcoal hover:bg-charcoal/85 transition-colors"
+                      >
+                        {isRTL ? "تطبيق" : "Save"}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </FilterDropdown>
+
+            <div className="w-px h-10 bg-charcoal/10 shrink-0" />
+
+            {/* ── Colour ── */}
+            <FilterDropdown
+              label={isRTL ? "اللون" : "Colour"}
+              active={filters.colors.length > 0}
+              badge={filters.colors.length || undefined}
+            >
+              <div className="min-w-52">
+                {loading ? (
+                  <div className="p-4 space-y-2">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="h-9 bg-charcoal/6 animate-pulse" />
+                    ))}
+                  </div>
+                ) : availableColors.length === 0 ? (
+                  <p className="px-5 py-4 text-sm text-charcoal/40 italic">
+                    {isRTL ? "لا توجد ألوان" : "No colours available"}
+                  </p>
+                ) : (
+                  <>
+                    <div className="max-h-72 overflow-y-auto">
+                      {availableColors.map((color) => {
+                        const hex    = COLOR_HEX[color] ?? "#ccc";
+                        const active = filters.colors.includes(color);
+                        const isLight = ["white", "ivory", "cream", "yellow", "beige"].includes(color);
+                        return (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() =>
+                              setFilters((f) => ({
+                                ...f,
+                                colors: active
+                                  ? f.colors.filter((c) => c !== color)
+                                  : [...f.colors, color],
+                              }))
+                            }
+                            className={`w-full flex items-center gap-4 px-5 py-3 border-b border-charcoal/8 last:border-0 transition-colors duration-100 ${
+                              active ? "bg-charcoal/5" : "hover:bg-charcoal/3"
+                            }`}
+                          >
+                            {/* Square swatch — exactly like Zalando reference */}
+                            <span
+                              className="w-6 h-6 shrink-0 flex items-center justify-center"
+                              style={{
+                                backgroundColor: hex,
+                                outline: isLight ? "1px solid rgba(26,26,46,0.2)" : "none",
+                              }}
+                            >
+                              {active && (
+                                <CheckIcon
+                                  sx={{ fontSize: 13 }}
+                                  style={{ color: isLight ? "#1A1A2E" : "#fff" }}
+                                />
+                              )}
+                            </span>
+                            <span className={`text-sm capitalize ${active ? "font-bold text-charcoal" : "text-charcoal/65"}`}>
+                              {color.charAt(0).toUpperCase() + color.slice(1)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="flex border-t border-charcoal/10">
+                      <button
+                        type="button"
+                        onClick={() => setFilters((f) => ({ ...f, colors: [] }))}
+                        className="flex-1 py-3 text-xs font-semibold text-charcoal/40 hover:text-charcoal transition-colors border-e border-charcoal/10"
+                      >
+                        {isRTL ? "مسح" : "Reset"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {/* keep open */}}
+                        className="flex-1 py-3 text-xs font-bold text-white bg-charcoal hover:bg-charcoal/85 transition-colors"
+                      >
+                        {isRTL ? "تطبيق" : "Save"}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </FilterDropdown>
+
+            <div className="w-px h-10 bg-charcoal/10 shrink-0" />
+
+            {/* ── Price ── */}
+            <FilterDropdown
+              label={isRTL ? "السعر" : "Price"}
+              active={priceActive}
+              badge={priceActive ? 1 : undefined}
+            >
+              {loading ? (
+                <div className="p-5 w-72 space-y-3">
+                  <div className="h-12 bg-charcoal/6 animate-pulse" />
+                  <div className="h-2 bg-charcoal/8 animate-pulse" />
+                </div>
+              ) : (
+                <PriceSlider
+                  min={0}
+                  max={maxPrice}
+                  value={filters.priceRange}
+                  onChange={(v) => setFilters((f) => ({ ...f, priceRange: v }))}
+                  onSave={() => {/* close handled by outside click */}}
+                  isRTL={isRTL}
+                />
+              )}
+            </FilterDropdown>
+
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* Clear all */}
+            {activeCount > 0 && (
+              <button
+                type="button"
+                onClick={clearAll}
+                className="h-10 px-4 shrink-0 flex items-center gap-1.5 border border-charcoal/20 text-sm font-semibold text-charcoal/55 hover:border-red-300 hover:text-red-500 transition-colors duration-150 whitespace-nowrap"
+              >
+                <CloseRoundedIcon sx={{ fontSize: 13 }} />
+                {isRTL ? `مسح (${activeCount})` : `Clear (${activeCount})`}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      <div ref={productsRef} className="max-w-7xl mx-auto px-6 lg:px-12 py-8">
-        {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="flex-1 relative">
-            <div className="flex items-center border border-[#1A1A2E]/15 bg-white h-11">
-              <SearchIcon
-                sx={{ fontSize: 16, ml: 1.5, color: "rgba(26,26,46,0.3)" }}
-              />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={tr.shop.searchPlaceholder}
-                className="flex-1 px-2 py-2 text-sm bg-transparent outline-none text-[#1A1A2E] placeholder:text-[#1A1A2E]/30"
-              />
-              {search && (
-                <IconButton
-                  size="small"
-                  onClick={() => setSearch("")}
-                  sx={{ p: 0.3, mr: 0.5 }}
-                >
-                  <CloseIcon
-                    sx={{ fontSize: 14, color: "rgba(26,26,46,0.35)" }}
-                  />
-                </IconButton>
-              )}
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setMobileFiltersOpen(true)}
-              className="lg:hidden h-11 px-4 border border-[#1A1A2E]/15 flex items-center gap-2 text-sm font-medium text-[#1A1A2E]/60 hover:border-[#C9A84C]/50 transition-colors duration-200 relative"
-            >
-              <TuneIcon sx={{ fontSize: 15 }} /> Filters
-              {activeFilterCount > 0 && (
-                <span className="absolute -top-1.5 -end-1.5 w-5 h-5 gold-gradient text-[#1A1A2E] text-[10px] font-black rounded-full flex items-center justify-center">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-            <div className="relative">
-              <button
-                onClick={() => setShowSortMenu(!showSortMenu)}
-                className="h-11 px-4 border border-[#1A1A2E]/15 flex items-center gap-2 text-sm text-[#1A1A2E]/60 hover:border-[#C9A84C]/50 transition-colors duration-200 min-w-[150px] justify-between"
-              >
-                <span>
-                  {sortOptions.find((s) => s.value === sortBy)?.label}
-                </span>
-                <KeyboardArrowDownIcon
-                  sx={{ fontSize: 14 }}
-                  className={`transition-transform duration-200 ${showSortMenu ? "rotate-180" : ""}`}
-                />
-              </button>
-              {showSortMenu && (
-                <div className="absolute top-full end-0 mt-1 w-48 bg-white border border-[#1A1A2E]/10 shadow-xl z-30">
-                  {sortOptions.map((opt) => (
+      {/* ── Page body ── */}
+      <div ref={topRef} className="max-w-7xl mx-auto px-6 lg:px-12 py-8">
+        <div className="flex gap-12">
+
+          {/* ── Left: subcategory list — plain, no frame ── */}
+          <aside className="hidden lg:block w-40 shrink-0">
+            <p className="text-sm font-bold text-charcoal mb-4">
+              {isRTL ? "الفئات" : "Categories"}
+            </p>
+            <ul className="space-y-0.5">
+              {SUB_CATEGORIES.map((sub) => {
+                const active = filters.subCategory === sub;
+                const label  = isRTL ? (SUB_CAT_AR[sub] ?? sub) : sub;
+                return (
+                  <li key={sub}>
                     <button
-                      key={opt.value}
-                      onClick={() => handleSortChange(opt.value)}
-                      className={`w-full text-start px-4 py-2.5 text-sm transition-colors duration-150 ${
-                        sortBy === opt.value
-                          ? "text-[#C9A84C] font-semibold bg-[#C9A84C]/5"
-                          : "text-[#1A1A2E]/70 hover:bg-[#FAF7F2] hover:text-[#1A1A2E]"
+                      type="button"
+                      onClick={() =>
+                        setFilters((f) => ({
+                          ...f,
+                          subCategory: active ? "" : sub,
+                        }))
+                      }
+                      className={`w-full text-start py-1.5 text-sm transition-colors duration-100 ${
+                        active
+                          ? "font-bold text-charcoal"
+                          : "text-charcoal/50 hover:text-charcoal"
                       }`}
                     >
-                      {opt.label}
+                      {label}
                     </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="flex border border-[#1A1A2E]/15">
-              {(
-                [
-                  { id: "grid" as const, Icon: GridViewIcon },
-                  { id: "list" as const, Icon: ViewListIcon },
-                ] as const
-              ).map(({ id, Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setView(id)}
-                  className={`w-11 h-11 flex items-center justify-center transition-all duration-200 ${
-                    view === id
-                      ? "bg-[#1A1A2E] text-white"
-                      : "text-[#1A1A2E]/40 hover:text-[#1A1A2E]"
-                  }`}
-                >
-                  <Icon sx={{ fontSize: 15 }} />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </aside>
 
-        {/* Category tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-none">
-          {[tr.shop.all, ...categories].map((cat, idx) => {
-            const catKey = idx === 0 ? "All" : categories[idx - 1];
-            const isActive = activeCategory === catKey;
-            return (
-              <button
-                key={cat}
-                onClick={() => handleCategoryChange(catKey)}
-                className={`flex-shrink-0 px-5 py-2 text-xs font-semibold tracking-widest uppercase transition-all duration-200 whitespace-nowrap ${
-                  isActive
-                    ? "gold-gradient text-[#1A1A2E]"
-                    : "border border-[#1A1A2E]/15 text-[#1A1A2E]/60 hover:border-[#C9A84C]/50 hover:text-[#C9A84C]"
-                }`}
-              >
-                {cat}
-                {idx > 0 && (
-                  <span className="ms-2 text-[10px] font-normal text-current opacity-60">
-                    ({products.filter((p) => p.category === catKey).length})
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Filter chips */}
-        <FilterChips filters={filters} onChange={setFilters} />
-
-        {/* Result count */}
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-[#1A1A2E]/50 text-sm">
-            {tr.shop.showing}{" "}
-            <span className="font-semibold text-[#1A1A2E]">
-              {filtered.length}
-            </span>{" "}
-            {tr.shop.products}
-            {activeCategory !== "All" && ` ${tr.shop.in} ${activeCategory}`}
-          </p>
-          {search && (
-            <p className="text-[#1A1A2E]/50 text-sm">
-              {tr.shop.resultsFor} "
-              <span className="text-[#C9A84C] font-medium">{search}</span>"
-              <IconButton
-                size="small"
-                onClick={() => setSearch("")}
-                sx={{ ml: 0.5, p: 0.3 }}
-              >
-                <CloseIcon sx={{ fontSize: 12, color: "rgba(26,26,46,0.4)" }} />
-              </IconButton>
-            </p>
-          )}
-        </div>
-
-        {/* Main content area */}
-        <div className="flex gap-8">
-          <FilterPanel
-            filters={filters}
-            onChange={setFilters}
-            availableSizes={availableSizes}
-            availableColors={availableColors}
-            availableSellers={availableSellers}
-            maxPrice={maxPrice}
-            mobileOpen={mobileFiltersOpen}
-            onMobileClose={() => setMobileFiltersOpen(false)}
-          />
-
+          {/* ── Product grid ── */}
           <div className="flex-1 min-w-0">
+
+            {/* Active chips */}
+            {activeCount > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mb-6">
+                {filters.subCategory && (
+                  <Chip
+                    label={isRTL ? (SUB_CAT_AR[filters.subCategory] ?? filters.subCategory) : filters.subCategory}
+                    onRemove={() => setFilters((f) => ({ ...f, subCategory: "" }))}
+                  />
+                )}
+                {filters.sizes.map((s) => (
+                  <Chip key={s} label={s}
+                    onRemove={() => setFilters((f) => ({ ...f, sizes: f.sizes.filter((x) => x !== s) }))} />
+                ))}
+                {filters.colors.map((c) => (
+                  <Chip key={c} label={c}
+                    onRemove={() => setFilters((f) => ({ ...f, colors: f.colors.filter((x) => x !== c) }))} />
+                ))}
+                {priceActive && (
+                  <Chip
+                    label={`${filters.priceRange[0].toLocaleString()} – ${filters.priceRange[1].toLocaleString()} DZD`}
+                    onRemove={() => setFilters((f) => ({ ...f, priceRange: [0, maxPrice] }))}
+                  />
+                )}
+              </div>
+            )}
+
+            {/* States */}
             {loading ? (
-              <div className="flex items-center justify-center py-32">
-                <CircularProgress sx={{ color: "#C9A84C" }} size={32} />
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 lg:gap-6">
+                {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
               </div>
             ) : fetchError ? (
-              <div className="flex flex-col items-center gap-3 py-24 text-center">
-                <ErrorOutlineIcon sx={{ fontSize: 32, color: "#f87171" }} />
-                <p className="text-[#1A1A2E]/60 text-sm">{fetchError}</p>
-                <button onClick={loadProducts} className="btn-gold">
-                  Retry
+              <div className="flex flex-col items-center gap-4 py-32 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center">
+                  <ErrorOutlineIcon sx={{ fontSize: 28, color: "#f87171" }} />
+                </div>
+                <p className="text-charcoal/55 text-sm max-w-xs">{fetchError}</p>
+                <button onClick={loadProducts} className="btn-gold mt-1">
+                  {isRTL ? "إعادة المحاولة" : "Retry"}
                 </button>
               </div>
             ) : filtered.length === 0 ? (
-              <div className="text-center py-24">
-                <p className="font-display text-2xl text-[#1A1A2E]/30 mb-3">
-                  {tr.shop.noProducts}
+              <div className="flex flex-col items-center gap-4 py-32 text-center">
+                <div className="w-20 h-20 rounded-3xl bg-charcoal/5 flex items-center justify-center">
+                  <SearchOffIcon sx={{ fontSize: 32, color: "rgba(26,26,46,0.2)" }} />
+                </div>
+                <p className="font-display text-2xl font-bold text-charcoal/30">
+                  {isRTL ? "لا توجد منتجات" : "No products found"}
                 </p>
-                <p className="text-[#1A1A2E]/40 text-sm mb-6">
-                  {tr.shop.noProductsSub}
+                <p className="text-charcoal/40 text-sm max-w-xs">
+                  {isRTL
+                    ? "جرّب تغيير الفلاتر أو اختر فئة مختلفة"
+                    : "Try adjusting your filters or selecting a different category"}
                 </p>
-                <button
-                  onClick={() => {
-                    setSearch("");
-                    setActiveCategory("All");
-                    setFilters(defaultFilters);
-                  }}
-                  className="btn-gold"
-                >
-                  {tr.shop.clearFilters}
+                <button onClick={clearAll} className="btn-dark mt-1">
+                  {isRTL ? "إزالة الفلاتر" : "Clear All Filters"}
                 </button>
               </div>
-            ) : view === "grid" ? (
+            ) : (
               <>
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 lg:gap-6">
                   {paginatedProducts.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
@@ -515,84 +735,15 @@ export default function ShopPage() {
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
-                  onPageChange={(p) => {
-                    setCurrentPage(p);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                />
-              </>
-            ) : (
-              <>
-                <div className="flex flex-col gap-3">
-                  {paginatedProducts.map((product) => (
-                    <ListRow key={product.id} product={product} />
-                  ))}
-                </div>
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={(p) => {
-                    setCurrentPage(p);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
+                  onPageChange={handlePageChange}
                 />
               </>
             )}
           </div>
         </div>
       </div>
+
       <Footer />
-    </div>
-  );
-}
-
-// ─── List row ────────────────────────────────────────────────
-function ListRow({ product }: { product: Product }) {
-  const { tr } = useLang();
-  const navigate = useNavigate();
-  const isOutOfStock = product.stock === 0;
-
-  return (
-    <div
-      className="flex gap-5 p-4 bg-white border border-[#1A1A2E]/8 hover:border-[#C9A84C]/30 transition-all duration-300 group cursor-pointer"
-      onClick={() => navigate(`/products/${product.id}`)}
-    >
-      <div className="w-28 h-36 flex-shrink-0 overflow-hidden bg-[#F0EBE3] relative">
-        <img
-          src={product.images[0]}
-          alt={product.name}
-          loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        {product.isNew && !isOutOfStock && (
-          <span className="absolute top-2 start-2 text-[9px] font-bold px-2 py-0.5 tracking-wider uppercase bg-[#1A1A2E] text-[#C9A84C]">
-            NEW
-          </span>
-        )}
-        {isOutOfStock && (
-          <span className="absolute top-2 start-2 text-[9px] font-bold px-2 py-0.5 tracking-wider uppercase bg-[#1A1A2E]/55 text-white">
-            Out of Stock
-          </span>
-        )}
-      </div>
-      <div className="flex-1 min-w-0 py-1">
-        <p className="text-[#C9A84C] text-[10px] font-semibold tracking-widest uppercase">
-          {product.category}
-        </p>
-        <h3 className="font-display font-bold text-[#1A1A2E] text-lg mt-0.5 group-hover:text-[#C9A84C] transition-colors duration-200">
-          {product.name}
-        </h3>
-        <div className="flex items-center gap-2 mt-2">
-          <span className="font-bold text-[#1A1A2E] text-base">
-            {product.price.toLocaleString()} {tr.common.dzd}
-          </span>
-          {product.originalPrice && product.originalPrice > product.price && (
-            <span className="text-xs text-[#1A1A2E]/30 line-through">
-              {product.originalPrice.toLocaleString()} {tr.common.dzd}
-            </span>
-          )}
-        </div>
-      </div>
     </div>
   );
 }

@@ -1,8 +1,13 @@
 import { createTheme } from "@mui/material/styles";
 
-const GOLD = "#C9A84C";
-const DARK = "#1A1A2E";
-const CREAM = "#FAF7F2";
+const GOLD        = "#C9A84C";
+const GOLD_LIGHT  = "#E8C96B";
+const GOLD_DARK   = "#A07830";
+const DARK        = "#1A1A2E";
+const DARK_LIGHT  = "#16213E";
+const CREAM       = "#FAF7F2";
+const BLUSH       = "#F5E6E8";
+const BURGUNDY    = "#722F37";
 
 const muiTheme = createTheme({
   palette: {
@@ -29,9 +34,9 @@ const muiTheme = createTheme({
     },
     text: {
       primary: DARK,
-      secondary: "rgba(26,26,46,0.6)",
+      secondary: `${DARK}99`,
     },
-    divider: "rgba(26,26,46,0.1)",
+    divider: `${DARK}1A`,
   },
 
   shape: {
@@ -62,7 +67,7 @@ const muiTheme = createTheme({
           borderRadius: 0,
           backgroundColor: "#ffffff",
           "& .MuiOutlinedInput-notchedOutline": {
-            borderColor: "rgba(26,26,46,0.15)",
+            borderColor: `${DARK}26`,
           },
           "&:hover .MuiOutlinedInput-notchedOutline": {
             borderColor: GOLD,
@@ -79,7 +84,7 @@ const muiTheme = createTheme({
           fontSize: "0.875rem",
           color: DARK,
           "&::placeholder": {
-            color: "rgba(26,26,46,0.35)",
+            color: `${DARK}59`,
             opacity: 1,
           },
         },
@@ -92,7 +97,7 @@ const muiTheme = createTheme({
           fontWeight: 600,
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          color: "rgba(26,26,46,0.5)",
+          color: `${DARK}80`,
           "&.Mui-focused": {
             color: GOLD,
           },
@@ -131,28 +136,28 @@ const muiTheme = createTheme({
           },
         },
         containedPrimary: {
-          background: `linear-gradient(135deg, ${GOLD} 0%, #B8923E 100%)`,
+          background: `linear-gradient(135deg, ${GOLD} 0%, ${GOLD_DARK} 100%)`,
           color: DARK,
           "&:hover": {
-            background: `linear-gradient(135deg, #D4B060 0%, ${GOLD} 100%)`,
+            background: `linear-gradient(135deg, ${GOLD_LIGHT} 0%, ${GOLD} 100%)`,
           },
           "&.Mui-disabled": {
-            background: "rgba(201,168,76,0.3)",
-            color: "rgba(26,26,46,0.4)",
+            background: `${GOLD}4D`,
+            color: `${DARK}66`,
           },
         },
         containedSecondary: {
           backgroundColor: DARK,
           color: "#ffffff",
           "&:hover": {
-            backgroundColor: "#2d2d50",
+            backgroundColor: DARK_LIGHT,
           },
         },
         outlinedPrimary: {
           borderColor: GOLD,
           color: DARK,
           "&:hover": {
-            backgroundColor: "rgba(201,168,76,0.08)",
+            backgroundColor: `${GOLD}14`,
             borderColor: GOLD,
           },
         },
@@ -177,7 +182,7 @@ const muiTheme = createTheme({
           borderRadius: 0,
         },
         icon: {
-          color: "rgba(26,26,46,0.4)",
+          color: `${DARK}66`,
         },
       },
     },
@@ -275,7 +280,7 @@ const muiTheme = createTheme({
         root: {
           borderRadius: 0,
           boxShadow: "none",
-          border: "1px solid rgba(26,26,46,0.08)",
+          border: `1px solid ${DARK}14`,
         },
       },
     },
@@ -289,9 +294,9 @@ const muiTheme = createTheme({
             fontSize: "0.7rem",
             letterSpacing: "0.1em",
             textTransform: "uppercase",
-            color: "rgba(26,26,46,0.5)",
-            borderBottom: "2px solid rgba(26,26,46,0.08)",
-            backgroundColor: "#FAF7F2",
+            color: `${DARK}80`,
+            borderBottom: `2px solid ${DARK}14`,
+            backgroundColor: CREAM,
           },
         },
       },
@@ -299,7 +304,7 @@ const muiTheme = createTheme({
     MuiTableCell: {
       styleOverrides: {
         root: {
-          borderBottom: "1px solid rgba(26,26,46,0.06)",
+          borderBottom: `1px solid ${DARK}0F`,
           fontSize: "0.875rem",
           padding: "12px 16px",
         },
@@ -315,15 +320,15 @@ const muiTheme = createTheme({
           fontWeight: 600,
           fontSize: "0.75rem",
           letterSpacing: "0.06em",
-          color: "rgba(26,26,46,0.6)",
-          border: "1.5px solid rgba(26,26,46,0.2)",
+          color: `${DARK}99`,
+          border: `1.5px solid ${DARK}33`,
           padding: "6px 16px",
           "&.Mui-selected": {
             backgroundColor: DARK,
             color: GOLD,
             borderColor: DARK,
             "&:hover": {
-              backgroundColor: "#2d2d50",
+              backgroundColor: DARK_LIGHT,
             },
           },
           "&:hover": {
@@ -338,7 +343,7 @@ const muiTheme = createTheme({
     MuiDivider: {
       styleOverrides: {
         root: {
-          borderColor: "rgba(26,26,46,0.08)",
+          borderColor: `${DARK}14`,
         },
       },
     },

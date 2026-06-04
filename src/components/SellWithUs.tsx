@@ -1,241 +1,156 @@
 import { useRef, useEffect, useState } from "react";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import BoltIcon from "@mui/icons-material/Bolt";
-import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
-import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
+import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import { useLang } from "../context/LangContext";
 import { useAuth } from "../context/AuthContext";
 
-type SubscriptionPlan = {
-  id: "basic" | "pro" | "brand";
-  icon: typeof BoltIcon;
-  accent: string;
-  title: { en: string; ar: string };
-  subtitle: { en: string; ar: string };
-  price: { en: string; ar: string };
-  period: { en: string; ar: string };
-  highlight?: { en: string; ar: string };
-  features: Array<{ en: string; ar: string }>;
-  cta: { en: string; ar: string };
-};
+const PERKS_EN = [
+  "Free store setup — live in minutes",
+  "Reach buyers across all 58 Algerian wilayas",
+  "Powerful dashboard: orders, analytics & promotions",
+  "Payouts within 48 hours, no hidden fees",
+  "Dedicated seller support team",
+];
 
-// TODO: Replace placeholder plans below with final pricing data when provided.
-const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
-  {
-    id: "basic",
-    icon: BoltIcon,
-    accent: "#C9A84C",
-    title: { en: "Basic", ar: "أساسي" },
-    subtitle: {
-      en: "Best for new sellers starting out",
-      ar: "مناسب للبائعين الجدد",
-    },
-    price: { en: "Custom Price", ar: "سعر مخصص" },
-    period: { en: "per month", ar: "شهرياً" },
-    features: [
-      { en: "Store profile & product listing", ar: "ملف متجر وإدراج المنتجات" },
-      { en: "Order management dashboard", ar: "لوحة إدارة الطلبات" },
-      { en: "Marketplace visibility", ar: "ظهور داخل السوق" },
-    ],
-    cta: { en: "Choose Basic", ar: "اختر الأساسي" },
-  },
-  {
-    id: "pro",
-    icon: WorkspacePremiumIcon,
-    accent: "#E8C96B",
-    title: { en: "Pro", ar: "احترافي" },
-    subtitle: {
-      en: "For growing stores that need more reach",
-      ar: "للمتاجر المتنامية التي تحتاج انتشاراً أكبر",
-    },
-    price: { en: "Custom Price", ar: "سعر مخصص" },
-    period: { en: "per month", ar: "شهرياً" },
-    highlight: { en: "Most Popular", ar: "الأكثر اختياراً" },
-    features: [
-      { en: "Everything in Basic", ar: "كل ما في الخطة الأساسية" },
-      { en: "Priority placement opportunities", ar: "فرص ظهور أولوية" },
-      { en: "Advanced performance insights", ar: "تحليلات أداء متقدمة" },
-      { en: "Priority seller support", ar: "دعم بائعين بأولوية" },
-    ],
-    cta: { en: "Choose Pro", ar: "اختر الاحترافي" },
-  },
-  {
-    id: "brand",
-    icon: BusinessCenterIcon,
-    accent: "#A07830",
-    title: { en: "Brand", ar: "براند" },
-    subtitle: {
-      en: "For established brands and teams",
-      ar: "للعلامات التجارية والفرق المتقدمة",
-    },
-    price: { en: "Custom Price", ar: "سعر مخصص" },
-    period: { en: "per month", ar: "شهرياً" },
-    features: [
-      { en: "Everything in Pro", ar: "كل ما في الخطة الاحترافية" },
-      { en: "Dedicated account onboarding", ar: "تأهيل خاص للحساب" },
-      { en: "Campaign & growth support", ar: "دعم الحملات والنمو" },
-      {
-        en: "Brand-focused storefront options",
-        ar: "خيارات متجر مخصصة للعلامة",
-      },
-    ],
-    cta: { en: "Contact Sales", ar: "تواصل مع المبيعات" },
-  },
+const PERKS_AR = [
+  "إنشاء متجر مجاني — ابدأ في دقائق",
+  "تواصل مع مشترين في كل 58 ولاية جزائرية",
+  "لوحة تحكم قوية: طلبات، تحليلات وعروض",
+  "أرباح خلال 48 ساعة، بدون رسوم خفية",
+  "فريق دعم مخصص للبائعين",
+];
+
+const METRICS = [
+  { icon: StorefrontOutlinedIcon, value: "500+", en: "Active Sellers", ar: "بائع نشط" },
+  { icon: GroupsOutlinedIcon,    value: "50K+", en: "Monthly Buyers", ar: "مشترٍ شهرياً" },
+  { icon: TrendingUpIcon,        value: "48h",  en: "Payout Speed",   ar: "سرعة صرف الأرباح" },
 ];
 
 export default function SellWithUs() {
-  const { tr } = useLang();
+  const { isRTL } = useLang();
   const { openLogin } = useAuth();
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLElement>(null);
-  const isArabic = tr.dir === "rtl";
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 },
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
+      { threshold: 0.08 }
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
   }, []);
 
+  const perks = isRTL ? PERKS_AR : PERKS_EN;
+
   return (
-    <section
-      ref={ref}
-      className="relative overflow-hidden bg-cream py-24 lg:py-28"
-    >
-      <div
-        className="absolute inset-0 opacity-[0.025] pointer-events-none"
-        style={{
-          backgroundImage:
-            "linear-gradient(#1A1A2E 1px, transparent 1px), linear-gradient(90deg, #1A1A2E 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-        }}
-      />
-      <div className="absolute top-0 inset-e-0 w-125 h-125 bg-gold/6 rounded-full blur-3xl translate-x-1/3 -translate-y-1/4 pointer-events-none" />
+    <section ref={ref} className="bg-charcoal overflow-hidden">
+      <div className="max-w-7xl mx-auto lg:grid lg:grid-cols-2 min-h-[600px]">
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
+        {/* ── Left: image panel ─────────────────────────────────────────── */}
         <div
-          className={`text-center mb-16 opacity-0-start ${visible ? "anim-scale-in" : ""}`}
+          className={`relative min-h-[360px] lg:min-h-0 overflow-hidden opacity-0-start ${
+            visible ? "anim-fade-left" : ""
+          }`}
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-gold/25 bg-white px-3 py-1 text-[10px] font-bold tracking-[0.2em] uppercase text-gold shadow-sm">
-            {isArabic ? "خطط الاشتراك" : "Subscription Plans"}
-          </span>
-          <div
-            className="divider-gold mx-auto"
-            style={{ margin: "0.75rem auto", width: "3rem" }}
+          <img
+            src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&q=85"
+            alt="Sell with Foda"
+            className="absolute inset-0 w-full h-full object-cover"
           />
-          <h2 className="font-display text-4xl lg:text-6xl font-bold text-charcoal leading-tight mb-4">
-            {isArabic ? "اختر الخطة المناسبة" : "Choose Your Growth"}
-            <br />
-            <span className="gold-text">
-              {isArabic ? "لمتجرك" : "Subscription Plan"}
-            </span>
-          </h2>
-          <p className="text-charcoal/55 font-light text-base lg:text-lg max-w-2xl mx-auto">
-            {isArabic
-              ? "جهزنا 3 باقات احترافية: أساسي، احترافي، وبراند. سنقوم بتحديث الأسعار والتفاصيل النهائية فور تزويدنا بها."
-              : "We prepared 3 professional plans: Basic, Pro, and Brand. Final pricing and details can be dropped in as soon as you share them."}
-          </p>
-        </div>
+          <div className="absolute inset-0 bg-gradient-to-e from-charcoal/70 via-charcoal/30 to-transparent lg:bg-gradient-to-r" />
+          <div className="absolute inset-0 lg:hidden bg-gradient-to-t from-charcoal via-charcoal/40 to-transparent" />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-          {SUBSCRIPTION_PLANS.map((plan, i) => {
-            const Icon = plan.icon;
-            const isPro = plan.id === "pro";
-            return (
-              <div
-                key={plan.id}
-                className={`group relative overflow-hidden border p-8 transition-all duration-400 opacity-0-start ${
-                  isPro
-                    ? "bg-charcoal border-gold/45 shadow-[0_20px_50px_rgba(26,26,46,0.25)]"
-                    : "bg-white border-charcoal/8 hover:border-gold/40 hover:shadow-lg"
-                } ${visible ? `anim-fade-up delay-${(i + 1) * 100}` : ""}`}
-              >
-                {plan.highlight && (
-                  <span className="absolute top-4 inset-e-4 rounded-full bg-gold px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-charcoal">
-                    {isArabic ? plan.highlight.ar : plan.highlight.en}
-                  </span>
-                )}
-
-                <div className="w-14 h-14 gold-gradient flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <Icon sx={{ fontSize: 24 }} />
-                </div>
-
-                <h3
-                  className={`font-display text-2xl font-bold mb-1 transition-colors duration-200 ${
-                    isPro
-                      ? "text-white group-hover:text-gold"
-                      : "text-charcoal group-hover:text-gold"
-                  }`}
+          {/* Floating metrics */}
+          <div className="absolute bottom-8 start-8 end-8 flex gap-3">
+            {METRICS.map((m, i) => {
+              const Icon = m.icon;
+              return (
+                <div
+                  key={i}
+                  className="glass flex-1 rounded-xl p-4 text-center"
                 >
-                  {isArabic ? plan.title.ar : plan.title.en}
-                </h3>
-
-                <p
-                  className={`text-sm font-light mb-6 ${isPro ? "text-white/65" : "text-charcoal/55"}`}
-                >
-                  {isArabic ? plan.subtitle.ar : plan.subtitle.en}
-                </p>
-
-                <div className="mb-6">
-                  <div
-                    className={`font-display text-4xl font-black ${isPro ? "text-white" : "text-charcoal"}`}
-                  >
-                    {isArabic ? plan.price.ar : plan.price.en}
-                  </div>
-                  <p
-                    className={`text-xs tracking-widest uppercase mt-1 ${isPro ? "text-white/45" : "text-charcoal/35"}`}
-                  >
-                    {isArabic ? plan.period.ar : plan.period.en}
+                  <Icon sx={{ fontSize: 18, color: "#C9A84C" }} />
+                  <p className="font-display text-xl font-black text-white mt-1 leading-none">
+                    {m.value}
+                  </p>
+                  <p className="text-white/45 text-[10px] mt-0.5 leading-tight">
+                    {isRTL ? m.ar : m.en}
                   </p>
                 </div>
+              );
+            })}
+          </div>
+        </div>
 
-                <div className="space-y-3 mb-8">
-                  {plan.features.map((feature) => (
-                    <div key={feature.en} className="flex items-start gap-2.5">
-                      <CheckCircleIcon
-                        sx={{
-                          fontSize: 16,
-                          color: isPro ? undefined : plan.accent,
-                          marginTop: "2px",
-                          flexShrink: 0,
-                        }}
-                      />
-                      <span
-                        className={`text-sm leading-relaxed ${isPro ? "text-white/70" : "text-charcoal/65"}`}
-                      >
-                        {isArabic ? feature.ar : feature.en}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+        {/* ── Right: copy panel ─────────────────────────────────────────── */}
+        <div
+          className={`flex flex-col justify-center px-8 lg:px-14 py-16 lg:py-20 opacity-0-start ${
+            visible ? "anim-fade-right" : ""
+          }`}
+        >
+          {/* Label */}
+          <div className="flex items-center gap-3 mb-6">
+            <span className="w-8 h-px gold-gradient" />
+            <span className="text-gold text-[10px] font-bold tracking-[0.25em] uppercase">
+              {isRTL ? "بائع على فودا" : "Sell on Foda"}
+            </span>
+          </div>
 
-                <button
-                  onClick={() => openLogin({ redirectTo: "/seller/dashboard" })}
-                  className={`w-full flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-widest transition-all duration-300 ${
-                    isPro
-                      ? "bg-[#C9A84C] text-[#1A1A2E] hover:brightness-105"
-                      : "border border-[#1A1A2E]/20 text-[#1A1A2E] hover:border-[#C9A84C] hover:text-[#C9A84C]"
-                  }`}
-                >
-                  {isArabic ? plan.cta.ar : plan.cta.en}
-                  <ArrowForwardIcon
-                    sx={{ fontSize: 14 }}
-                    className="rtl:rotate-180"
-                  />
-                </button>
+          <h2 className="font-display text-4xl lg:text-5xl font-black text-white leading-[1.05] mb-5">
+            {isRTL ? (
+              <>
+                حوّل شغفك
+                <br />
+                <span className="gold-text">إلى متجر ناجح</span>
+              </>
+            ) : (
+              <>
+                Turn Your Passion
+                <br />
+                <span className="gold-text">Into a Thriving Store</span>
+              </>
+            )}
+          </h2>
 
-                <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </div>
-            );
-          })}
+          <p className="text-white/50 text-sm font-light leading-relaxed mb-8 max-w-sm">
+            {isRTL
+              ? "انضم إلى أكبر سوق أزياء في الجزائر وابدأ في البيع لآلاف المشترين عبر 58 ولاية — مجاناً."
+              : "Join Algeria's largest fashion marketplace and start selling to thousands of buyers across 58 wilayas — for free."}
+          </p>
+
+          {/* Perks list */}
+          <ul className="space-y-3 mb-10">
+            {perks.map((perk, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <CheckCircleIcon sx={{ fontSize: 16, color: "#C9A84C", marginTop: "2px", flexShrink: 0 }} />
+                <span className="text-white/65 text-sm leading-relaxed">{perk}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* CTAs */}
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => openLogin({ redirectTo: "/seller/dashboard" })}
+              className="btn-gold flex items-center gap-2 group"
+            >
+              {isRTL ? "ابدأ البيع مجاناً" : "Start Selling Free"}
+              <ArrowForwardIcon
+                sx={{ fontSize: 14 }}
+                className="transition-transform duration-300 group-hover:translate-x-1 rtl:rotate-180"
+              />
+            </button>
+            <button
+              onClick={() => openLogin({ redirectTo: "/seller/dashboard" })}
+              className="btn-outline-gold flex items-center gap-2"
+            >
+              {isRTL ? "تعرف على الخطط" : "View Plans"}
+            </button>
+          </div>
         </div>
       </div>
     </section>
