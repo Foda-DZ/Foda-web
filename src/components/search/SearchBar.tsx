@@ -8,6 +8,8 @@ import CategoryIcon from "@mui/icons-material/Category";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
 import { useLang } from "../../context/LangContext";
+import { productsService } from "../../services/productsService";
+import { apiProductToProduct } from "../../lib/mappers";
 import type { Product } from "../../types";
 
 const RECENT_SEARCHES_KEY = "foda_recent_searches";
@@ -35,13 +37,11 @@ function clearRecentSearches() {
 }
 
 interface SearchBarProps {
-  products: Product[];
   mobileOpen: boolean;
   onMobileClose: () => void;
 }
 
 export default function SearchBar({
-  products,
   mobileOpen,
   onMobileClose,
 }: SearchBarProps) {
@@ -49,12 +49,21 @@ export default function SearchBar({
   const { tr } = useLang();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
   const [recentSearches, setRecentSearches] =
     useState<string[]>(getRecentSearches);
   const [highlightIdx, setHighlightIdx] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const mobileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load products once on mount — uses the same cached service as ShopPage
+  useEffect(() => {
+    productsService
+      .getAll()
+      .then((ap) => setProducts(ap.map(apiProductToProduct)))
+      .catch(() => {});
+  }, []);
 
   const fuse = useMemo(
     () =>

@@ -37,6 +37,7 @@ import CollectionsPage from "./pages/seller/CollectionsPage";
 import SellerStorefrontPage from "./pages/SellerStorefrontPage";
 import CollectionPage from "./pages/CollectionPage";
 import ProductReviewsPage from "./pages/ProductReviewsPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 // ─── Scroll Restoration ────────────────────────────────────────────────────────
 
@@ -241,7 +242,9 @@ export default function App() {
                     />
                   </Route>
 
-                  <Route path="*" element={<Navigate to="/" replace />} />
+                  <Route element={<Layout />}>
+                    <Route path="*" element={<NotFoundPage />} />
+                  </Route>
                 </Routes>
               </WishlistProvider>
             </CartProvider>

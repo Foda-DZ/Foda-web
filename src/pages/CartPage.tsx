@@ -35,15 +35,7 @@ export default function CartPage() {
   if (!isCustomer) {
     return (
       <div className="min-h-screen bg-cream">
-        <div className="dark-gradient pt-24 pb-8 px-6 lg:px-12">
-          <div className="max-w-7xl mx-auto">
-            <h1 className="font-display text-3xl font-bold text-white">
-              {tr.cartPage.title}
-            </h1>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-16 sm:py-20">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-32 pb-16 sm:pb-20">
           <AuthRequiredEmptyState
             icon={<ShoppingBagIcon sx={{ fontSize: 42, color: "#C9A84C" }} />}
             title={tr.cart.title}
@@ -59,14 +51,7 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-cream">
-        <div className="dark-gradient pt-24 pb-8 px-6 lg:px-12">
-          <div className="max-w-7xl mx-auto">
-            <h1 className="font-display text-3xl font-bold text-white">
-              {tr.cartPage.title}
-            </h1>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-20">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-32 py-20">
           <AuthRequiredEmptyState
             icon={<Inventory2Icon sx={{ fontSize: 38, color: "#C9A84C" }} />}
             title={tr.cartPage.emptyTitle}
@@ -82,24 +67,22 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-cream">
       {/* Header */}
-      <div className="dark-gradient pt-24 pb-8 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto">
-          <button
-            onClick={() => navigate("/shop")}
-            className="flex items-center gap-2 text-white/50 hover:text-gold transition-colors duration-200 mb-4 text-sm"
-          >
-            <ArrowBackIcon sx={{ fontSize: 15 }} className="rtl:rotate-180" />
-            {tr.cartPage.continueShopping}
-          </button>
-          <div className="flex items-center justify-between">
-            <h1 className="font-display text-3xl font-bold text-white">
-              {tr.cartPage.title}
-            </h1>
-            <span className="gold-gradient text-charcoal text-xs font-black px-3 py-1 rounded-full">
-              {items.reduce((s, i) => s + i.quantity, 0)}{" "}
-              {tr.cartPage.itemCount}
-            </span>
-          </div>
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-28 pb-4">
+        <button
+          onClick={() => navigate("/shop")}
+          className="flex items-center gap-2 text-charcoal/40 hover:text-gold transition-colors duration-200 mb-4 text-sm"
+        >
+          <ArrowBackIcon sx={{ fontSize: 15 }} className="rtl:rotate-180" />
+          {tr.cartPage.continueShopping}
+        </button>
+        <div className="flex items-center justify-between">
+          <h1 className="font-display text-3xl font-bold text-charcoal">
+            {tr.cartPage.title}
+          </h1>
+          <span className="gold-gradient text-charcoal text-xs font-black px-3 py-1 rounded-full">
+            {items.reduce((s, i) => s + i.quantity, 0)}{" "}
+            {tr.cartPage.itemCount}
+          </span>
         </div>
       </div>
 

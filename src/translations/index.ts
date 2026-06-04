@@ -902,6 +902,14 @@ export interface Translations {
       unableToUpdate: string;
     };
   };
+  notFound: {
+    code: string;
+    title: string;
+    subtitle: string;
+    goHome: string;
+    goShop: string;
+    hint: string;
+  };
 }
 
 // ─── Arabic ───────────────────────────────────────────────────────────────────
@@ -1806,6 +1814,14 @@ export const ar: Translations = {
       unableToUpdate: "تعذر تحديث حالة الطلب",
     },
   },
+  notFound: {
+    code: "404",
+    title: "هذه الصفحة غير موجودة",
+    subtitle: "يبدو أن الرابط الذي اتبعته معطوب أو أن الصفحة قد أُزيلت.",
+    goHome: "العودة للرئيسية",
+    goShop: "تصفح المتجر",
+    hint: "أو جرّب البحث عن شيء آخر",
+  },
 };
 
 // ─── English ──────────────────────────────────────────────────────────────────
@@ -2709,6 +2725,14 @@ export const en: Translations = {
       saving: "Saving...",
       unableToUpdate: "Unable to update order status",
     },
+  },
+  notFound: {
+    code: "404",
+    title: "This page doesn't exist",
+    subtitle: "The link you followed may be broken, or the page may have been removed.",
+    goHome: "Back to Home",
+    goShop: "Browse the Shop",
+    hint: "Or try searching for something else",
   },
 };
 

@@ -34,6 +34,7 @@ export interface Product {
   sellerId?: string;
   sellerName?: string;
   rating?: number;
+  reviewCount?: number;
   promotion?: ProductPromotion;
 }
 

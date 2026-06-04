@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -13,7 +14,9 @@ import FacebookIcon from "@mui/icons-material/Facebook";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import StarIcon from "@mui/icons-material/Star";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { ChevronDown } from "lucide-react";
 import Footer from "../components/Footer";
@@ -68,7 +71,7 @@ export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { addItem } = useCart();
+  const { addItem, items: cartItems } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user, openLogin } = useAuth();
   const isCustomer = user?.role === "customer";
@@ -87,6 +90,7 @@ export default function ProductPage() {
   const [shareCopied, setShareCopied] = useState(false);
   const [shareData, setShareData] = useState<ApiProductShare | null>(null);
   const [cartAdded, setCartAdded] = useState(false);
+  const [reviewCount, setReviewCount] = useState<number | null>(null);
   const [sellerProfile, setSellerProfile] = useState<ApiSellerProfile | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
@@ -101,6 +105,7 @@ export default function ProductPage() {
     setSellerProfile(null);
     setIsFollowing(false);
     setFollowersCount(0);
+    setReviewCount(null);
     let resolvedSellerId: string | undefined;
     productsService
       .getById(id)
@@ -111,6 +116,10 @@ export default function ProductPage() {
         setSelectedColor(mapped.colors[0] ?? null);
         setQuantity(1);
         resolvedSellerId = ap.sellerId;
+        // Fetch review count in parallel — non-blocking
+        productsService.getProductReviews(id)
+          .then((data) => setReviewCount(data.reviews.length))
+          .catch(() => setReviewCount(0));
         return productsService.getAll({ category: mapped.category });
       })
       .then((all) => {
@@ -202,6 +211,11 @@ export default function ProductPage() {
     && (product?.sizes.length === 0 || !!selectedSize)
     && (product?.colors.length === 0 || !!selectedColor)
     && (!selectedVariant || variantStock > 0);
+
+  const isInCart = useMemo(() => {
+    if (!product || !selectedVariant) return false;
+    return cartItems.some((i) => i.variantId === selectedVariant.variantId);
+  }, [cartItems, product, selectedVariant]);
 
   const handleAddToCart = () => {
     if (!product || !canAdd || !selectedSize || !selectedColor) return;
@@ -326,31 +340,41 @@ export default function ProductPage() {
       <div className="bg-[#FAF8F5] min-h-screen" dir={isRTL ? "rtl" : "ltr"}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pt-6 pb-20">
 
-          {/* ── Seller breadcrumb ── */}
-          {shopName && (
+          {/* ── Category breadcrumb ── */}
+          <nav className="flex items-center gap-1.5 mb-6 flex-wrap" aria-label="breadcrumb">
             <button
-              onClick={() => navigate(`/storefront/${product.sellerId}`)}
-              className="inline-flex items-center gap-2 mb-6 group"
+              onClick={() => navigate("/shop")}
+              className="text-[12px] text-[#1A1A2E]/40 hover:text-[#C9A84C] transition-colors font-medium"
             >
-              <div className="flex items-center gap-2 bg-white border border-[#1A1A2E]/10 rounded-full px-3 py-1.5 shadow-sm group-hover:border-[#C9A84C]/40 transition-colors">
-                {sellerProfile?.logoUrl ? (
-                  <img src={sellerProfile.logoUrl} alt={shopName} className="w-5 h-5 rounded-full object-cover" />
-                ) : (
-                  <div className="w-5 h-5 rounded-full gold-gradient flex items-center justify-center text-[#1A1A2E] text-[9px] font-black">
-                    {sellerInitial}
-                  </div>
-                )}
-                <span className="text-[12px] font-semibold text-[#1A1A2E] group-hover:text-[#C9A84C] transition-colors">
-                  {shopName}
-                </span>
-                {sellerProfile?.verifiedBadge && (
-                  <VerifiedIcon sx={{ fontSize: 13, color: "#C9A84C" }} />
-                )}
-              </div>
-              <ChevronRightIcon sx={{ fontSize: 14, color: "rgba(26,26,46,0.3)" }} className={isRTL ? "rotate-180" : ""} />
-              <span className="text-[12px] text-[#1A1A2E]/40 max-w-[200px] truncate">{product.name}</span>
+              {isRTL ? "المتجر" : "Shop"}
             </button>
-          )}
+            {product.category && (
+              <>
+                <ChevronRightIcon sx={{ fontSize: 13, color: "rgba(26,26,46,0.25)" }} className={isRTL ? "rotate-180" : ""} />
+                <button
+                  onClick={() => navigate(`/shop?category=${product.category}`)}
+                  className="text-[12px] text-[#1A1A2E]/40 hover:text-[#C9A84C] transition-colors font-medium"
+                >
+                  {product.category}
+                </button>
+              </>
+            )}
+            {product.subCategory && (
+              <>
+                <ChevronRightIcon sx={{ fontSize: 13, color: "rgba(26,26,46,0.25)" }} className={isRTL ? "rotate-180" : ""} />
+                <button
+                  onClick={() => navigate(`/shop?category=${product.category}&subCategory=${product.subCategory}`)}
+                  className="text-[12px] text-[#1A1A2E]/40 hover:text-[#C9A84C] transition-colors font-medium"
+                >
+                  {product.subCategory}
+                </button>
+              </>
+            )}
+            <ChevronRightIcon sx={{ fontSize: 13, color: "rgba(26,26,46,0.25)" }} className={isRTL ? "rotate-180" : ""} />
+            <span className="text-[12px] text-[#1A1A2E]/70 font-semibold truncate max-w-[180px]">
+              {product.name}
+            </span>
+          </nav>
 
           {/* ── Main grid ── */}
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-14 items-start">
@@ -363,7 +387,32 @@ export default function ProductPage() {
             {/* ── Product info ── */}
             <div className="flex flex-col gap-5">
 
-              {/* Brand + Name */}
+              {/* Seller store pill — above brand */}
+              {shopName && (
+                <button
+                  onClick={() => navigate(`/storefront/${product.sellerId}`)}
+                  className="inline-flex items-center gap-2 w-fit group"
+                >
+                  <div className="flex items-center gap-2 bg-white border border-[#1A1A2E]/10 rounded-full px-3 py-1.5 shadow-sm group-hover:border-[#C9A84C]/40 transition-colors">
+                    {sellerProfile?.logoUrl ? (
+                      <img src={sellerProfile.logoUrl} alt={shopName} className="w-5 h-5 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full gold-gradient flex items-center justify-center text-[#1A1A2E] text-[9px] font-black">
+                        {sellerInitial}
+                      </div>
+                    )}
+                    <span className="text-[12px] font-semibold text-[#1A1A2E] group-hover:text-[#C9A84C] transition-colors">
+                      {shopName}
+                    </span>
+                    {sellerProfile?.verifiedBadge && (
+                      <VerifiedIcon sx={{ fontSize: 13, color: "#C9A84C" }} />
+                    )}
+                    <ChevronRightIcon sx={{ fontSize: 13, color: "rgba(26,26,46,0.3)" }} className={`${isRTL ? "rotate-180" : ""} group-hover:text-[#C9A84C] transition-colors`} />
+                  </div>
+                </button>
+              )}
+
+              {/* Brand + Name + Rating inline label */}
               {product.brand && (
                 <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-[#1A1A2E]/40">
                   {product.brand}
@@ -373,31 +422,49 @@ export default function ProductPage() {
                 {product.name}
               </h1>
 
-              {/* Rating link */}
-              {product.rating != null && product.rating > 0 && (
-                <button
-                  onClick={() => navigate(`/products/${id}/reviews`)}
-                  className="flex items-center gap-2 w-fit group"
-                >
-                  <div className="flex items-center gap-0.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <StarIcon
-                        key={i}
-                        sx={{
-                          fontSize: 14,
-                          color: i < Math.round(product.rating!) ? "#C9A84C" : "#C9A84C33",
-                        }}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-[13px] font-semibold text-[#1A1A2E]/60 group-hover:text-[#C9A84C] transition-colors">
-                    {product.rating.toFixed(1)}
+              {/* Rating label — sits directly under name */}
+              <button
+                onClick={() => navigate(`/products/${id}/reviews`)}
+                className="flex items-center gap-2 w-fit -mt-2 group"
+              >
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <StarIcon
+                      key={i}
+                      sx={{
+                        fontSize: 13,
+                        color:
+                          product.rating != null && product.rating > 0 && i < Math.round(product.rating)
+                            ? "#C9A84C"
+                            : "#C9A84C33",
+                      }}
+                    />
+                  ))}
+                </div>
+                {product.rating != null && product.rating > 0 ? (
+                  <>
+                    <span className="text-[13px] font-bold text-[#1A1A2E]/70 group-hover:text-[#C9A84C] transition-colors">
+                      {product.rating.toFixed(1)}
+                    </span>
+                    <span className="text-[12px] text-[#1A1A2E]/30 group-hover:text-[#C9A84C]/60 transition-colors">
+                      ·{" "}
+                      {reviewCount === null
+                        ? "..."
+                        : isRTL
+                          ? `${reviewCount} تقييم`
+                          : `${reviewCount} ${reviewCount === 1 ? "review" : "reviews"}`}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-[12px] text-[#1A1A2E]/30 group-hover:text-[#C9A84C]/60 transition-colors">
+                    {reviewCount === null
+                      ? "..."
+                      : reviewCount > 0
+                        ? isRTL ? `${reviewCount} تقييم` : `${reviewCount} ${reviewCount === 1 ? "review" : "reviews"}`
+                        : isRTL ? "كن أول من يقيّم" : "Be the first to review"}
                   </span>
-                  <span className="text-[13px] text-[#1A1A2E]/35 group-hover:text-[#C9A84C]/60 transition-colors">
-                    · {isRTL ? "عرض التقييمات" : "See reviews"}
-                  </span>
-                </button>
-              )}
+                )}
+              </button>
 
               {/* Price */}
               <div className="flex items-baseline gap-3 flex-wrap">
@@ -534,14 +601,25 @@ export default function ProductPage() {
 
               {/* ── Action buttons ── */}
               <div className="flex gap-3 mt-1">
-                <button
-                  onClick={handleAddToCart}
-                  disabled={!canAdd}
-                  className="flex-1 flex items-center justify-center gap-2 gold-gradient text-[#1A1A2E] h-14 text-sm font-bold tracking-wide rounded-xl hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <ShoppingBagIcon sx={{ fontSize: 18 }} />
-                  {tr.productPage.addToCart}
-                </button>
+                {isInCart ? (
+                  <button
+                    onClick={() => navigate("/cart")}
+                    className="flex-1 flex items-center justify-center gap-2 h-14 text-sm font-bold tracking-wide rounded-xl border-2 border-[#C9A84C] text-[#C9A84C] bg-[#C9A84C]/6 hover:bg-[#C9A84C]/12 transition-all duration-200"
+                  >
+                    <CheckCircleIcon sx={{ fontSize: 18, color: "#C9A84C" }} />
+                    {isRTL ? "تمت الإضافة · عرض السلة" : "Added to Cart · View Bag"}
+                    <ArrowForwardIcon sx={{ fontSize: 15 }} className={isRTL ? "rotate-180" : ""} />
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={!canAdd}
+                    className="flex-1 flex items-center justify-center gap-2 gold-gradient text-[#1A1A2E] h-14 text-sm font-bold tracking-wide rounded-xl hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <ShoppingBagIcon sx={{ fontSize: 18 }} />
+                    {tr.productPage.addToCart}
+                  </button>
+                )}
                 <button
                   onClick={toggleWishlist}
                   className={`w-14 h-14 flex items-center justify-center rounded-xl border-2 transition-all duration-200 ${
@@ -742,22 +820,70 @@ export default function ProductPage() {
       </div>
 
       {/* ── Cart added toast ── */}
-      {cartAdded && (
-        <div
-          className={`fixed top-6 ${isRTL ? "left-6" : "right-6"} z-[200] flex items-center gap-3 px-5 py-4 bg-[#1A1A2E] text-white shadow-2xl max-w-xs`}
-          dir={isRTL ? "rtl" : "ltr"}
-        >
-          <div className="shrink-0 w-8 h-8 gold-gradient flex items-center justify-center">
-            <CheckCircleOutlinedIcon sx={{ fontSize: 16, color: "#1A1A2E" }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#C9A84C]">
-              {isRTL ? "تمت الإضافة" : "Added to cart"}
-            </p>
-            <p className="text-xs text-white/70 mt-0.5 truncate">{product?.name}</p>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {cartAdded && (
+          <motion.div
+            key="cart-toast"
+            initial={{ opacity: 0, y: -24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 420, damping: 32 }}
+            className={`fixed top-20 ${isRTL ? "left-4 sm:left-6" : "right-4 sm:right-6"} z-[200] w-[calc(100vw-2rem)] sm:w-auto sm:max-w-sm`}
+            dir={isRTL ? "rtl" : "ltr"}
+          >
+            <div className="bg-white border border-[#1A1A2E]/10 rounded-2xl shadow-2xl shadow-[#1A1A2E]/15 overflow-hidden">
+              {/* Body */}
+              <div className="flex items-center gap-3.5 px-4 py-3.5">
+                {/* Thumbnail */}
+                {product?.images?.[0] && (
+                  <div className="w-12 h-14 shrink-0 rounded-lg overflow-hidden bg-cream">
+                    <img
+                      src={product.images[0]}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
+                {/* Text */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <CheckCircleOutlinedIcon sx={{ fontSize: 14, color: "#C9A84C" }} />
+                    <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#C9A84C]">
+                      {isRTL ? "أُضيف إلى السلة" : "Added to bag"}
+                    </p>
+                  </div>
+                  <p className="text-[13px] font-semibold text-[#1A1A2E] truncate leading-snug">
+                    {product?.name}
+                  </p>
+                  {(selectedSize || selectedColor) && (
+                    <p className="text-[11px] text-[#1A1A2E]/40 mt-0.5 capitalize">
+                      {[selectedSize, selectedColor].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
+                </div>
+
+                {/* View cart CTA */}
+                <button
+                  onClick={() => navigate("/cart")}
+                  className="shrink-0 flex items-center gap-1 text-[11px] font-bold text-white bg-[#1A1A2E] rounded-xl px-3 py-2 hover:bg-[#1A1A2E]/85 transition-colors whitespace-nowrap"
+                >
+                  {isRTL ? "السلة" : "View bag"}
+                  <ArrowForwardIcon sx={{ fontSize: 13 }} className={isRTL ? "rotate-180" : ""} />
+                </button>
+              </div>
+
+              {/* Progress bar — drains over 4s */}
+              <motion.div
+                className="h-0.5 bg-[#C9A84C] origin-left"
+                initial={{ scaleX: 1 }}
+                animate={{ scaleX: 0 }}
+                transition={{ duration: 4, ease: "linear" }}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Share modal ── */}
       {isShareOpen && (
