@@ -5,7 +5,6 @@ import FeaturedCollections from "../components/FeaturedCollections";
 import Products from "../components/Products";
 import MarketplaceHighlight from "../components/MarketplaceHighlight";
 import HowItWorks from "../components/HowItWorks";
-import SellWithUs from "../components/SellWithUs";
 import Newsletter from "../components/Newsletter";
 import Footer from "../components/Footer";
 
@@ -20,7 +19,6 @@ export default function HomePage() {
         <Products />
         <MarketplaceHighlight />
         <HowItWorks />
-        <SellWithUs />
         <Newsletter />
       </main>
       <Footer />

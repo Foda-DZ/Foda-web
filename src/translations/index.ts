@@ -21,6 +21,7 @@ export interface Translations {
     signOut: string;
     shopNow: string;
     register: string;
+    sellOnFoda: string;
     searchPlaceholder: string;
     search: string;
   };
@@ -33,6 +34,7 @@ export interface Translations {
       subtitle: string;
       cta1: string;
       cta2: string;
+      arrivalRhythm: string;
       statDesigners: string;
       statClients: string;
       statDelivery: string;
@@ -67,6 +69,14 @@ export interface Translations {
       men: { name: string; ar: string; count: string };
       kids: { name: string; ar: string; count: string };
       accessories: { name: string; ar: string; count: string };
+      sale: { name: string; ar: string; count: string };
+      newArrivals: { name: string; ar: string; count: string };
+    };
+    subs: {
+      women: string[];
+      men: string[];
+      kids: string[];
+      accessories: string[];
     };
   };
   products: {
@@ -188,6 +198,17 @@ export interface Translations {
     freeShippingOver: string;
   };
   auth: {
+    socialDivider: string;
+    continueGoogle: string;
+    continueFacebook: string;
+    terms: string;
+    labels: {
+      fullName: string;
+      email: string;
+      password: string;
+      confirm: string;
+      code: string;
+    };
     login: {
       heading: string;
       sub: string;
@@ -235,6 +256,60 @@ export interface Translations {
       resend: string;
       invalidCode: string;
       resendSuccess: string;
+    };
+  };
+  sell: {
+    badge: string;
+    title: string;
+    subtitle: string;
+    ctaStart: string;
+    ctaHaveAccount: string;
+    benefits: { title: string; desc: string }[];
+    statsReach: string;
+    statsReachLabel: string;
+    statsFee: string;
+    statsFeeLabel: string;
+    statsSetup: string;
+    statsSetupLabel: string;
+    form: {
+      registerHeading: string;
+      registerSub: string;
+      loginHeading: string;
+      loginSub: string;
+      shopNameLabel: string;
+      shopNamePlaceholder: string;
+      emailLabel: string;
+      passwordLabel: string;
+      submitRegister: string;
+      submitLogin: string;
+      switchToLogin: string;
+      switchToRegister: string;
+      haveAccount: string;
+      noAccount: string;
+      verifyHeading: string;
+      verifySub: string;
+      verifySubmit: string;
+    };
+    plans: {
+      badge: string;
+      title: string;
+      subtitle: string;
+      perMonth: string;
+      mostPopular: string;
+      cta: string;
+      tiers: {
+        name: string;
+        price: string;
+        priceNote: string;
+        tagline: string;
+        features: string[];
+      }[];
+    };
+    testimonials: {
+      badge: string;
+      title: string;
+      subtitle: string;
+      items: { quote: string; name: string; shop: string }[];
     };
   };
   shop: {
@@ -933,18 +1008,20 @@ export const ar: Translations = {
     signOut: "تسجيل الخروج",
     shopNow: "تسوق الآن",
     register: "إنشاء حساب",
+    sellOnFoda: "بِع على Foda",
     searchPlaceholder: "ابحث عن منتجات، ماركات، أو متاجر...",
     search: "بحث",
   },
   hero: {
     slide1: {
-      badge: "مجموعة 2026 الجديدة",
+      badge: "تشكيلة صيف 2026",
       line1: "ارتدي",
       line2: "الملابس",
       line3: "التي تريدها",
       subtitle: "اكتشف قطعاً فريدة من نوعها من بائعين جزائريين يفهمون ذوقك.",
       cta1: "استكشف المجموعة",
-      cta2: "شاهد الفيلم",
+      cta2: "وصل حديثاً",
+      arrivalRhythm: "قطع جديدة كل يوم ثلاثاء",
       statDesigners: "بائع نشط",
       statClients: "متسوق سعيد",
       statDelivery: "متوسط التوصيل",
@@ -975,10 +1052,18 @@ export const ar: Translations = {
     subtitle: "اكتشف مجموعات مختارة بعناية من أمهر المصممين الجزائريين والحرفيين التقليديين.",
     shopNow: "تسوق الآن",
     items: {
-      women: { name: "نساء", ar: "نساء", count: "" },
-      men: { name: "رجال", ar: "رجال", count: "" },
-      kids: { name: "أطفال", ar: "أطفال", count: "" },
-      accessories: { name: "إكسسوارات", ar: "إكسسوارات", count: "" },
+      women: { name: "نساء", ar: "نساء", count: "+1,240 قطعة" },
+      men: { name: "رجال", ar: "رجال", count: "+820 قطعة" },
+      kids: { name: "أطفال", ar: "أطفال", count: "+320 قطعة" },
+      accessories: { name: "إكسسوارات", ar: "إكسسوارات", count: "+340 قطعة" },
+      sale: { name: "تخفيضات", ar: "تخفيضات", count: "حتى 50٪ خصم" },
+      newArrivals: { name: "وصل حديثاً", ar: "وصل حديثاً", count: "+120 هذا الأسبوع" },
+    },
+    subs: {
+      women: ["فساتين", "تيشيرتات", "أحذية", "حقائب"],
+      men: ["قمصان", "سراويل", "جاكيتات", "أحذية"],
+      kids: ["تيشيرتات", "سراويل", "جاكيتات", "أحذية"],
+      accessories: ["حقائب", "قبعات", "أحذية", "أخرى"],
     },
   },
   products: {
@@ -1100,6 +1185,17 @@ export const ar: Translations = {
     freeShippingOver: "شحن سريع",
   },
   auth: {
+    socialDivider: "أو المتابعة بالبريد الإلكتروني",
+    continueGoogle: "المتابعة عبر Google",
+    continueFacebook: "المتابعة عبر Facebook",
+    terms: "بالمتابعة، فإنك توافق على الشروط وسياسة الخصوصية الخاصة بنا.",
+    labels: {
+      fullName: "الاسم الكامل",
+      email: "البريد الإلكتروني",
+      password: "كلمة المرور",
+      confirm: "تأكيد كلمة المرور",
+      code: "رمز التحقق",
+    },
     login: {
       heading: "مرحباً بعودتك",
       sub: "سجل الدخول إلى حسابك",
@@ -1147,6 +1243,122 @@ export const ar: Translations = {
       resend: "إعادة إرسال الرمز",
       invalidCode: "الرمز غير صحيح، حاول مجدداً.",
       resendSuccess: "تم إرسال رمز جديد.",
+    },
+  },
+  sell: {
+    badge: "منصة البائعين",
+    title: "طوّر تجارتك مع Foda",
+    subtitle: "افتح متجرك، اعرض منتجاتك أمام آلاف المتسوقين، وأدر طلباتك من لوحة تحكم واحدة بسيطة.",
+    ctaStart: "ابدأ البيع الآن",
+    ctaHaveAccount: "لديك متجر بالفعل؟ تسجيل الدخول",
+    benefits: [
+      {
+        title: "وصول أوسع",
+        desc: "اعرض منتجاتك أمام جمهور متنامٍ من المتسوقين عبر الجزائر.",
+      },
+      {
+        title: "لوحة تحكم قوية",
+        desc: "تابع المبيعات والمخزون والطلبات والتحليلات في مكان واحد.",
+      },
+      {
+        title: "إعداد سريع",
+        desc: "أنشئ متجرك وأضف منتجاتك خلال دقائق دون أي تعقيد.",
+      },
+    ],
+    statsReach: "+10 آلاف",
+    statsReachLabel: "متسوّق شهرياً",
+    statsFee: "0 دج",
+    statsFeeLabel: "رسوم الانضمام",
+    statsSetup: "< 5 دقائق",
+    statsSetupLabel: "لإطلاق متجرك",
+    form: {
+      registerHeading: "أنشئ متجرك",
+      registerSub: "انضم إلى Foda كبائع — مجاناً تماماً",
+      loginHeading: "مرحباً بعودتك",
+      loginSub: "سجّل الدخول إلى لوحة تحكم متجرك",
+      shopNameLabel: "اسم المتجر",
+      shopNamePlaceholder: "متجري الرائع",
+      emailLabel: "البريد الإلكتروني",
+      passwordLabel: "كلمة المرور",
+      submitRegister: "إنشاء المتجر",
+      submitLogin: "تسجيل الدخول",
+      switchToLogin: "تسجيل الدخول",
+      switchToRegister: "إنشاء متجر",
+      haveAccount: "لديك حساب بائع؟",
+      noAccount: "ليس لديك متجر بعد؟",
+      verifyHeading: "تحقق من بريدك الإلكتروني",
+      verifySub: "أدخل الرمز المكوّن من 6 أرقام المرسل إلى بريدك",
+      verifySubmit: "تأكيد وفتح اللوحة",
+    },
+    plans: {
+      badge: "خطط الاشتراك",
+      title: "اختر الخطة المناسبة لمتجرك",
+      subtitle: "ابدأ مجاناً وارتقِ كلما نما متجرك. بدون عقود، يمكنك الترقية أو الإلغاء في أي وقت.",
+      perMonth: "/ شهرياً",
+      mostPopular: "الأكثر شيوعاً",
+      cta: "ابدأ الآن",
+      tiers: [
+        {
+          name: "المبتدئ",
+          price: "0 دج",
+          priceNote: "مجاني للأبد",
+          tagline: "كل ما تحتاجه لإطلاق متجرك الأول.",
+          features: [
+            "حتى 20 منتجاً",
+            "لوحة تحكم أساسية",
+            "استقبال الطلبات",
+            "دعم عبر البريد الإلكتروني",
+          ],
+        },
+        {
+          name: "المحترف",
+          price: "2,500 دج",
+          priceNote: "فوترة شهرية",
+          tagline: "للبائعين المتنامين الذين يريدون البيع أكثر.",
+          features: [
+            "منتجات غير محدودة",
+            "تحليلات متقدمة",
+            "العروض والتخفيضات",
+            "ربط إعلانات Meta",
+            "دعم ذو أولوية",
+          ],
+        },
+        {
+          name: "الأعمال",
+          price: "6,000 دج",
+          priceNote: "فوترة شهرية",
+          tagline: "أدوات احترافية للعلامات التجارية الكبيرة.",
+          features: [
+            "كل مزايا المحترف",
+            "حسابات فريق متعددة",
+            "إدارة المؤكدين",
+            "تحليلات الإيرادات",
+            "مدير حساب مخصص",
+          ],
+        },
+      ],
+    },
+    testimonials: {
+      badge: "قصص نجاح",
+      title: "بائعون يثقون في Foda",
+      subtitle: "انضم إلى مئات البائعين الذين يطوّرون أعمالهم معنا كل يوم.",
+      items: [
+        {
+          quote: "خلال ثلاثة أشهر تضاعفت مبيعاتي. لوحة التحكم سهلة وأدوات العروض ممتازة.",
+          name: "ليلى بن عمر",
+          shop: "Maison Lyna",
+        },
+        {
+          quote: "أطلقت متجري في أقل من عشر دقائق. الآن أبيع لكل ولايات الجزائر.",
+          name: "كريم حدّاد",
+          shop: "Atlas Wear",
+        },
+        {
+          quote: "الدعم سريع والأرباح تصل في وقتها. أفضل منصة جربتها للبيع.",
+          name: "أمينة شريف",
+          shop: "Sahara Luxe",
+        },
+      ],
     },
   },
   shop: {
@@ -1845,18 +2057,20 @@ export const en: Translations = {
     signOut: "Sign Out",
     shopNow: "Shop Now",
     register: "Register",
+    sellOnFoda: "Sell on Foda",
     searchPlaceholder: "Search products, brands, or stores...",
     search: "Search",
   },
   hero: {
     slide1: {
-      badge: "New Collection 2024",
+      badge: "Summer Drop 2026",
       line1: "Algerian",
       line2: "Fashion,",
       line3: "Redefined",
       subtitle: "Discover where tradition meets modern elegance. Exclusive Algerian designers, curated for you.",
       cta1: "Explore Collection",
-      cta2: "Watch Film",
+      cta2: "New Arrivals",
+      arrivalRhythm: "New pieces every Tuesday",
       statDesigners: "Active Sellers",
       statClients: "Happy Shoppers",
       statDelivery: "Avg. Delivery",
@@ -1891,6 +2105,14 @@ export const en: Translations = {
       men: { name: "Men", ar: "رجال", count: "820+ styles" },
       kids: { name: "Kids", ar: "أطفال", count: "320+ styles" },
       accessories: { name: "Accessories", ar: "إكسسوارات", count: "340+ items" },
+      sale: { name: "Sale", ar: "تخفيضات", count: "Up to 50% off" },
+      newArrivals: { name: "New Arrivals", ar: "وصل حديثاً", count: "120+ this week" },
+    },
+    subs: {
+      women: ["Dresses", "T-Shirts", "Shoes", "Bags"],
+      men: ["Shirts", "Pants", "Jackets", "Shoes"],
+      kids: ["T-Shirts", "Pants", "Jackets", "Shoes"],
+      accessories: ["Bags", "Hats", "Shoes", "Other"],
     },
   },
   products: {
@@ -2012,6 +2234,17 @@ export const en: Translations = {
     freeShippingOver: "Fast shipping",
   },
   auth: {
+    socialDivider: "or continue with email",
+    continueGoogle: "Continue with Google",
+    continueFacebook: "Continue with Facebook",
+    terms: "By continuing, you agree to our Terms & Privacy Policy.",
+    labels: {
+      fullName: "Full name",
+      email: "Email address",
+      password: "Password",
+      confirm: "Confirm password",
+      code: "Verification code",
+    },
     login: {
       heading: "Welcome Back",
       sub: "Sign in to your Foda account",
@@ -2059,6 +2292,122 @@ export const en: Translations = {
       resend: "Resend code",
       invalidCode: "Invalid code, please try again.",
       resendSuccess: "A new code has been sent.",
+    },
+  },
+  sell: {
+    badge: "Seller Platform",
+    title: "Grow your business with Foda",
+    subtitle: "Open your store, put your products in front of thousands of shoppers, and manage every order from one simple dashboard.",
+    ctaStart: "Start selling now",
+    ctaHaveAccount: "Already have a store? Sign in",
+    benefits: [
+      {
+        title: "Wider reach",
+        desc: "Showcase your products to a growing audience of shoppers across Algeria.",
+      },
+      {
+        title: "Powerful dashboard",
+        desc: "Track sales, inventory, orders and analytics — all in one place.",
+      },
+      {
+        title: "Fast setup",
+        desc: "Create your store and list products in minutes, with no hassle.",
+      },
+    ],
+    statsReach: "10k+",
+    statsReachLabel: "monthly shoppers",
+    statsFee: "0 DZD",
+    statsFeeLabel: "to join",
+    statsSetup: "< 5 min",
+    statsSetupLabel: "to go live",
+    form: {
+      registerHeading: "Create your store",
+      registerSub: "Join Foda as a seller — it's free",
+      loginHeading: "Welcome back",
+      loginSub: "Sign in to your store dashboard",
+      shopNameLabel: "Shop name",
+      shopNamePlaceholder: "My Awesome Store",
+      emailLabel: "Email address",
+      passwordLabel: "Password",
+      submitRegister: "Create store",
+      submitLogin: "Sign in",
+      switchToLogin: "Sign in",
+      switchToRegister: "Create a store",
+      haveAccount: "Have a seller account?",
+      noAccount: "Don't have a store yet?",
+      verifyHeading: "Verify your email",
+      verifySub: "Enter the 6-digit code we sent to your email",
+      verifySubmit: "Verify & open dashboard",
+    },
+    plans: {
+      badge: "Subscription Plans",
+      title: "Choose the plan that fits your store",
+      subtitle: "Start free and scale as you grow. No contracts — upgrade or cancel anytime.",
+      perMonth: "/ month",
+      mostPopular: "Most Popular",
+      cta: "Get started",
+      tiers: [
+        {
+          name: "Starter",
+          price: "0 DZD",
+          priceNote: "Free forever",
+          tagline: "Everything you need to launch your first store.",
+          features: [
+            "Up to 20 products",
+            "Basic dashboard",
+            "Order management",
+            "Email support",
+          ],
+        },
+        {
+          name: "Pro",
+          price: "2,500 DZD",
+          priceNote: "Billed monthly",
+          tagline: "For growing sellers who want to sell more.",
+          features: [
+            "Unlimited products",
+            "Advanced analytics",
+            "Promotions & discounts",
+            "Meta Ads integration",
+            "Priority support",
+          ],
+        },
+        {
+          name: "Business",
+          price: "6,000 DZD",
+          priceNote: "Billed monthly",
+          tagline: "Pro tools for established brands.",
+          features: [
+            "Everything in Pro",
+            "Multiple team seats",
+            "Confirmators management",
+            "Revenue analytics",
+            "Dedicated account manager",
+          ],
+        },
+      ],
+    },
+    testimonials: {
+      badge: "Success Stories",
+      title: "Sellers trust Foda",
+      subtitle: "Join hundreds of sellers growing their business with us every day.",
+      items: [
+        {
+          quote: "In three months my sales doubled. The dashboard is easy and the promotion tools are excellent.",
+          name: "Leila Ben Omar",
+          shop: "Maison Lyna",
+        },
+        {
+          quote: "I launched my store in under ten minutes. Now I sell to every wilaya in Algeria.",
+          name: "Karim Haddad",
+          shop: "Atlas Wear",
+        },
+        {
+          quote: "Support is fast and payouts arrive on time. The best platform I've tried for selling.",
+          name: "Amina Cherif",
+          shop: "Sahara Luxe",
+        },
+      ],
     },
   },
   shop: {

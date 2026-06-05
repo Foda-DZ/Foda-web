@@ -331,7 +331,7 @@ export default function ShopPage() {
     null,
   );
 
-  // Sync filters that live in the URL (?sort= / ?category= / ?search=)
+  // Sync filters that live in the URL (?sort= / ?category= / ?sub= / ?search=)
   useEffect(() => {
     const sort = searchParams.get("sort");
     if (
@@ -343,6 +343,9 @@ export default function ShopPage() {
 
     setMainCategory(searchParams.get("category") ?? "");
     setSearchTerm(searchParams.get("search") ?? "");
+
+    const sub = searchParams.get("sub") ?? "";
+    setFilters((f) => (f.subCategory === sub ? f : { ...f, subCategory: sub }));
   }, [searchParams]);
 
   // Sticky header

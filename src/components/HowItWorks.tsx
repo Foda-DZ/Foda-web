@@ -2,12 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
-import StoreOutlinedIcon from "@mui/icons-material/StoreOutlined";
-import InventoryOutlinedIcon from "@mui/icons-material/InventoryOutlined";
-import AttachMoneyOutlinedIcon from "@mui/icons-material/AttachMoneyOutlined";
 import { useLang } from "../context/LangContext";
-
-type Tab = "buyer" | "seller";
 
 const BUYER_STEPS = [
   {
@@ -27,27 +22,8 @@ const BUYER_STEPS = [
   },
 ];
 
-const SELLER_STEPS = [
-  {
-    icon: StoreOutlinedIcon,
-    en: { title: "Create Your Store", desc: "Sign up, set up your shop profile, upload your logo and start listing products in minutes." },
-    ar: { title: "أنشئ متجرك", desc: "سجّل، أنشئ ملف متجرك، ارفع شعارك وابدأ في إضافة منتجاتك في دقائق." },
-  },
-  {
-    icon: InventoryOutlinedIcon,
-    en: { title: "List & Manage Products", desc: "Add unlimited products with sizes, colours and stock levels. Run promotions and manage orders from your dashboard." },
-    ar: { title: "أضف وأدر منتجاتك", desc: "أضف منتجات غير محدودة بالمقاسات والألوان والمخزون. أدر الطلبات وشغّل العروض من لوحة التحكم." },
-  },
-  {
-    icon: AttachMoneyOutlinedIcon,
-    en: { title: "Sell & Get Paid Fast", desc: "Receive orders from buyers across Algeria. Payouts processed within 48 hours — zero hidden fees." },
-    ar: { title: "بع واستلم أرباحك بسرعة", desc: "استقبل طلبات من مشترين عبر الجزائر. يتم صرف الأرباح خلال 48 ساعة — بدون رسوم خفية." },
-  },
-];
-
 export default function HowItWorks() {
   const { isRTL } = useLang();
-  const [activeTab, setActiveTab] = useState<Tab>("buyer");
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLElement>(null);
 
@@ -60,7 +36,7 @@ export default function HowItWorks() {
     return () => observer.disconnect();
   }, []);
 
-  const steps = activeTab === "buyer" ? BUYER_STEPS : SELLER_STEPS;
+  const steps = BUYER_STEPS;
 
   return (
     <section ref={ref} className="py-24 bg-cream overflow-hidden">
@@ -77,39 +53,16 @@ export default function HowItWorks() {
           </div>
           <h2 className="font-display text-4xl lg:text-5xl font-black text-charcoal leading-none mb-4">
             {isRTL ? (
-              <>سهل ومباشر — <span className="gold-text">للجميع</span></>
+              <>التسوق سهل — <span className="gold-text">في ثلاث خطوات</span></>
             ) : (
-              <>Simple by Design — <span className="gold-text">For Everyone</span></>
+              <>Shopping Made Simple — <span className="gold-text">In Three Steps</span></>
             )}
           </h2>
           <p className="text-charcoal/50 text-sm font-light max-w-lg mx-auto">
             {isRTL
-              ? "سواء كنت مشترياً يبحث عن أفضل الأزياء أو بائعاً يريد توسيع أعماله، فودا يجعل الأمر بسيطاً."
-              : "Whether you're a buyer hunting the best fashion or a seller ready to grow — Foda makes it effortless."}
+              ? "اكتشف أفضل الأزياء من بائعين موثقين واستلم طلبك أينما كنت — فودا يجعل الأمر بسيطاً."
+              : "Discover the best fashion from verified sellers and get it delivered anywhere — Foda makes it effortless."}
           </p>
-        </div>
-
-        {/* Tab switcher */}
-        <div
-          className={`flex justify-center mb-12 opacity-0-start ${visible ? "anim-fade-up delay-100" : ""}`}
-        >
-          <div className="inline-flex bg-white border border-charcoal/8 rounded-full p-1 gap-1 shadow-sm">
-            {(["buyer", "seller"] as Tab[]).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-300 ${
-                  activeTab === tab
-                    ? "gold-gradient text-charcoal shadow-md"
-                    : "text-charcoal/50 hover:text-charcoal"
-                }`}
-              >
-                {tab === "buyer"
-                  ? isRTL ? "للمشترين" : "I'm a Buyer"
-                  : isRTL ? "للبائعين" : "I'm a Seller"}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Steps */}
@@ -124,7 +77,7 @@ export default function HowItWorks() {
               <div
                 key={i}
                 className={`relative flex flex-col items-center text-center p-8 rounded-2xl bg-white border border-charcoal/6 hover:border-gold/30 hover:shadow-lg transition-all duration-300 opacity-0-start ${
-                  visible ? `anim-fade-up delay-${(i + 2) * 100}` : ""
+                  visible ? `anim-fade-up delay-${(i + 1) * 100}` : ""
                 }`}
               >
                 {/* Step number */}

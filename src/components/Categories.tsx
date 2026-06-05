@@ -2,19 +2,37 @@ import { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLang } from "../context/LangContext";
 
-const CATEGORY_ROUTES: Record<string, string> = {
+type CategoryKey =
+  | "women"
+  | "men"
+  | "kids"
+  | "accessories"
+  | "sale"
+  | "newArrivals";
+
+const CATEGORY_ROUTES: Record<CategoryKey, string> = {
   women: "/shop?category=Women",
   men: "/shop?category=Men",
   kids: "/shop?category=Kids",
   accessories: "/shop?category=Accessories",
+  sale: "/shop?sort=price-asc",
+  newArrivals: "/shop?sort=newest",
+};
+
+// Canonical (English) sub-category keys used by the ?sub= filter on the Shop
+// page. Index-aligned with the localized labels in tr.categories.subs.
+const SUB_KEYS: Partial<Record<CategoryKey, string[]>> = {
+  women: ["Dresses", "T-Shirts", "Shoes", "Bags"],
+  men: ["Shirts", "Pants", "Jackets", "Shoes"],
+  kids: ["T-Shirts", "Pants", "Jackets", "Shoes"],
+  accessories: ["Bags", "Hats", "Shoes", "Other"],
 };
 
 interface CategoryData {
-  key: "women" | "men" | "kids" | "accessories";
+  key: CategoryKey;
   image: string;
   number: string;
   accentColor: string;
-  gridClass: string;
 }
 
 const CATEGORY_DATA: CategoryData[] = [
@@ -23,28 +41,36 @@ const CATEGORY_DATA: CategoryData[] = [
     image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=900&q=85",
     number: "01",
     accentColor: "#722F37",
-    gridClass: "md:col-span-2 md:row-span-2",
   },
   {
     key: "men",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=700&q=80",
     number: "02",
     accentColor: "#0F3460",
-    gridClass: "",
   },
   {
     key: "kids",
     image: "https://images.unsplash.com/photo-1471286174890-9c112ffca5b4?w=700&q=80",
     number: "03",
     accentColor: "#C9A84C",
-    gridClass: "",
   },
   {
     key: "accessories",
     image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=900&q=80",
     number: "04",
     accentColor: "#1A1A2E",
-    gridClass: "md:col-span-2",
+  },
+  {
+    key: "newArrivals",
+    image: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=700&q=80",
+    number: "05",
+    accentColor: "#C9A84C",
+  },
+  {
+    key: "sale",
+    image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=700&q=80",
+    number: "06",
+    accentColor: "#722F37",
   },
 ];
 
@@ -52,13 +78,22 @@ function CategoryCard({
   data,
   delay,
   onNavigate,
+  onNavigateSub,
 }: {
   data: CategoryData;
   delay: number;
   onNavigate: () => void;
+  onNavigateSub: (sub: string) => void;
 }) {
   const { tr, isRTL } = useLang();
   const item = tr.categories.items[data.key];
+  const subKeys = SUB_KEYS[data.key];
+  const subLabels =
+    data.key in tr.categories.subs
+      ? tr.categories.subs[data.key as keyof typeof tr.categories.subs]
+      : undefined;
+  const isSpecial = data.key === "sale" || data.key === "newArrivals";
+
   const [visible, setVisible] = useState(false);
   const [hovered, setHovered] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -78,10 +113,10 @@ function CategoryCard({
       onClick={onNavigate}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`${data.gridClass} relative overflow-hidden cursor-pointer group opacity-0-start ${
+      className={`relative shrink-0 w-55 sm:w-auto sm:flex-1 snap-start rounded-2xl overflow-hidden cursor-pointer group opacity-0-start ${
         visible ? "anim-fade-up" : ""
       }`}
-      style={{ animationDelay: `${delay}ms`, minHeight: "260px" }}
+      style={{ animationDelay: `${delay}ms`, height: "380px" }}
     >
       {/* Background image */}
       <img
@@ -104,6 +139,18 @@ function CategoryCard({
         style={{ backgroundColor: data.accentColor }}
       />
 
+      {/* High-intent badge for Sale / New Arrivals */}
+      {isSpecial && (
+        <div className="absolute top-5 inset-e-5">
+          <span
+            className="rounded-full px-2.5 py-1 text-[9px] font-black tracking-[0.2em] uppercase text-white"
+            style={{ backgroundColor: data.accentColor }}
+          >
+            {data.key === "sale" ? "%" : "★"}
+          </span>
+        </div>
+      )}
+
       {/* Number tag — top start */}
       <div className="absolute top-5 start-5">
         <span className="font-display text-xs font-black text-white/30 tracking-widest">
@@ -120,6 +167,31 @@ function CategoryCard({
         <h3 className="font-display text-2xl lg:text-3xl font-black leading-none mb-1.5 group-hover:text-[#C9A84C] transition-colors duration-300">
           {item.name}
         </h3>
+
+        {/* Sub-category quick links — revealed on hover (demographic tiles only) */}
+        {subKeys && subLabels && (
+          <div
+            className={`overflow-hidden transition-all duration-300 ${
+              hovered ? "max-h-12 opacity-100 mb-2" : "max-h-0 opacity-0"
+            }`}
+          >
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              {subLabels.map((label, idx) => (
+                <button
+                  key={subKeys[idx]}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onNavigateSub(subKeys[idx]);
+                  }}
+                  className="text-[11px] text-white/70 hover:text-gold transition-colors duration-200 border-b border-transparent hover:border-gold/60"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <p className="text-white/45 text-xs">{item.count}</p>
           <div
@@ -161,14 +233,17 @@ export default function Categories() {
         </p>
       </div>
 
-      {/* Bento grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 md:auto-rows-[260px] gap-2.5">
+      {/* Single horizontal row — scrolls on mobile, evenly fills the row on desktop */}
+      <div className="flex sm:items-stretch gap-3 overflow-x-auto sm:overflow-visible pb-2 -mx-6 px-6 sm:mx-0 sm:px-0 snap-x snap-mandatory sm:snap-none scrollbar-none">
         {CATEGORY_DATA.map((cat, i) => (
           <CategoryCard
             key={cat.key}
             data={cat}
             delay={i * 100}
             onNavigate={() => navigate(CATEGORY_ROUTES[cat.key])}
+            onNavigateSub={(sub) =>
+              navigate(`${CATEGORY_ROUTES[cat.key]}&sub=${encodeURIComponent(sub)}`)
+            }
           />
         ))}
       </div>

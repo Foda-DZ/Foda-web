@@ -12,6 +12,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import HeadsetMicOutlinedIcon from "@mui/icons-material/HeadsetMicOutlined";
+import { Store } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -215,6 +216,20 @@ export default function Navbar() {
 
               {/* Icons — clean outlines, no backgrounds */}
               <div className="flex items-center gap-5">
+                {/* Sell on Foda — logged-out only */}
+                {!user && (
+                  <button
+                    onClick={() => navigate("/sell")}
+                    className="group flex items-center gap-2 px-4 py-2 rounded-full border border-[#C9A84C]/40 text-[#1A1A2E] text-[13px] font-semibold tracking-wide hover:bg-[#C9A84C] hover:border-[#C9A84C] transition-all duration-200"
+                  >
+                    <Store
+                      size={16}
+                      className="text-[#C9A84C] group-hover:text-[#1A1A2E] transition-colors duration-200"
+                    />
+                    {tr.nav.sellOnFoda}
+                  </button>
+                )}
+
                 <LanguageSwitch />
 
                 {/* Account — logged in: icon only, click to toggle dropdown */}
@@ -298,7 +313,7 @@ export default function Navbar() {
                     onMouseLeave={scheduleCloseAuthPopup}
                   >
                     <button
-                      onClick={openLogin}
+                      onClick={() => openLogin({ customerOnly: true })}
                       className="relative p-1.5 text-[#1A1A2E]/70 hover:text-[#1A1A2E] transition-colors duration-200"
                     >
                       <PersonOutlineIcon sx={{ fontSize: 26 }} />
@@ -552,25 +567,37 @@ export default function Navbar() {
                 </div>
               </div>
             ) : (
-              <div className="flex gap-2">
+              <div className="space-y-2">
                 <button
                   onClick={() => {
-                    openLogin();
+                    navigate("/sell");
                     setMenuOpen(false);
                   }}
-                  className="flex-1 btn-dark text-center text-sm py-2.5 rounded-xl"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#C9A84C]/40 text-[#1A1A2E] text-sm font-semibold hover:bg-[#C9A84C]/10 transition-colors duration-200"
                 >
-                  {tr.nav.signIn}
+                  <Store size={16} className="text-[#C9A84C]" />
+                  {tr.nav.sellOnFoda}
                 </button>
-                <button
-                  onClick={() => {
-                    openRegister();
-                    setMenuOpen(false);
-                  }}
-                  className="flex-1 btn-outline-gold text-center text-sm py-2.5 rounded-xl"
-                >
-                  {tr.nav.register}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      openLogin();
+                      setMenuOpen(false);
+                    }}
+                    className="flex-1 btn-dark text-center text-sm py-2.5 rounded-xl"
+                  >
+                    {tr.nav.signIn}
+                  </button>
+                  <button
+                    onClick={() => {
+                      openRegister();
+                      setMenuOpen(false);
+                    }}
+                    className="flex-1 btn-outline-gold text-center text-sm py-2.5 rounded-xl"
+                  >
+                    {tr.nav.register}
+                  </button>
+                </div>
               </div>
             )}
           </div>

@@ -253,34 +253,6 @@ export default function MarketplaceHighlight() {
             />
           ))}
         </div>
-
-        {/* Bottom CTA */}
-        <div
-          className={`mt-12 rounded-2xl glass border border-white/8 p-8 lg:p-10 flex flex-col lg:flex-row items-center justify-between gap-6 opacity-0-start ${
-            visible ? "anim-fade-up delay-400" : ""
-          }`}
-        >
-          <div>
-            <h3 className="font-display text-2xl lg:text-3xl font-black text-white mb-2">
-              {isRTL ? "هل أنت بائع؟" : "Are you a Seller?"}
-            </h3>
-            <p className="text-white/50 text-sm font-light max-w-md">
-              {isRTL
-                ? "انضم إلى أكثر من 500 بائع على منصة فودا وابدأ في بيع منتجاتك لآلاف المشترين عبر الجزائر."
-                : "Join 500+ sellers on Foda and start reaching thousands of buyers across Algeria. Free to start, powerful to grow."}
-            </p>
-          </div>
-          <button
-            onClick={() => navigate("/seller/dashboard")}
-            className="btn-gold flex items-center gap-2 shrink-0 group"
-          >
-            {isRTL ? "ابدأ البيع الآن" : "Start Selling Now"}
-            <ArrowForwardIcon
-              sx={{ fontSize: 14 }}
-              className="transition-transform duration-300 group-hover:translate-x-1 rtl:rotate-180"
-            />
-          </button>
-        </div>
       </div>
     </section>
   );

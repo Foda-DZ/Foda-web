@@ -20,6 +20,8 @@ import WishlistPage from "./pages/WishlistPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import CartPage from "./pages/CartPage";
 import ProfilePage from "./pages/ProfilePage";
+import SellPage from "./pages/SellPage";
+import SellerAuthPage from "./pages/SellerAuthPage";
 import Dashboard from "./pages/seller/Dashboard";
 import ProductsPage from "./pages/seller/ProductsPage";
 import ProductFormPage from "./pages/seller/ProductFormPage";
@@ -100,6 +102,7 @@ export default function App() {
                   <Route element={<Layout />}>
                     <Route index element={<HomeOrSellerRedirect />} />
                     <Route path="shop" element={<ShopPage />} />
+                    <Route path="sell" element={<SellPage />} />
                     <Route path="products/:id" element={<ProductPage />} />
                     <Route path="products/:id/reviews" element={<ProductReviewsPage />} />
                     <Route path="storefront/:sellerId" element={<SellerStorefrontPage />} />
@@ -120,6 +123,7 @@ export default function App() {
                   {/* ── Seller routes (own SellerLayout, no buyer navbar) ── */}
                   <Route path="seller">
                     <Route index element={<SellerIndexRedirect />} />
+                    <Route path="auth" element={<SellerAuthPage />} />
                     <Route
                       path="dashboard"
                       element={

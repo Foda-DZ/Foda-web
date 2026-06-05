@@ -1,10 +1,12 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import TextInput from "./TextInput";
 
 interface PasswordInputProps {
   value: string;
   onChange: (val: string) => void;
+  label?: ReactNode;
   placeholder?: string;
   error?: string;
 }
@@ -12,6 +14,7 @@ interface PasswordInputProps {
 export default function PasswordInput({
   value,
   onChange,
+  label,
   placeholder,
   error,
 }: PasswordInputProps) {
@@ -23,6 +26,7 @@ export default function PasswordInput({
         type={show ? "text" : "password"}
         value={value}
         onChange={onChange}
+        label={label}
         placeholder={placeholder}
         error={error}
         icon={<Lock size={14} className="text-[#1A1A2E]/40" />}
