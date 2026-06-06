@@ -165,6 +165,7 @@ export interface Translations {
     terms: string;
     cookies: string;
     app: { title: string; subtitle: string; scanText: string };
+    social: { followUs: string; instagram: string; facebook: string; tiktok: string };
   };
   cart: {
     title: string;
@@ -1329,14 +1330,15 @@ export const ar: Translations = {
     shopLinks: ["وصل حديثاً", "مجموعة النساء", "مجموعة الرجال", "أطفال", "إكسسوارات", "تخفيضات"],
     companyLinks: ["عن Foda", "الاستدامة", "الصحافة", "وظائف", "المدونة"],
     helpLinks: ["الأسئلة الشائعة", "الشحن والإرجاع", "دليل المقاسات", "تتبع الطلب", "تواصل معنا", "بطاقات الهدايا"],
-    address: "15 شارع ديدوش مراد، وسط الجزائر، الجزائر",
-    phone: "+213 (0) 21 XX XX XX",
+    address: "- شارع محمد بوضياف , حمام الضلعة, المسيلة, 28005 المسيلة",
+    phone: "+2130772788213",
     email: "support@foda.foo",
     copyright: "© {year} Foda. جميع الحقوق محفوظة.",
     privacy: "سياسة الخصوصية",
     terms: "شروط الخدمة",
     cookies: "سياسة ملفات تعريف الارتباط",
     app: { title: "حمّل تطبيق Foda", subtitle: "تسوّق بسهولة من هاتفك", scanText: "امسح الرمز للتحميل" },
+    social: { followUs: "تابعنا", instagram: "إنستغرام", facebook: "فيسبوك", tiktok: "تيك توك" },
   },
   cart: {
     title: "سلة التسوق",
@@ -2617,14 +2619,15 @@ export const en: Translations = {
     shopLinks: ["New Arrivals", "Women's Collection", "Men's Collection", "Kids", "Accessories", "Sale"],
     companyLinks: ["About Foda", "Sustainability", "Press", "Careers", "Blog"],
     helpLinks: ["FAQ", "Shipping & Returns", "Size Guide", "Track Order", "Contact Us", "Gift Cards"],
-    address: "15 Rue Didouche Mourad, Alger Centre, Algeria",
-    phone: "+213 (0) 21 XX XX XX",
+    address: "- Mohamed Boudiof Street, Hamam Dalaâ, M'Sila, 28005 M'Sila",
+    phone: "+2130772788213",
     email: "support@foda.foo",
     copyright: "© {year} Foda. All rights reserved. Made with ❤️ in Algeria.",
     privacy: "Privacy Policy",
     terms: "Terms of Service",
     cookies: "Cookie Policy",
     app: { title: "Get the Foda App", subtitle: "Shop effortlessly from your phone", scanText: "Scan to download" },
+    social: { followUs: "Follow Us", instagram: "Instagram", facebook: "Facebook", tiktok: "TikTok" },
   },
   cart: {
     title: "Your Cart",
