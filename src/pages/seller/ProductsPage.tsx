@@ -1,15 +1,13 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import WarningIcon from "@mui/icons-material/Warning";
 import RocketLaunchOutlinedIcon from "@mui/icons-material/RocketLaunchOutlined";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import ContentCopyOutlinedIcon from "@mui/icons-material/ContentCopyOutlined";
-import LinkOutlinedIcon from "@mui/icons-material/LinkOutlined";
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
@@ -24,11 +22,11 @@ import SellerLayout from "../../components/seller/SellerLayout";
 import { sellerService } from "../../services/sellerService";
 import type { Product } from "../../types";
 
-// ─── Promotion Modal Types ────────────────────────────────────────────────────
+// â”€â”€â”€ Promotion Modal Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface PromoForm {
   active: boolean;
   type: "percentage" | "amount";
-  value: number;
+  value: string;
   startDate: string;
   endDate: string;
 }
@@ -37,32 +35,40 @@ interface PromoModalState {
   product: Product;
 }
 
-// ─── Toggle ───────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Toggle({
   checked,
   onChange,
+  isRTL = false,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
+  isRTL?: boolean;
 }) {
+  // In RTL the "on" knob slides to the left, so flip the travel sign.
+  const offset = checked ? (isRTL ? -20 : 20) : 0;
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${
+      className={`relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A84C]/40 ${
         checked ? "bg-emerald-500" : "bg-[#1A1A2E]/15"
       }`}
     >
       <span
-        className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${
-          checked ? "translate-x-5" : "translate-x-0"
-        }`}
+        className="absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"
+        style={{
+          insetInlineStart: 4,
+          transform: `translateX(${offset}px)`,
+        }}
       />
     </button>
   );
 }
 
-// ─── Promotion Modal ──────────────────────────────────────────────────────────
+// â”€â”€â”€ Promotion Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function PromotionModal({
   state,
   onClose,
@@ -73,6 +79,7 @@ function PromotionModal({
   onSaved: () => void;
 }) {
   const { tr, isRTL } = useLang();
+  const tp = tr.seller.promoModal;
   const { product } = state;
 
   const [loading, setLoading] = useState(true);
@@ -85,7 +92,7 @@ function PromotionModal({
   const [form, setForm] = useState<PromoForm>({
     active: false,
     type: "percentage",
-    value: 0,
+    value: "",
     startDate: "",
     endDate: "",
   });
@@ -109,13 +116,13 @@ function PromotionModal({
           setForm({
             active: p.active ?? false,
             type: p.type ?? "percentage",
-            value: p.value ?? 0,
+            value: p.value != null ? String(p.value) : "",
             startDate: p.startDate ? p.startDate.substring(0, 10) : "",
             endDate: p.endDate ? p.endDate.substring(0, 10) : "",
           });
         }
       } catch {
-        // ignore — use empty defaults
+        // ignore â€” use empty defaults
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -124,16 +131,17 @@ function PromotionModal({
   }, [product.id]);
 
   const handleSave = async () => {
-    if (form.value <= 0) {
-      showToast("Discount value must be greater than 0", "error");
+    const valueNum = parseFloat(form.value);
+    if (!form.value.trim() || Number.isNaN(valueNum) || valueNum <= 0) {
+      showToast(tp.valueGreaterThanZero, "error");
       return;
     }
-    if (form.type === "percentage" && form.value > 100) {
-      showToast("Percentage discount cannot exceed 100%", "error");
+    if (form.type === "percentage" && valueNum > 100) {
+      showToast(tp.pctCannotExceed, "error");
       return;
     }
     if (form.startDate && form.endDate && form.startDate > form.endDate) {
-      showToast("Start date must be before end date", "error");
+      showToast(tp.startBeforeEnd, "error");
       return;
     }
     setSaving(true);
@@ -141,18 +149,18 @@ function PromotionModal({
       await sellerService.upsertPromotion(product.id, {
         active: form.active,
         type: form.type,
-        value: form.value,
+        value: valueNum,
         startDate: form.startDate || undefined,
         endDate: form.endDate || undefined,
       });
-      showToast("Promotion saved successfully", "success");
+      showToast(tp.savedSuccess, "success");
       setHasExisting(true);
       setTimeout(() => {
         onSaved();
         onClose();
       }, 1200);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to save promotion", "error");
+      showToast(err instanceof Error ? err.message : tp.failedSave, "error");
     } finally {
       setSaving(false);
     }
@@ -162,24 +170,25 @@ function PromotionModal({
     setRemoving(true);
     try {
       await sellerService.removePromotion(product.id);
-      showToast("Promotion removed", "success");
+      showToast(tp.removedSuccess, "success");
       setTimeout(() => {
         onSaved();
         onClose();
       }, 1000);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to remove promotion", "error");
+      showToast(err instanceof Error ? err.message : tp.failedRemove, "error");
     } finally {
       setRemoving(false);
       setConfirmRemove(false);
     }
   };
 
+  const formValueNum = parseFloat(form.value) || 0;
   const discountedPrice =
-    form.value > 0
+    formValueNum > 0
       ? form.type === "percentage"
-        ? product.price * (1 - form.value / 100)
-        : Math.max(0, product.price - form.value)
+        ? product.price * (1 - formValueNum / 100)
+        : Math.max(0, product.price - formValueNum)
       : null;
 
   return (
@@ -188,18 +197,16 @@ function PromotionModal({
       onClick={(e) => e.target === e.currentTarget && onClose()}
       dir={isRTL ? "rtl" : "ltr"}
     >
-      <div className="bg-white w-full max-w-md shadow-2xl border border-[#1A1A2E]/8 flex flex-col max-h-[90vh]">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-[#1A1A2E]/8 flex flex-col max-h-[90vh] overflow-hidden">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#1A1A2E]/8 bg-[#FAF7F2] shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 gold-gradient flex items-center justify-center">
-              <LocalOfferOutlinedIcon sx={{ fontSize: 14, color: "#1A1A2E" }} />
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl gold-gradient flex items-center justify-center shrink-0">
+              <LocalOfferOutlinedIcon sx={{ fontSize: 17, color: "#1A1A2E" }} />
             </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#1A1A2E]/40">
-                Set Promotion
-              </p>
+            <div className="min-w-0">
+              <p className="sl-eyebrow">{tp.setPromotion}</p>
               <p className="text-xs font-semibold text-[#1A1A2E] leading-tight truncate max-w-[220px]">
                 {product.name}
               </p>
@@ -207,7 +214,8 @@ function PromotionModal({
           </div>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center text-[#1A1A2E]/40 hover:text-[#1A1A2E] hover:bg-[#1A1A2E]/5 transition-colors"
+            aria-label={tp.cancel}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[#1A1A2E]/40 hover:text-[#1A1A2E] hover:bg-[#1A1A2E]/5 transition-colors shrink-0"
           >
             <CloseOutlinedIcon sx={{ fontSize: 16 }} />
           </button>
@@ -218,14 +226,14 @@ function PromotionModal({
           {loading ? (
             <div className="space-y-4">
               {[80, 120, 80, 100].map((w, i) => (
-                <Skeleton key={i} variant="rectangular" width="100%" height={w} sx={{ borderRadius: 0 }} />
+                <Skeleton key={i} variant="rounded" width="100%" height={w} sx={{ borderRadius: "0.75rem" }} />
               ))}
             </div>
           ) : (
             <>
               {/* Product preview */}
-              <div className="flex items-center gap-3 p-3 bg-[#FAF7F2] border border-[#1A1A2E]/6">
-                <div className="w-12 h-14 bg-[#F0EBE3] overflow-hidden shrink-0">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-[#FAF7F2] border border-[#1A1A2E]/6">
+                <div className="w-12 h-14 rounded-lg bg-[#F0EBE3] overflow-hidden shrink-0">
                   {product.images[0] && (
                     <img
                       src={product.images[0]}
@@ -251,10 +259,10 @@ function PromotionModal({
                     )}
                   </div>
                   {discountedPrice !== null && (
-                    <span className="inline-block mt-1 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-sm">
+                    <span className="inline-block mt-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full">
                       {form.type === "percentage"
                         ? `-${form.value}%`
-                        : `-${form.value.toLocaleString()} ${tr.common.dzd}`}
+                        : `-${formValueNum.toLocaleString()} ${tr.common.dzd}`}
                     </span>
                   )}
                 </div>
@@ -263,70 +271,76 @@ function PromotionModal({
               {/* Active toggle */}
               <div className="flex items-center justify-between py-3 border-b border-[#1A1A2E]/6">
                 <div>
-                  <p className="text-sm font-semibold text-[#1A1A2E]">Promotion active</p>
+                  <p className="text-sm font-semibold text-[#1A1A2E]">{tp.promotionActive}</p>
                   <p className="text-xs text-[#1A1A2E]/40 mt-0.5">
-                    {form.active ? "Visible to customers" : "Hidden from customers"}
+                    {form.active ? tp.visibleToCustomers : tp.hiddenFromCustomers}
                   </p>
                 </div>
                 <Toggle
                   checked={form.active}
                   onChange={(v) => setForm((f) => ({ ...f, active: v }))}
+                  isRTL={isRTL}
                 />
               </div>
 
               {/* Discount type & value */}
               <div className="space-y-2.5">
-                <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#1A1A2E]/50">
-                  Discount
-                </label>
+                <label className="sl-eyebrow">{tp.discount}</label>
                 <div className="flex items-center gap-3">
                   {/* Type selector */}
-                  <div className="flex border border-[#1A1A2E]/15 overflow-hidden">
+                  <div className="flex rounded-full border border-[#1A1A2E]/12 overflow-hidden p-0.5 bg-white">
                     {(["percentage", "amount"] as const).map((type) => (
                       <button
                         key={type}
                         type="button"
                         onClick={() => setForm((f) => ({ ...f, type }))}
-                        className={`px-4 py-2 text-xs font-bold transition-colors duration-150 ${
+                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors duration-150 ${
                           form.type === type
                             ? "gold-gradient text-[#1A1A2E]"
-                            : "bg-white text-[#1A1A2E]/40 hover:text-[#1A1A2E]/70"
+                            : "text-[#1A1A2E]/40 hover:text-[#1A1A2E]/70"
                         }`}
                       >
-                        {type === "percentage" ? "%" : "DZD"}
+                        {type === "percentage" ? "%" : tr.common.dzd}
                       </button>
                     ))}
                   </div>
 
-                  {/* Value input */}
+                  {/* Value input — unit suffix follows the reading direction */}
                   <div className="flex-1 relative">
                     <input
-                      type="number"
-                      min={0}
-                      max={form.type === "percentage" ? 100 : undefined}
-                      value={form.value || ""}
-                      placeholder={form.type === "percentage" ? "e.g. 20" : "e.g. 500"}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, value: Number(e.target.value) }))
+                      type="text"
+                      inputMode="decimal"
+                      value={form.value}
+                      placeholder={
+                        form.type === "percentage"
+                          ? tp.valuePlaceholderPct
+                          : tp.valuePlaceholderAmt
                       }
-                      className="w-full h-10 border border-[#1A1A2E]/15 bg-white text-sm text-[#1A1A2E] px-3 pr-10 focus:outline-none focus:border-[#C9A84C]/60 transition-colors"
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, value: e.target.value }))
+                      }
+                      className="w-full h-10 rounded-xl border border-[#1A1A2E]/15 bg-white text-sm text-[#1A1A2E] focus:outline-none focus:border-[#C9A84C]/60 focus:ring-2 focus:ring-[#C9A84C]/10 transition-all"
+                      style={{ paddingInlineStart: 12, paddingInlineEnd: 40 }}
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#1A1A2E]/30 font-semibold pointer-events-none">
-                      {form.type === "percentage" ? "%" : "DZD"}
+                    <span
+                      className="absolute top-1/2 -translate-y-1/2 text-xs text-[#1A1A2E]/30 font-semibold pointer-events-none"
+                      style={{ insetInlineEnd: 12 }}
+                    >
+                      {form.type === "percentage" ? "%" : tr.common.dzd}
                     </span>
                   </div>
                 </div>
                 {form.type === "percentage" && form.value > 100 && (
-                  <p className="text-xs text-red-500">Percentage cannot exceed 100%</p>
+                  <p className="text-xs text-red-500">{tp.pctCannotExceed}</p>
                 )}
               </div>
 
               {/* Date range (optional) */}
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#1A1A2E]/50">
-                    Date range{" "}
-                    <span className="normal-case font-normal text-[#1A1A2E]/30">(optional)</span>
+                  <label className="sl-eyebrow">
+                    {tp.dateRange}{" "}
+                    <span className="normal-case font-normal text-[#1A1A2E]/30">{tp.optional}</span>
                   </label>
                   {(form.startDate || form.endDate) && (
                     <button
@@ -334,39 +348,55 @@ function PromotionModal({
                       onClick={() => setForm((f) => ({ ...f, startDate: "", endDate: "" }))}
                       className="text-[10px] text-[#1A1A2E]/40 hover:text-red-500 transition-colors"
                     >
-                      Clear dates
+                      {tp.clearDates}
                     </button>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="relative">
                     <CalendarTodayOutlinedIcon
-                      sx={{ fontSize: 12, color: "rgba(26,26,46,0.3)" }}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                      sx={{
+                        fontSize: 13,
+                        color: "rgba(26,26,46,0.3)",
+                        position: "absolute",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        insetInlineStart: 12,
+                        pointerEvents: "none",
+                      }}
                     />
                     <input
                       type="date"
                       value={form.startDate}
                       onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
-                      className="w-full h-10 border border-[#1A1A2E]/15 bg-white text-xs text-[#1A1A2E] pl-8 pr-2 focus:outline-none focus:border-[#C9A84C]/60 transition-colors"
+                      className="w-full h-10 rounded-xl border border-[#1A1A2E]/15 bg-white text-xs text-[#1A1A2E] focus:outline-none focus:border-[#C9A84C]/60 transition-colors"
+                      style={{ paddingInlineStart: 34, paddingInlineEnd: 8 }}
                     />
                   </div>
                   <div className="relative">
                     <CalendarTodayOutlinedIcon
-                      sx={{ fontSize: 12, color: "rgba(26,26,46,0.3)" }}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                      sx={{
+                        fontSize: 13,
+                        color: "rgba(26,26,46,0.3)",
+                        position: "absolute",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        insetInlineStart: 12,
+                        pointerEvents: "none",
+                      }}
                     />
                     <input
                       type="date"
                       value={form.endDate}
                       min={form.startDate || undefined}
                       onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
-                      className="w-full h-10 border border-[#1A1A2E]/15 bg-white text-xs text-[#1A1A2E] pl-8 pr-2 focus:outline-none focus:border-[#C9A84C]/60 transition-colors"
+                      className="w-full h-10 rounded-xl border border-[#1A1A2E]/15 bg-white text-xs text-[#1A1A2E] focus:outline-none focus:border-[#C9A84C]/60 transition-colors"
+                      style={{ paddingInlineStart: 34, paddingInlineEnd: 8 }}
                     />
                   </div>
                 </div>
                 {form.startDate && form.endDate && form.startDate > form.endDate && (
-                  <p className="text-xs text-red-500">Start date must be before end date</p>
+                  <p className="text-xs text-red-500">{tp.startBeforeEnd}</p>
                 )}
               </div>
             </>
@@ -378,25 +408,25 @@ function PromotionModal({
           <div className="px-6 py-4 border-t border-[#1A1A2E]/8 bg-[#FAF7F2] shrink-0 space-y-3">
             {/* Remove confirmation inline */}
             {confirmRemove ? (
-              <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-200">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-200">
                 <p className="flex-1 text-xs text-red-700 font-medium">
-                  Remove this promotion permanently?
+                  {tp.removeThisPromo}
                 </p>
                 <button
                   onClick={() => setConfirmRemove(false)}
                   className="text-xs text-[#1A1A2E]/50 hover:text-[#1A1A2E] px-2 py-1"
                 >
-                  Cancel
+                  {tp.cancel}
                 </button>
                 <button
                   onClick={handleRemove}
                   disabled={removing}
-                  className="flex items-center gap-1.5 h-7 px-3 bg-red-500 hover:bg-red-600 text-white text-xs font-bold transition-colors disabled:opacity-60"
+                  className="flex items-center gap-1.5 h-8 px-3.5 rounded-full bg-red-500 hover:bg-red-600 text-white text-xs font-bold transition-colors disabled:opacity-60"
                 >
                   {removing && (
                     <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   )}
-                  Remove
+                  {tp.remove}
                 </button>
               </div>
             ) : (
@@ -405,23 +435,23 @@ function PromotionModal({
                   <button
                     onClick={() => setConfirmRemove(true)}
                     disabled={saving || removing}
-                    className="flex items-center gap-1.5 h-10 px-3 border border-red-200 text-red-500 text-xs font-semibold hover:bg-red-50 hover:border-red-300 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1.5 h-11 px-4 rounded-full border border-red-200 text-red-500 text-xs font-semibold hover:bg-red-50 hover:border-red-300 transition-colors disabled:opacity-50"
                   >
-                    <DeleteOutlineOutlinedIcon sx={{ fontSize: 14 }} />
-                    Remove
+                    <DeleteOutlineOutlinedIcon sx={{ fontSize: 15 }} />
+                    {tp.remove}
                   </button>
                 )}
                 <button
                   onClick={handleSave}
                   disabled={saving || removing || form.value <= 0}
-                  className="flex-1 h-10 flex items-center justify-center gap-2 bg-[#1A1A2E] text-white text-xs font-bold uppercase tracking-wide hover:bg-[#2d2d50] transition-colors disabled:opacity-60"
+                  className="flex-1 h-11 rounded-full flex items-center justify-center gap-2 bg-[#1A1A2E] text-white text-xs font-bold hover:bg-[#2d2d50] transition-colors disabled:opacity-60"
                 >
                   {saving ? (
                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <LocalOfferOutlinedIcon sx={{ fontSize: 14 }} />
+                    <LocalOfferOutlinedIcon sx={{ fontSize: 15 }} />
                   )}
-                  {saving ? "Saving…" : "Save Promotion"}
+                  {saving ? tp.saving : tp.savePromotion}
                 </button>
               </div>
             )}
@@ -432,7 +462,7 @@ function PromotionModal({
       {/* Toast */}
       {toast && (
         <div
-          className={`fixed bottom-6 ${isRTL ? "left-6" : "right-6"} z-[60] flex items-center gap-2.5 px-4 py-3 shadow-lg text-sm font-medium ${
+          className={`fixed bottom-6 ${isRTL ? "left-6" : "right-6"} z-[60] flex items-center gap-2.5 px-5 py-3.5 rounded-2xl shadow-xl text-sm font-medium sl-rise ${
             toast.type === "success" ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
           }`}
         >
@@ -448,7 +478,7 @@ function PromotionModal({
   );
 }
 
-// ─── Tracked Links Modal ──────────────────────────────────────────────────────
+// â”€â”€â”€ Tracked Links Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TRACKED_PLATFORMS = [
   { key: "instagram", label: "Instagram", color: "#E1306C" },
   { key: "tiktok", label: "TikTok", color: "#1A1A2E" },
@@ -470,7 +500,7 @@ function TrackedLinksModal({ product, onClose }: { product: Product; onClose: ()
       setCopied(id);
       setTimeout(() => setCopied((c) => (c === id ? null : c)), 2000);
     } catch {
-      // clipboard unavailable — ignore
+      // clipboard unavailable â€” ignore
     }
   };
 
@@ -486,42 +516,54 @@ function TrackedLinksModal({ product, onClose }: { product: Product; onClose: ()
       onClick={(e) => e.target === e.currentTarget && onClose()}
       dir={isRTL ? "rtl" : "ltr"}
     >
-      <div className="bg-white w-full max-w-md shadow-2xl border border-[#1A1A2E]/8 flex flex-col">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-[#1A1A2E]/8 flex flex-col overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#1A1A2E]/8 bg-[#FAF7F2]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 gold-gradient flex items-center justify-center">
-              <LinkOutlinedIcon sx={{ fontSize: 14, color: "#1A1A2E" }} />
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl gold-gradient flex items-center justify-center shrink-0">
+              <ShareOutlinedIcon sx={{ fontSize: 17, color: "#1A1A2E" }} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#1A1A2E]/40">{t.title}</p>
+              <p className="sl-eyebrow">{t.title}</p>
               <p className="text-xs font-semibold text-[#1A1A2E] leading-tight truncate max-w-[220px]">{product.name}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center text-[#1A1A2E]/40 hover:text-[#1A1A2E] hover:bg-[#1A1A2E]/5 transition-colors"
+            aria-label={tr.seller.promoModal.cancel}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[#1A1A2E]/40 hover:text-[#1A1A2E] hover:bg-[#1A1A2E]/5 transition-colors shrink-0"
           >
             <CloseOutlinedIcon sx={{ fontSize: 16 }} />
           </button>
         </div>
 
-        <div className="px-6 py-5 space-y-3">
+        <div className="px-6 py-5 space-y-2.5">
           <p className="text-xs text-[#1A1A2E]/50">{t.subtitle}</p>
           {TRACKED_PLATFORMS.map((p) => {
             const link = linkFor(p.key);
+            const isCopied = copied === p.key;
             return (
-              <div key={p.key} className="flex items-center gap-2.5 border border-[#1A1A2E]/10 p-2.5">
-                <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: p.color }} />
+              <div key={p.key} className="flex items-center gap-3 rounded-xl border border-[#1A1A2E]/8 bg-[#FBF9F5] p-2.5 transition-colors hover:border-[#C9A84C]/30">
+                <span className="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center" style={{ backgroundColor: `${p.color}1a` }}>
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }} />
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-[11px] font-semibold text-[#1A1A2E]">{p.label}</p>
-                  <p className="text-[10px] text-[#1A1A2E]/45 truncate font-mono">{link}</p>
+                  <p className="text-[10px] text-[#1A1A2E]/45 truncate font-mono" dir="ltr">{link}</p>
                 </div>
                 <button
                   onClick={() => copy(p.key, link)}
-                  className="flex items-center gap-1 shrink-0 h-7 px-2.5 border border-[#1A1A2E]/15 text-[10px] font-bold uppercase tracking-wide text-[#1A1A2E]/60 hover:border-[#C9A84C]/50 hover:text-[#C9A84C] transition-colors"
+                  className={`flex items-center gap-1 shrink-0 h-8 px-3 rounded-full text-[10px] font-bold uppercase tracking-wide transition-colors ${
+                    isCopied
+                      ? "bg-emerald-500 text-white border border-emerald-500"
+                      : "border border-[#1A1A2E]/12 text-[#1A1A2E]/60 hover:border-[#C9A84C]/50 hover:text-[#C9A84C]"
+                  }`}
                 >
-                  <ContentCopyOutlinedIcon sx={{ fontSize: 11 }} />
-                  {copied === p.key ? t.copied : t.copy}
+                  {isCopied ? (
+                    <CheckCircleOutlinedIcon sx={{ fontSize: 12 }} />
+                  ) : (
+                    <ContentCopyOutlinedIcon sx={{ fontSize: 12 }} />
+                  )}
+                  {isCopied ? t.copied : t.copy}
                 </button>
               </div>
             );
@@ -532,8 +574,13 @@ function TrackedLinksModal({ product, onClose }: { product: Product; onClose: ()
           <p className="text-[10px] text-[#1A1A2E]/35 flex-1">{t.hint}</p>
           <button
             onClick={copyAll}
-            className="shrink-0 h-9 px-3.5 bg-[#1A1A2E] text-white text-xs font-bold uppercase tracking-wide hover:bg-[#2d2d50] transition-colors"
+            className="shrink-0 h-9 px-4 rounded-full bg-[#1A1A2E] text-white text-xs font-bold hover:bg-[#2d2d50] transition-colors inline-flex items-center gap-1.5"
           >
+            {copied === "all" ? (
+              <CheckCircleOutlinedIcon sx={{ fontSize: 14 }} />
+            ) : (
+              <ContentCopyOutlinedIcon sx={{ fontSize: 14 }} />
+            )}
             {copied === "all" ? t.copied : t.copyAll}
           </button>
         </div>
@@ -542,7 +589,7 @@ function TrackedLinksModal({ product, onClose }: { product: Product; onClose: ()
   );
 }
 
-// ─── Products Page ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Products Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function ProductsPage() {
   const { sellerProducts, deleteProduct } = useSellerContext();
   const { tr, isRTL } = useLang();
@@ -575,7 +622,7 @@ export default function ProductsPage() {
           label={t.outOfStock}
           size="small"
           color="error"
-          sx={{ borderRadius: 0, fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }}
+          sx={{ borderRadius: "999px", fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }}
         />
       );
     if (stock <= 5)
@@ -584,7 +631,7 @@ export default function ProductsPage() {
           label={t.lowStock}
           size="small"
           color="warning"
-          sx={{ borderRadius: 0, fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }}
+          sx={{ borderRadius: "999px", fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }}
         />
       );
     return (
@@ -592,28 +639,33 @@ export default function ProductsPage() {
         label={t.inStock}
         size="small"
         color="success"
-        sx={{ borderRadius: 0, fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }}
+        sx={{ borderRadius: "999px", fontWeight: 700, fontSize: "0.65rem", letterSpacing: "0.06em" }}
       />
     );
   };
 
   return (
     <SellerLayout>
-      <div className="p-8 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+      <div className="p-6 sm:p-8 lg:p-10 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
         {/* Header */}
-        <div className={`flex items-center justify-between ${isRTL ? "flex-row-reverse" : ""}`}>
-          <div>
-            <h1 className="font-display text-2xl font-bold text-[#1A1A2E]">{t.title}</h1>
-            <p className="text-[#1A1A2E]/50 text-sm mt-0.5">
-              {sellerProducts.length} {t.listed}
-            </p>
+        <div className={`flex items-center justify-between flex-wrap gap-4 sl-rise`}>
+          <div className={`flex items-center gap-3.5`}>
+            <div className="w-12 h-12 sl-icon-tile-gold flex items-center justify-center shrink-0">
+              <Inventory2Icon sx={{ fontSize: 24, color: "#C9A84C" }} />
+            </div>
+            <div className={isRTL ? "text-right" : "text-left"}>
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1A1A2E]">{t.title}</h1>
+              <p className="text-[#1A1A2E]/50 text-sm mt-0.5">
+                {sellerProducts.length} {t.listed}
+              </p>
+            </div>
           </div>
           <Button
             variant="contained"
             color="primary"
             onClick={() => navigate("/seller/products/new")}
             startIcon={<AddIcon sx={{ fontSize: 15 }} />}
-            sx={{ borderRadius: 0 }}
+            sx={{ borderRadius: "999px", px: 2.5 }}
           >
             {t.addProduct}
           </Button>
@@ -621,10 +673,10 @@ export default function ProductsPage() {
 
         {/* Product list */}
         {sellerProducts.length === 0 ? (
-          <div className="bg-white border border-[#1A1A2E]/8 p-16 text-center">
-            <Inventory2Icon
-              sx={{ fontSize: 40, color: "rgba(26,26,46,0.15)", display: "block", mx: "auto", mb: 2 }}
-            />
+          <div className="sl-card p-16 text-center sl-rise">
+            <div className="w-16 h-16 mx-auto mb-4 sl-icon-tile-gold flex items-center justify-center">
+              <Inventory2Icon sx={{ fontSize: 30, color: "#C9A84C" }} />
+            </div>
             <h3 className="font-display font-bold text-[#1A1A2E] text-lg mb-2">{t.noProducts}</h3>
             <p className="text-[#1A1A2E]/40 text-sm mb-6">{t.noProductsDesc}</p>
             <Button
@@ -632,13 +684,13 @@ export default function ProductsPage() {
               color="primary"
               onClick={() => navigate("/seller/products/new")}
               startIcon={<AddIcon sx={{ fontSize: 14 }} />}
-              sx={{ borderRadius: 0 }}
+              sx={{ borderRadius: "999px", px: 2.5 }}
             >
               {t.addFirstProduct}
             </Button>
           </div>
         ) : (
-          <div className="bg-white border border-[#1A1A2E]/8 overflow-hidden">
+          <div className="sl-card overflow-hidden sl-rise">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[#1A1A2E]/8">
@@ -661,7 +713,7 @@ export default function ProductsPage() {
                     {/* Product */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-12 bg-[#F0EBE3] overflow-hidden flex-shrink-0">
+                        <div className="w-10 h-12 rounded-lg bg-[#F0EBE3] overflow-hidden shrink-0">
                           <img
                             src={product.images[0]}
                             alt={product.name}
@@ -700,47 +752,73 @@ export default function ProductsPage() {
                       </span>
                     </td>
 
-                    {/* Status */}
-                    <td className="px-4 py-3">{stockChip(product.totalStock)}</td>
-
-                    {/* Actions */}
+                    {/* Status — stock state + active promotion indicator */}
                     <td className="px-4 py-3">
-                      <div className={`flex items-center gap-1.5 ${isRTL ? "flex-row-reverse" : ""}`}>
-                        {/* Promote button */}
-                        <button
-                          onClick={() => setPromoModal({ product })}
-                          title={t.promote}
-                          className="w-7 h-7 flex items-center justify-center border border-[#C9A84C]/45 text-[#C9A84C] bg-[#C9A84C]/6 hover:border-[#C9A84C] hover:bg-[#C9A84C]/15 transition-all duration-200"
-                        >
-                          <RocketLaunchOutlinedIcon sx={{ fontSize: 13 }} />
-                        </button>
+                      <div className="flex flex-col gap-1 items-start">
+                        {stockChip(product.totalStock)}
+                        {product.promotion?.active && (product.promotion?.value ?? 0) > 0 && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#C9A84C]/14 text-[#A07830] text-[9px] font-bold uppercase tracking-wide border border-[#C9A84C]/30">
+                            <LocalOfferOutlinedIcon sx={{ fontSize: 9 }} />
+                            {isRTL ? "مُرقَّى" : "Promoted"}
+                          </span>
+                        )}
+                      </div>
+                    </td>
 
-                        {/* Tracked links button */}
-                        <button
-                          onClick={() => setLinksModal(product)}
-                          title={tr.seller.trackedLinks.title}
-                          className="w-7 h-7 flex items-center justify-center border border-[#1A1A2E]/15 text-[#1A1A2E]/50 hover:border-[#C9A84C]/50 hover:text-[#C9A84C] transition-all duration-200"
-                        >
-                          <ShareOutlinedIcon sx={{ fontSize: 13 }} />
-                        </button>
+                    {/* Actions — Promote (primary) + a grouped secondary cluster */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2 justify-end">
+                        {/* Promote / Edit Promo — reflects current promo state */}
+                        {product.promotion?.active && (product.promotion?.value ?? 0) > 0 ? (
+                          <button
+                            onClick={() => setPromoModal({ product })}
+                            className="inline-flex items-center gap-1.5 h-8 ps-2.5 pe-3 rounded-full border border-[#C9A84C]/60 bg-[#C9A84C]/10 text-[#A07830] text-[11px] font-bold hover:bg-[#C9A84C]/20 transition-colors"
+                          >
+                            <LocalOfferOutlinedIcon sx={{ fontSize: 13 }} />
+                            {isRTL ? "تعديل العرض" : "Edit Promo"}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setPromoModal({ product })}
+                            className="inline-flex items-center gap-1.5 h-8 ps-2.5 pe-3 rounded-full gold-gradient text-[#1A1A2E] text-[11px] font-bold shadow-sm hover:shadow transition-shadow"
+                          >
+                            <RocketLaunchOutlinedIcon sx={{ fontSize: 14 }} />
+                            {t.promote}
+                          </button>
+                        )}
 
-                        {/* Edit button */}
-                        <button
-                          onClick={() => navigate(`/seller/products/${product.id}/edit`)}
-                          title={t.edit}
-                          className="w-7 h-7 flex items-center justify-center border border-[#1A1A2E]/15 text-[#1A1A2E]/50 hover:border-[#C9A84C]/50 hover:text-[#C9A84C] transition-all duration-200"
-                        >
-                          <EditIcon sx={{ fontSize: 13 }} />
-                        </button>
-
-                        {/* Delete button */}
-                        <button
-                          onClick={() => setConfirmDelete(product)}
-                          title={t.deleteLabel}
-                          className="w-7 h-7 flex items-center justify-center border border-[#1A1A2E]/15 text-[#1A1A2E]/50 hover:border-red-300 hover:text-red-500 transition-all duration-200"
-                        >
-                          <DeleteIcon sx={{ fontSize: 13 }} />
-                        </button>
+                        {/* Secondary actions grouped in one soft pill */}
+                        <div className="inline-flex items-center rounded-full border border-[#1A1A2E]/10 bg-white overflow-hidden">
+                          {/* Tracked links */}
+                          <button
+                            onClick={() => setLinksModal(product)}
+                            title={tr.seller.trackedLinks.title}
+                            aria-label={tr.seller.trackedLinks.title}
+                            className="w-8 h-8 flex items-center justify-center text-[#1A1A2E]/45 hover:text-[#C9A84C] hover:bg-[#C9A84C]/8 transition-colors"
+                          >
+                            <ShareOutlinedIcon sx={{ fontSize: 15 }} />
+                          </button>
+                          <span className="w-px h-4 bg-[#1A1A2E]/8" />
+                          {/* Edit */}
+                          <button
+                            onClick={() => navigate(`/seller/products/${product.id}/edit`)}
+                            title={t.edit}
+                            aria-label={t.edit}
+                            className="w-8 h-8 flex items-center justify-center text-[#1A1A2E]/45 hover:text-[#C9A84C] hover:bg-[#C9A84C]/8 transition-colors"
+                          >
+                            <EditOutlinedIcon sx={{ fontSize: 15 }} />
+                          </button>
+                          <span className="w-px h-4 bg-[#1A1A2E]/8" />
+                          {/* Delete */}
+                          <button
+                            onClick={() => setConfirmDelete(product)}
+                            title={t.deleteLabel}
+                            aria-label={t.deleteLabel}
+                            className="w-8 h-8 flex items-center justify-center text-[#1A1A2E]/45 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          >
+                            <DeleteOutlineOutlinedIcon sx={{ fontSize: 15 }} />
+                          </button>
+                        </div>
                       </div>
                     </td>
                   </tr>
@@ -770,9 +848,9 @@ export default function ProductsPage() {
           onClick={(e) => e.target === e.currentTarget && !deleting && setConfirmDelete(null)}
           dir={isRTL ? "rtl" : "ltr"}
         >
-          <div className="bg-white border border-[#1A1A2E]/10 shadow-2xl w-full max-w-xs p-6 space-y-4">
-            <div className="w-12 h-12 bg-red-50 flex items-center justify-center mx-auto">
-              <DeleteIcon sx={{ fontSize: 20, color: "#ef4444" }} />
+          <div className="bg-white rounded-2xl border border-[#1A1A2E]/10 shadow-2xl w-full max-w-xs p-6 space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto">
+              <DeleteOutlineOutlinedIcon sx={{ fontSize: 24, color: "#ef4444" }} />
             </div>
             <div className="text-center">
               <h3 className="font-display font-bold text-[#1A1A2E] text-lg">{t.deleteProduct}</h3>
@@ -783,7 +861,7 @@ export default function ProductsPage() {
               </p>
             </div>
             {deleteError && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200">
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200">
                 <ErrorOutlineOutlinedIcon sx={{ fontSize: 14, color: "#ef4444" }} />
                 <p className="text-xs text-red-600">{deleteError}</p>
               </div>
@@ -792,14 +870,14 @@ export default function ProductsPage() {
               <button
                 onClick={() => { setConfirmDelete(null); setDeleteError(""); }}
                 disabled={deleting}
-                className="flex-1 h-10 border border-[#1A1A2E]/15 text-xs font-semibold text-[#1A1A2E]/70 hover:border-[#1A1A2E]/30 transition-colors disabled:opacity-50"
+                className="flex-1 h-11 rounded-full border border-[#1A1A2E]/15 text-xs font-semibold text-[#1A1A2E]/70 hover:border-[#1A1A2E]/30 transition-colors disabled:opacity-50"
               >
                 {t.cancel}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="flex-1 h-10 flex items-center justify-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold transition-colors disabled:opacity-60"
+                className="flex-1 h-11 rounded-full flex items-center justify-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold transition-colors disabled:opacity-60"
               >
                 {deleting && (
                   <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />

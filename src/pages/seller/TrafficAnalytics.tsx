@@ -6,6 +6,9 @@ import StarOutlineOutlinedIcon from "@mui/icons-material/StarOutlineOutlined";
 import InsightsOutlinedIcon from "@mui/icons-material/InsightsOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
+import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import FilterListOutlinedIcon from "@mui/icons-material/FilterListOutlined";
 import SellerLayout from "../../components/seller/SellerLayout";
 import { sellerService } from "../../services/sellerService";
 import { useLang } from "../../context/LangContext";
@@ -22,48 +25,123 @@ type RangeKey = "today" | "7d" | "30d" | "custom";
 
 const SOURCE_COLOR: Record<TrafficSource, string> = {
   instagram: "#E1306C",
-  tiktok: "#1A1A2E",
-  whatsapp: "#25D366",
-  facebook: "#1877F2",
-  direct: "#C9A84C",
-  other: "#94A3B8",
+  tiktok:    "#1A1A2E",
+  whatsapp:  "#25D366",
+  facebook:  "#1877F2",
+  direct:    "#C9A84C",
+  other:     "#94A3B8",
 };
 
-// ── Visits trend bar chart (pure SVG, RTL-aware) ──────────────────────────────
-function BarChart({ data, emptyLabel, isRTL }: { data: TrafficTrendPoint[]; emptyLabel: string; isRTL: boolean }) {
+// ── Visits trend bar chart — RTL-aware, hover tooltips ─────────────────────────
+function BarChart({
+  data,
+  emptyLabel,
+  isRTL,
+}: {
+  data: TrafficTrendPoint[];
+  emptyLabel: string;
+  isRTL: boolean;
+}) {
+  const [hovered, setHovered] = useState<number | null>(null);
   const HEIGHT = 130;
   const BAR_W = 12;
   const GAP = 5;
+  const GRID = 4;
+
   const max = useMemo(() => Math.max(...data.map((d) => d.visits), 1), [data]);
-  const latestDate = useMemo(() => (data.length ? data[data.length - 1].date : null), [data]);
+  const latestDate = data.length ? data[data.length - 1].date : null;
   const hasAny = data.some((d) => d.visits > 0);
 
   if (data.length === 0 || !hasAny) {
-    return <div className="h-36 flex items-center justify-center text-charcoal/30 text-sm">{emptyLabel}</div>;
+    return (
+      <div className="h-36 flex flex-col items-center justify-center gap-2 text-[#1A1A2E]/30">
+        <InsightsOutlinedIcon sx={{ fontSize: 28, opacity: 0.2 }} />
+        <span className="text-sm">{emptyLabel}</span>
+      </div>
+    );
   }
 
   const displayed = isRTL ? [...data].reverse() : data;
   const totalW = displayed.length * (BAR_W + GAP) - GAP;
+  const svgW = Math.max(totalW, 300);
 
   return (
     <div className="relative overflow-x-auto">
       <svg
         width="100%"
-        viewBox={`0 0 ${Math.max(totalW, 200)} ${HEIGHT + 20}`}
-        preserveAspectRatio="none"
-        className="w-full"
-        style={{ minHeight: HEIGHT + 20 }}
+        viewBox={`0 0 ${svgW} ${HEIGHT + 24}`}
+        preserveAspectRatio="xMidYMid meet"
+        style={{ minHeight: HEIGHT + 24 }}
       >
+        {/* Grid lines */}
+        {Array.from({ length: GRID }).map((_, gi) => (
+          <line
+            key={gi}
+            x1={0}
+            y1={(HEIGHT / GRID) * gi}
+            x2={svgW}
+            y2={(HEIGHT / GRID) * gi}
+            stroke="#1A1A2E0D"
+            strokeWidth={1}
+            strokeDasharray="4 3"
+          />
+        ))}
+
+        {/* Bars */}
         {displayed.map((d, i) => {
-          const barH = Math.max(2, (d.visits / max) * HEIGHT);
+          const barH = Math.max(3, (d.visits / max) * HEIGHT);
           const x = i * (BAR_W + GAP);
           const y = HEIGHT - barH;
           const isLatest = d.date === latestDate;
+          const isHov = hovered === i;
           return (
-            <g key={d.date}>
-              <rect x={x} y={y} width={BAR_W} height={barH} fill={isLatest ? "#C9A84C" : "#C9A84C40"} rx={1} />
-              {(displayed.length <= 14 || i % 5 === 0) && (
-                <text x={x + BAR_W / 2} y={HEIGHT + 14} textAnchor="middle" fontSize={7} fill="#1A1A2E60">
+            <g
+              key={d.date}
+              onMouseEnter={() => setHovered(i)}
+              onMouseLeave={() => setHovered(null)}
+              style={{ cursor: "pointer" }}
+            >
+              <rect
+                x={x}
+                y={y}
+                width={BAR_W}
+                height={barH}
+                fill={isLatest ? "#C9A84C" : isHov ? "#C9A84C80" : "#C9A84C30"}
+                rx={3}
+                style={{ transition: "fill 0.12s" }}
+              />
+              {/* Hover tooltip */}
+              {isHov && (
+                <g>
+                  <rect
+                    x={Math.min(x - 18, svgW - 68)}
+                    y={Math.max(y - 26, 2)}
+                    width={64}
+                    height={20}
+                    rx={4}
+                    fill="#1A1A2E"
+                    opacity={0.88}
+                  />
+                  <text
+                    x={Math.min(x - 18, svgW - 68) + 32}
+                    y={Math.max(y - 26, 2) + 13}
+                    textAnchor="middle"
+                    fontSize={8.5}
+                    fill="#fff"
+                  >
+                    {d.visits.toLocaleString()}
+                  </text>
+                </g>
+              )}
+              {/* Date label every 7 bars */}
+              {(displayed.length <= 10 || i % 7 === 0) && (
+                <text
+                  x={x + BAR_W / 2}
+                  y={HEIGHT + 17}
+                  textAnchor="middle"
+                  fontSize={7}
+                  fill="#1A1A2E50"
+                >
                   {d.date.slice(5)}
                 </text>
               )}
@@ -75,25 +153,35 @@ function BarChart({ data, emptyLabel, isRTL }: { data: TrafficTrendPoint[]; empt
   );
 }
 
-// ── Tiny sparkline for source rows ────────────────────────────────────────────
+// ── Sparkline ──────────────────────────────────────────────────────────────────
 function Sparkline({ data, color }: { data: TrafficTrendPoint[]; color: string }) {
   const max = Math.max(...data.map((d) => d.visits), 1);
-  const W = 80;
-  const H = 22;
+  const W = 72;
+  const H = 24;
   const n = data.length;
   if (n === 0) return <div style={{ width: W, height: H }} />;
   return (
-    <svg width={W} height={H} className="shrink-0" preserveAspectRatio="none">
+    <svg width={W} height={H} className="shrink-0 rounded" preserveAspectRatio="none">
       {data.map((d, i) => {
         const bw = W / n;
-        const bh = Math.max(1, (d.visits / max) * H);
-        return <rect key={i} x={i * bw} y={H - bh} width={Math.max(1, bw - 1)} height={bh} fill={`${color}AA`} />;
+        const bh = Math.max(2, (d.visits / max) * H);
+        return (
+          <rect
+            key={i}
+            x={i * bw}
+            y={H - bh}
+            width={Math.max(1, bw - 1.5)}
+            height={bh}
+            fill={`${color}99`}
+            rx={1.5}
+          />
+        );
       })}
     </svg>
   );
 }
 
-// ── KPI card ──────────────────────────────────────────────────────────────────
+// ── KPI card — RTL-correct ─────────────────────────────────────────────────────
 function KpiCard({
   icon,
   label,
@@ -101,6 +189,7 @@ function KpiCard({
   value,
   accent,
   loading,
+  isRTL,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -108,30 +197,37 @@ function KpiCard({
   value: string;
   accent: string;
   loading: boolean;
+  isRTL: boolean;
 }) {
   return (
-    <div className="bg-white border-t-2 overflow-hidden" style={{ borderTopColor: accent }}>
-      <div className="p-5 space-y-3">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-charcoal/40">{label}</p>
-            <p className="text-[10px] text-charcoal/30 mt-0.5">{desc}</p>
-          </div>
-          <div className="w-9 h-9 flex items-center justify-center shrink-0" style={{ backgroundColor: `${accent}18` }}>
+    <div className="sl-card sl-card-hover p-5 relative overflow-hidden">
+      <span className="absolute inset-x-0 top-0 h-1 rounded-b-full" style={{ background: accent }} />
+      <div className="space-y-3.5">
+        <div className={`flex items-start gap-3 ${isRTL ? "flex-row-reverse" : ""}`}>
+          <div
+            className="w-11 h-11 sl-chip flex items-center justify-center shrink-0"
+            style={{ backgroundColor: `${accent}1f` }}
+          >
             {icon}
+          </div>
+          <div className={isRTL ? "text-right" : "text-left"}>
+            <p className="sl-eyebrow">{label}</p>
+            <p className="text-[10px] text-[#1A1A2E]/35 mt-0.5 leading-snug">{desc}</p>
           </div>
         </div>
         {loading ? (
-          <div className="h-7 w-28 bg-charcoal/8 rounded animate-pulse" />
+          <div className="h-8 w-28 bg-[#1A1A2E]/8 rounded-lg animate-pulse" />
         ) : (
-          <p className="font-display text-2xl font-bold text-charcoal tabular-nums">{value}</p>
+          <p className={`font-display text-2xl font-bold text-[#1A1A2E] tabular-nums ${isRTL ? "text-right" : "text-left"}`}>
+            {value}
+          </p>
         )}
       </div>
     </div>
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// ── Main page ──────────────────────────────────────────────────────────────────
 export default function TrafficAnalyticsPage() {
   const { tr, isRTL } = useLang();
   const t = tr.seller.trafficAnalyticsPage;
@@ -161,31 +257,24 @@ export default function TrafficAnalyticsPage() {
   }, [range, from, to, productId]);
 
   useEffect(() => {
-    if (!params) {
-      setLoading(false);
-      return;
-    }
+    if (!params) { setLoading(false); return; }
     let cancelled = false;
     setLoading(true);
     setError(null);
     const handle = setTimeout(() => {
-      Promise.all([sellerService.getTrafficOverview(params), sellerService.getTrafficSources(params)])
+      Promise.all([
+        sellerService.getTrafficOverview(params),
+        sellerService.getTrafficSources(params),
+      ])
         .then(([ov, src]) => {
           if (cancelled) return;
           setOverview(ov);
           setSources(src);
         })
-        .catch((err) => {
-          if (!cancelled) setError(err?.message || t.error);
-        })
-        .finally(() => {
-          if (!cancelled) setLoading(false);
-        });
+        .catch((err) => { if (!cancelled) setError(err?.message || t.error); })
+        .finally(() => { if (!cancelled) setLoading(false); });
     }, 300);
-    return () => {
-      cancelled = true;
-      clearTimeout(handle);
-    };
+    return () => { cancelled = true; clearTimeout(handle); };
   }, [params, t.error]);
 
   const handleExport = useCallback(async () => {
@@ -201,11 +290,8 @@ export default function TrafficAnalyticsPage() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-    } catch {
-      // download failure — no banner needed
-    } finally {
-      setExporting(false);
-    }
+    } catch { /* silent */ }
+    finally { setExporting(false); }
   }, [params]);
 
   const sourceName = (s: TrafficSource) => t.sources[s] ?? s;
@@ -213,42 +299,57 @@ export default function TrafficAnalyticsPage() {
 
   const RANGE_TABS: { key: RangeKey; label: string }[] = [
     { key: "today", label: t.rangeToday },
-    { key: "7d", label: t.range7d },
-    { key: "30d", label: t.range30d },
-    { key: "custom", label: t.rangeCustom },
+    { key: "7d",    label: t.range7d    },
+    { key: "30d",   label: t.range30d   },
+    { key: "custom",label: t.rangeCustom },
   ];
 
   return (
     <SellerLayout>
-      <div className="p-6 md:p-8 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+      <div className="p-6 sm:p-8 lg:p-10 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+
         {/* Header */}
-        <div className="flex items-start justify-between flex-wrap gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <InsightsOutlinedIcon sx={{ fontSize: 20, color: "#C9A84C" }} />
-              <h1 className="font-display text-2xl font-bold text-charcoal">{t.title}</h1>
+        <div className="flex items-start justify-between flex-wrap gap-4 sl-rise">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 sl-icon-tile-gold flex items-center justify-center shrink-0">
+              <InsightsOutlinedIcon sx={{ fontSize: 24, color: "#C9A84C" }} />
             </div>
-            <p className="text-charcoal/50 text-sm">{t.subtitle}</p>
+            <div className={isRTL ? "text-right" : "text-left"}>
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1A1A2E]">
+                {t.title}
+              </h1>
+              <p className="text-[#1A1A2E]/50 text-sm mt-0.5">{t.subtitle}</p>
+            </div>
           </div>
+
+          {/* Export button with spinner */}
           <button
             onClick={handleExport}
             disabled={exporting || !params || loading}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold border border-charcoal/15 text-charcoal hover:bg-cream/60 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold border border-[#1A1A2E]/12 bg-white text-[#1A1A2E]/70 hover:border-[#C9A84C]/50 hover:text-[#C9A84C] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            <FileDownloadOutlinedIcon sx={{ fontSize: 16 }} />
+            {exporting ? (
+              <span className="w-4 h-4 border-2 border-[#1A1A2E]/20 border-t-[#C9A84C] rounded-full animate-spin" />
+            ) : (
+              <FileDownloadOutlinedIcon sx={{ fontSize: 16 }} />
+            )}
             {exporting ? t.exporting : t.exportCsv}
           </button>
         </div>
 
-        {/* Controls */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex border border-charcoal/10 bg-white">
+        {/* Controls row */}
+        <div className="sl-card p-4 flex flex-wrap items-center gap-4">
+          {/* Range pills */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <CalendarTodayOutlinedIcon sx={{ fontSize: 15, color: "#C9A84C" }} />
             {RANGE_TABS.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setRange(tab.key)}
-                className={`px-3.5 py-2 text-xs font-semibold transition-colors ${
-                  range === tab.key ? "bg-charcoal text-white" : "text-charcoal/55 hover:bg-cream/60"
+                className={`h-8 px-3.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+                  range === tab.key
+                    ? "sl-nav-active"
+                    : "border border-[#1A1A2E]/10 text-[#1A1A2E]/55 hover:text-[#1A1A2E] hover:border-[#C9A84C]/40"
                 }`}
               >
                 {tab.label}
@@ -256,141 +357,214 @@ export default function TrafficAnalyticsPage() {
             ))}
           </div>
 
+          {/* Custom date range — RTL-aware */}
           {range === "custom" && (
-            <div className="flex items-center gap-2 text-xs text-charcoal/60">
-              <span>{t.from}</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-[#1A1A2E]/50 font-medium">{t.from}</span>
               <input
                 type="date"
                 value={from}
                 max={to || undefined}
                 onChange={(e) => setFrom(e.target.value)}
-                className="border border-charcoal/15 px-2 py-1.5 text-xs"
+                className="h-8 rounded-xl border border-[#1A1A2E]/12 px-3 text-xs text-[#1A1A2E] bg-white focus:outline-none focus:border-[#C9A84C]/60 transition-colors"
               />
-              <span>{t.to}</span>
+              <span className="text-xs text-[#1A1A2E]/50 font-medium">{t.to}</span>
               <input
                 type="date"
                 value={to}
                 min={from || undefined}
                 onChange={(e) => setTo(e.target.value)}
-                className="border border-charcoal/15 px-2 py-1.5 text-xs"
+                className="h-8 rounded-xl border border-[#1A1A2E]/12 px-3 text-xs text-[#1A1A2E] bg-white focus:outline-none focus:border-[#C9A84C]/60 transition-colors"
               />
             </div>
           )}
 
-          <div className="flex items-center gap-2 ms-auto">
-            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-charcoal/40">{t.scopeLabel}</span>
-            <select
-              value={productId}
-              onChange={(e) => setProductId(e.target.value)}
-              className="border border-charcoal/15 bg-white px-2.5 py-1.5 text-xs max-w-[220px]"
-            >
-              <option value="">{t.wholeStore}</option>
-              {products.map((p) => (
-                <option key={p._id} value={p._id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+          {/* Product scope */}
+          <div className="flex items-center gap-2 ms-auto flex-shrink-0">
+            <FilterListOutlinedIcon sx={{ fontSize: 15, color: "#C9A84C" }} />
+            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#1A1A2E]/40 hidden sm:block">
+              {t.scopeLabel}
+            </span>
+            <div className="relative">
+              <StorefrontOutlinedIcon
+                sx={{
+                  fontSize: 14,
+                  color: "rgba(26,26,46,0.35)",
+                  position: "absolute",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  insetInlineStart: 10,
+                  pointerEvents: "none",
+                }}
+              />
+              <select
+                value={productId}
+                onChange={(e) => setProductId(e.target.value)}
+                className="h-9 rounded-full border border-[#1A1A2E]/12 bg-white text-xs text-[#1A1A2E] focus:outline-none focus:border-[#C9A84C]/60 transition-colors cursor-pointer max-w-[200px]"
+                style={{ paddingInlineStart: 30, paddingInlineEnd: 12 }}
+              >
+                <option value="">{t.wholeStore}</option>
+                {products.map((p) => (
+                  <option key={p._id} value={p._id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
         {/* Error banner */}
         {error && (
-          <div className="flex items-center gap-3 px-5 py-4 bg-red-50 border border-red-200 text-red-700 text-sm">
-            <ErrorOutlineOutlinedIcon sx={{ fontSize: 18 }} />
+          <div className="flex items-center gap-3 px-5 py-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm">
+            <ErrorOutlineOutlinedIcon sx={{ fontSize: 18, flexShrink: 0 }} />
             {error}
           </div>
         )}
 
-        {/* KPI cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {/* KPI cards — 2 on mobile, 4 on desktop */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard
-            icon={<GroupsOutlinedIcon sx={{ fontSize: 18, color: "#C9A84C" }} />}
+            icon={<GroupsOutlinedIcon sx={{ fontSize: 20, color: "#C9A84C" }} />}
             label={t.totalVisits}
             desc={t.totalVisitsDesc}
             value={nf(overview?.totalVisits ?? 0)}
             accent="#C9A84C"
             loading={loading}
+            isRTL={isRTL}
           />
           <KpiCard
-            icon={<ShoppingBagOutlinedIcon sx={{ fontSize: 18, color: "#1A1A2E" }} />}
+            icon={<ShoppingBagOutlinedIcon sx={{ fontSize: 20, color: "#1A1A2E" }} />}
             label={t.totalOrders}
             desc={t.totalOrdersDesc}
             value={nf(overview?.totalOrders ?? 0)}
             accent="#1A1A2E"
             loading={loading}
+            isRTL={isRTL}
           />
           <KpiCard
-            icon={<PercentOutlinedIcon sx={{ fontSize: 18, color: "#10B981" }} />}
+            icon={<PercentOutlinedIcon sx={{ fontSize: 20, color: "#10B981" }} />}
             label={t.conversionRate}
             desc={t.conversionRateDesc}
             value={`${(overview?.conversionRate ?? 0).toFixed(1)}%`}
             accent="#10B981"
             loading={loading}
+            isRTL={isRTL}
           />
           <KpiCard
-            icon={<StarOutlineOutlinedIcon sx={{ fontSize: 18, color: "#E1306C" }} />}
+            icon={<StarOutlineOutlinedIcon sx={{ fontSize: 20, color: "#E1306C" }} />}
             label={t.topSource}
             desc={t.topSourceDesc}
             value={overview?.topSource ? sourceName(overview.topSource) : "—"}
             accent="#E1306C"
             loading={loading}
+            isRTL={isRTL}
           />
         </div>
 
-        {/* Chart + source breakdown */}
+        {/* Chart + Source breakdown */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-4">
+
           {/* Visits trend */}
-          <div className="bg-white border border-charcoal/8 overflow-hidden">
-            <div className="px-5 py-4 border-b border-charcoal/8 flex items-center gap-2">
-              <InsightsOutlinedIcon sx={{ fontSize: 14, color: "#C9A84C" }} />
-              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-charcoal/40">{t.visitsTrend}</span>
+          <div className="sl-card overflow-hidden">
+            <div className="px-5 py-4 border-b border-[#1A1A2E]/8 flex items-center gap-2">
+              <InsightsOutlinedIcon sx={{ fontSize: 16, color: "#C9A84C" }} />
+              <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#1A1A2E]/45">
+                {t.visitsTrend}
+              </span>
             </div>
-            <div className="px-5 pt-4 pb-4">
+            <div className="px-5 pt-5 pb-4">
               {loading ? (
-                <div className="h-36 animate-pulse bg-charcoal/5 rounded" />
+                <div className="h-36 animate-pulse bg-[#1A1A2E]/4 rounded-xl" />
               ) : (
-                <BarChart data={overview?.trend ?? []} emptyLabel={t.visitsTrendEmpty} isRTL={isRTL} />
+                <BarChart
+                  data={overview?.trend ?? []}
+                  emptyLabel={t.visitsTrendEmpty}
+                  isRTL={isRTL}
+                />
               )}
             </div>
           </div>
 
-          {/* Source breakdown */}
-          <div className="bg-white border border-charcoal/8 overflow-hidden">
-            <div className="px-5 py-4 border-b border-charcoal/8 flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-charcoal/40">{t.sourceBreakdown}</span>
+          {/* Source breakdown — modern cards */}
+          <div className="sl-card overflow-hidden">
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-[#1A1A2E]/8 flex items-center justify-between gap-2">
+              <span className="text-xs font-bold uppercase tracking-[0.15em] text-[#1A1A2E]/45">
+                {t.sourceBreakdown}
+              </span>
+              {!loading && sources.length > 0 && (
+                <span className="text-[10px] text-[#1A1A2E]/35 font-medium">
+                  {nf(overview?.totalVisits ?? 0)} {t.visits}
+                </span>
+              )}
             </div>
-            <div className="divide-y divide-charcoal/5">
+
+            {/* Source rows */}
+            <div className="divide-y divide-[#1A1A2E]/5">
               {loading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="px-5 py-4 animate-pulse">
-                    <div className="h-3 w-24 bg-charcoal/8 rounded mb-2" />
-                    <div className="h-2 w-full bg-charcoal/5 rounded" />
+                Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="px-5 py-4 animate-pulse space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-lg bg-[#1A1A2E]/8" />
+                        <div className="h-3 w-20 bg-[#1A1A2E]/8 rounded" />
+                      </div>
+                      <div className="h-3 w-12 bg-[#1A1A2E]/6 rounded" />
+                    </div>
+                    <div className="h-1.5 bg-[#1A1A2E]/6 rounded-full" />
                   </div>
                 ))
               ) : sources.length === 0 ? (
-                <div className="px-5 py-10 text-center text-sm text-charcoal/30">{t.noSources}</div>
+                <div className="px-5 py-12 text-center">
+                  <InsightsOutlinedIcon sx={{ fontSize: 28, color: "rgba(26,26,46,0.12)", display: "block", mx: "auto", mb: 1.5 }} />
+                  <p className="text-sm text-[#1A1A2E]/30">{t.noSources}</p>
+                </div>
               ) : (
-                sources.map((s) => (
-                  <div key={s.source} className="px-5 py-3.5">
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <span className="flex items-center gap-2 text-xs font-semibold text-charcoal">
-                        <span className="w-2.5 h-2.5 inline-block rounded-sm" style={{ backgroundColor: SOURCE_COLOR[s.source] }} />
-                        {sourceName(s.source)}
-                      </span>
-                      <span className="text-xs text-charcoal/50 tabular-nums">
-                        {nf(s.visits)} <span className="text-[10px] text-charcoal/30">{t.visits}</span>
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-2 bg-charcoal/8 rounded overflow-hidden">
-                        <div className="h-full rounded" style={{ width: `${s.percentage}%`, backgroundColor: SOURCE_COLOR[s.source] }} />
+                sources.map((s, idx) => {
+                  const color = SOURCE_COLOR[s.source];
+                  return (
+                    <div key={s.source} className="px-5 py-3.5 space-y-2">
+                      <div className={`flex items-center justify-between gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
+                        {/* Source name + rank */}
+                        <div className={`flex items-center gap-2.5 ${isRTL ? "flex-row-reverse" : ""}`}>
+                          <div
+                            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: `${color}20` }}
+                          >
+                            <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: color, display: "block" }} />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-[#1A1A2E]">{sourceName(s.source)}</p>
+                            {idx === 0 && (
+                              <p className="text-[9px] font-semibold text-[#C9A84C] uppercase tracking-wide">
+                                #{1} {t.topSource}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Visits + sparkline */}
+                        <div className={`flex items-center gap-3 shrink-0 ${isRTL ? "flex-row-reverse" : ""}`}>
+                          <div className={isRTL ? "text-left" : "text-right"}>
+                            <p className="text-xs font-bold text-[#1A1A2E] tabular-nums">{nf(s.visits)}</p>
+                            <p className="text-[9px] text-[#1A1A2E]/35">{s.percentage.toFixed(0)}%</p>
+                          </div>
+                          <Sparkline data={s.trend} color={color} />
+                        </div>
                       </div>
-                      <span className="text-[10px] text-charcoal/40 tabular-nums w-10 text-right">{s.percentage.toFixed(0)}%</span>
-                      <Sparkline data={s.trend} color={SOURCE_COLOR[s.source]} />
+
+                      {/* Progress bar */}
+                      <div className="h-1.5 bg-[#1A1A2E]/6 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: `${s.percentage}%`,
+                            backgroundColor: color,
+                          }}
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

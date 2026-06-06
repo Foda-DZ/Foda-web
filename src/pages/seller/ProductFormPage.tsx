@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import DeleteIcon from "@mui/icons-material/Delete";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import CheckIcon from "@mui/icons-material/Check";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import ImageIcon from "@mui/icons-material/Image";
+import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternateOutlined";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import SellOutlinedIcon from "@mui/icons-material/SellOutlined";
@@ -24,8 +25,6 @@ import { getSizesByCategory, isNumericSizes } from "../../utils/sizeOptions";
 import type { SvgIconComponent } from "@mui/icons-material";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const SIZES_OPTIONS = ["XS", "S", "M", "L", "XL", "XXL", "One Size"];
-// Deprecated: Use getSizesByCategory() instead for dynamic sizes
 const COLORS_OPTIONS = [
   { name: "Black", hex: "#1a1a1a" },
   { name: "White", hex: "#f9f9f9" },
@@ -48,25 +47,30 @@ const COLORS_OPTIONS = [
 ];
 
 const inputSx = {
-  "& .MuiOutlinedInput-root": { borderRadius: 0, bgcolor: "#fff" },
+  "& .MuiOutlinedInput-root": { borderRadius: "0.75rem", bgcolor: "#fff" },
 };
 
 // ─── Section Header ──────────────────────────────────────────────────────────
 function SectionHeader({
   title,
+  desc,
   Icon,
 }: {
   title: string;
+  desc?: string;
   Icon: SvgIconComponent;
 }) {
   return (
-    <div className="flex items-center gap-2.5 mb-1">
-      <div className="w-7 h-7 bg-[#C9A84C]/10 flex items-center justify-center">
-        <Icon sx={{ fontSize: 14, color: "#C9A84C" }} />
+    <div className="flex items-center gap-3 mb-1">
+      <div className="w-9 h-9 sl-icon-tile-gold flex items-center justify-center shrink-0">
+        <Icon sx={{ fontSize: 17, color: "#C9A84C" }} />
       </div>
-      <h2 className="font-semibold text-[#1A1A2E] text-sm uppercase tracking-widest">
-        {title}
-      </h2>
+      <div>
+        <h2 className="font-display font-bold text-[#1A1A2E] text-base leading-tight">
+          {title}
+        </h2>
+        {desc && <p className="text-[11px] text-[#1A1A2E]/45 mt-0.5">{desc}</p>}
+      </div>
     </div>
   );
 }
@@ -108,7 +112,7 @@ function ImageUpload({
         onChange={handleFile}
       />
       {preview ? (
-        <div className="relative group border border-[#1A1A2E]/10 overflow-hidden">
+        <div className="relative group rounded-xl border border-[#1A1A2E]/10 overflow-hidden">
           <img
             src={preview}
             alt="preview"
@@ -118,16 +122,17 @@ function ImageUpload({
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-colors duration-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-colors duration-200"
             >
-              <CloudUploadIcon sx={{ fontSize: 11 }} /> {changeLabel}
+              <CloudUploadIcon sx={{ fontSize: 13 }} /> {changeLabel}
             </button>
             <button
               type="button"
               onClick={() => onFile(null, "")}
-              className="flex items-center gap-1 px-3 py-1.5 bg-red-500/80 hover:bg-red-500 text-white text-xs transition-colors duration-200"
+              aria-label="remove"
+              className="flex items-center gap-1 w-8 h-8 rounded-full justify-center bg-red-500/80 hover:bg-red-500 text-white transition-colors duration-200"
             >
-              <DeleteIcon sx={{ fontSize: 11 }} />
+              <DeleteOutlineOutlinedIcon sx={{ fontSize: 15 }} />
             </button>
           </div>
         </div>
@@ -135,14 +140,14 @@ function ImageUpload({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className={`w-full h-36 border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02] ${
+          className={`w-full h-36 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02] ${
             required
               ? "border-[#C9A84C]/40 hover:border-[#C9A84C] hover:bg-[#C9A84C]/5"
               : "border-[#1A1A2E]/15 hover:border-[#C9A84C]/50 hover:bg-[#FAF7F2]"
           }`}
         >
-          <ImageIcon sx={{ fontSize: 22, color: "rgba(26,26,46,0.25)" }} />
-          <span className="text-xs font-semibold text-[#1A1A2E]/40">
+          <AddPhotoAlternateOutlinedIcon sx={{ fontSize: 24, color: "rgba(201,168,76,0.5)" }} />
+          <span className="text-xs font-semibold text-[#1A1A2E]/45">
             {uploadLabel}
             {required ? " *" : ""}
           </span>
@@ -170,7 +175,7 @@ interface FormState {
   brand: string;
   mainCategory: string;
   subCategory: string;
-  price: number;
+  price: string;
   description: string;
   sizes: string[];
   colors: string[];
@@ -183,7 +188,7 @@ const defaultForm: FormState = {
   brand: "",
   mainCategory: "Women",
   subCategory: "Dresses",
-  price: 0,
+  price: "",
   description: "",
   sizes: [],
   colors: [],
@@ -204,29 +209,21 @@ export default function ProductFormPage() {
     : null;
 
   const mainCategories = [
-    { value: "Men", label: "Men" },
-    { value: "Women", label: "Women" },
-    { value: "Kids", label: "Kids" },
-    { value: "Accessories", label: "Accessories" },
-    { value: "Other", label: "Other" },
+    { value: "Men", label: t.catMen },
+    { value: "Women", label: t.catWomen },
+    { value: "Kids", label: t.catKids },
+    { value: "Accessories", label: t.catAccessories },
+    { value: "Other", label: t.catOther },
   ];
 
-  const subCategories = [
-    { value: "Shirts", label: "Shirts" },
-    { value: "Pants", label: "Pants" },
-    { value: "Dresses", label: "Dresses" },
-    { value: "Shoes", label: "Shoes" },
-    { value: "Jackets", label: "Jackets" },
-    { value: "Hoodies", label: "Hoodies" },
-    { value: "Jeans", label: "Jeans" },
-    { value: "Shorts", label: "Shorts" },
-    { value: "T-Shirts", label: "T-Shirts" },
-    { value: "Sweaters", label: "Sweaters" },
-    { value: "Coats", label: "Coats" },
-    { value: "Bags", label: "Bags" },
-    { value: "Hats", label: "Hats" },
-    { value: "Other", label: "Other" },
-  ];
+  const subCategoryKeys = [
+    "Shirts", "Pants", "Dresses", "Shoes", "Jackets", "Hoodies", "Jeans",
+    "Shorts", "T-Shirts", "Sweaters", "Coats", "Bags", "Hats", "Other",
+  ] as const;
+  const subCategories = subCategoryKeys.map((value) => ({
+    value,
+    label: t.subCats[value],
+  }));
 
   const [form, setForm] = useState<FormState>(defaultForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -243,7 +240,7 @@ export default function ProductFormPage() {
         brand: existingProduct.brand || "",
         mainCategory: existingProduct.category,
         subCategory: existingProduct.subCategory || "Other",
-        price: existingProduct.price,
+        price: String(existingProduct.price),
         description: existingProduct.description || "",
         sizes: existingProduct.sizes,
         colors: existingProduct.colors,
@@ -309,16 +306,12 @@ export default function ProductFormPage() {
     }
   }, [form.subCategory, availableSizes]);
 
-  // Strip thousands separators / whitespace so a typed "1,500" parses cleanly.
-  const parsePrice = (raw: string): number =>
-    Number(String(raw).trim().replace(/,/g, ""));
-
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = t.required;
-    if (!form.brand.trim()) e.brand = "Brand is required";
-    const priceNum = form.price;
-    if (!form.price || Number.isNaN(priceNum) || priceNum <= 0)
+    if (!form.brand.trim()) e.brand = t.brandRequired;
+    const priceNum = parseFloat(form.price);
+    if (!form.price.trim() || Number.isNaN(priceNum) || priceNum <= 0)
       e.price = t.validPrice;
     if (!form.sizes.length) e.sizes = t.selectSize;
     if (!form.colors.length) e.colors = t.selectColor;
@@ -339,11 +332,12 @@ export default function ProductFormPage() {
     setSaving(true);
 
     try {
+      const priceNum = parseFloat(form.price);
       if (isEdit && id) {
         await updateProduct(id, {
           name: form.name.trim(),
           brand: form.brand.trim(),
-          price: form.price,
+          price: priceNum,
           mainCategory: form.mainCategory,
           subCategory: form.subCategory,
           description: form.description.trim() || undefined,
@@ -354,7 +348,7 @@ export default function ProductFormPage() {
         await createProduct({
           name: form.name.trim(),
           brand: form.brand.trim(),
-          price: form.price,
+          price: priceNum,
           mainCategory: form.mainCategory,
           subCategory: form.subCategory,
           description: form.description.trim() || undefined,
@@ -386,32 +380,36 @@ export default function ProductFormPage() {
 
   return (
     <SellerLayout>
-      <div className="p-8 max-w-3xl" dir={isRTL ? "rtl" : "ltr"}>
+      <div className="p-6 sm:p-8 lg:p-10 max-w-3xl mx-auto" dir={isRTL ? "rtl" : "ltr"}>
         {/* Header */}
-        <div
-          className={`flex items-center gap-3 mb-6 ${isRTL ? "flex-row-reverse" : ""}`}
-        >
+        <div className="flex items-center gap-3 mb-6 sl-rise">
           <IconButton
             onClick={() => navigate("/seller/products")}
             sx={{
-              borderRadius: 0,
-              width: 36,
-              height: 36,
-              border: "1px solid rgba(26,26,46,0.15)",
-              color: "rgba(26,26,46,0.5)",
+              borderRadius: "999px",
+              width: 40,
+              height: 40,
+              border: "1px solid rgba(26,26,46,0.12)",
+              bgcolor: "#fff",
+              color: "rgba(26,26,46,0.55)",
               "&:hover": {
                 borderColor: "rgba(201,168,76,0.5)",
                 color: "#C9A84C",
+                bgcolor: "rgba(201,168,76,0.06)",
               },
             }}
           >
-            <ArrowBackIcon sx={{ fontSize: 16 }} />
+            {isRTL ? (
+              <ArrowForwardIcon sx={{ fontSize: 18 }} />
+            ) : (
+              <ArrowBackIcon sx={{ fontSize: 18 }} />
+            )}
           </IconButton>
-          <div>
-            <h1 className="font-display text-2xl font-bold text-[#1A1A2E]">
+          <div className={isRTL ? "text-right" : "text-left"}>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1A1A2E]">
               {isEdit ? t.editProduct : t.addNewProduct}
             </h1>
-            <p className="text-[#1A1A2E]/50 text-sm">
+            <p className="text-[#1A1A2E]/50 text-sm mt-0.5">
               {isEdit ? t.editSubtitle : t.addSubtitle}
             </p>
           </div>
@@ -419,7 +417,7 @@ export default function ProductFormPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* ── Basic info ────────────────────────────────────────────── */}
-          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
+          <div className="sl-card p-6 space-y-4 sl-rise transition-shadow duration-300 hover:shadow-md">
             <SectionHeader title={t.basicInfo} Icon={InfoOutlinedIcon} />
 
             {/* Row 1: Name + Brand */}
@@ -435,10 +433,10 @@ export default function ProductFormPage() {
                 sx={inputSx}
               />
               <TextField
-                label="Brand *"
+                label={t.brand}
                 value={form.brand}
                 onChange={(e) => set("brand", e.target.value)}
-                placeholder="e.g. Nike, Zara, Local Brand…"
+                placeholder={t.brandPlaceholder}
                 error={!!errors.brand}
                 helperText={errors.brand}
                 fullWidth
@@ -450,7 +448,7 @@ export default function ProductFormPage() {
             {/* Row 2: Categories */}
             <div className="grid grid-cols-2 gap-4">
               <TextField
-                label="Main Category"
+                label={t.mainCategoryLabel}
                 value={form.mainCategory}
                 onChange={(e) => set("mainCategory", e.target.value)}
                 select
@@ -463,7 +461,7 @@ export default function ProductFormPage() {
                 ))}
               </TextField>
               <TextField
-                label="Sub Category"
+                label={t.subCategoryLabel}
                 value={form.subCategory}
                 onChange={(e) => set("subCategory", e.target.value)}
                 select
@@ -491,15 +489,20 @@ export default function ProductFormPage() {
           </div>
 
           {/* ── Pricing & Stock ───────────────────────────────────────── */}
-          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
-            <SectionHeader title={t.pricingStock} Icon={SellOutlinedIcon} />
+          <div className="sl-card p-6 space-y-4 sl-rise transition-shadow duration-300 hover:shadow-md">
+            <SectionHeader
+              title={t.pricingStock}
+              desc={t.pricingDesc}
+              Icon={SellOutlinedIcon}
+            />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <TextField
                 label={t.price}
-                type="number"
+                type="text"
+                inputMode="decimal"
                 value={form.price}
-                onChange={(e) => set("price", Number(e.target.value))}
-                placeholder="8900"
+                onChange={(e) => set("price", e.target.value)}
+                placeholder={t.pricePlaceholder}
                 error={!!errors.price}
                 helperText={errors.price}
                 fullWidth
@@ -514,15 +517,16 @@ export default function ProductFormPage() {
           </div>
 
           {/* ── Images ────────────────────────────────────────────────── */}
-          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
+          <div className="sl-card p-6 space-y-4 sl-rise transition-shadow duration-300 hover:shadow-md">
             <SectionHeader
               title={t.productImages}
+              desc={t.imagesHint}
               Icon={PhotoLibraryOutlinedIcon}
             />
             {errors.images && (
               <Alert
                 severity="error"
-                sx={{ borderRadius: 0, py: 0.5, fontSize: "0.75rem" }}
+                sx={{ borderRadius: "0.75rem", py: 0.5, fontSize: "0.75rem" }}
               >
                 {errors.images}
               </Alert>
@@ -559,14 +563,15 @@ export default function ProductFormPage() {
                   <div className="flex items-center gap-1 mb-1.5">
                     {form.imagePreviews[i] && (
                       <DragIndicatorIcon
+                        titleAccess={t.dragToReorder}
                         sx={{
-                          fontSize: 12,
+                          fontSize: 13,
                           color: "rgba(26,26,46,0.25)",
                           cursor: "grab",
                         }}
                       />
                     )}
-                    <p className="text-xs font-semibold tracking-widest uppercase text-[#1A1A2E]/60">
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-[#1A1A2E]/55">
                       {i === 0 ? t.mainImage : `${t.image} ${i + 1}`}
                       {i === 0 && (
                         <span className="text-red-400 ms-0.5">*</span>
@@ -587,29 +592,29 @@ export default function ProductFormPage() {
           </div>
 
           {/* ── Sizes ─────────────────────────────────────────────────── */}
-          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
+          <div className="sl-card p-6 space-y-4 sl-rise transition-shadow duration-300 hover:shadow-md">
             <div className="flex items-center justify-between">
               <SectionHeader
                 title={t.availableSizes}
                 Icon={StraightenOutlinedIcon}
               />
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 ms-auto">
                 {isNumeric && (
-                  <span className="text-xs px-2 py-1 bg-[#C9A84C]/10 text-[#C9A84C] font-semibold rounded">
+                  <span className="text-[10px] px-2.5 py-1 bg-[#C9A84C]/12 text-[#C9A84C] font-bold rounded-full">
                     {t.euSizes}
                   </span>
                 )}
+                {form.sizes.length > 0 && (
+                  <span className="text-xs text-[#C9A84C] font-semibold">
+                    {form.sizes.join(" · ")}
+                  </span>
+                )}
               </div>
-              {form.sizes.length > 0 && (
-                <span className="text-xs text-[#C9A84C] font-semibold animate-in ml-2">
-                  {form.sizes.join(" · ")}
-                </span>
-              )}
             </div>
             {errors.sizes && (
               <Alert
                 severity="error"
-                sx={{ borderRadius: 0, py: 0.5, fontSize: "0.75rem" }}
+                sx={{ borderRadius: "0.75rem", py: 0.5, fontSize: "0.75rem" }}
               >
                 {errors.sizes}
               </Alert>
@@ -628,17 +633,13 @@ export default function ProductFormPage() {
                     key={size}
                     type="button"
                     onClick={() => toggleSize(size)}
-                    className={`h-9 text-xs font-semibold tracking-wide border transition-all duration-200 flex items-center justify-center ${
+                    className={`h-10 rounded-xl text-xs font-semibold tracking-wide border transition-all duration-200 flex items-center justify-center gap-1 ${
                       selected
-                        ? "border-[#1A1A2E] bg-[#1A1A2E] text-white scale-105 shadow-md"
-                        : "border-[#1A1A2E]/20 text-[#1A1A2E]/60 hover:border-[#1A1A2E] hover:text-[#1A1A2E] hover:scale-105"
+                        ? "border-[#1A1A2E] bg-[#1A1A2E] text-white shadow-md"
+                        : "border-[#1A1A2E]/15 text-[#1A1A2E]/60 hover:border-[#1A1A2E] hover:text-[#1A1A2E]"
                     }`}
                   >
-                    {selected && (
-                      <CheckIcon
-                        sx={{ fontSize: 11, mr: 0.5, verticalAlign: "middle" }}
-                      />
-                    )}
+                    {selected && <CheckIcon sx={{ fontSize: 13 }} />}
                     {size}
                   </button>
                 );
@@ -647,7 +648,7 @@ export default function ProductFormPage() {
           </div>
 
           {/* ── Colors ────────────────────────────────────────────────── */}
-          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
+          <div className="sl-card p-6 space-y-4 sl-rise transition-shadow duration-300 hover:shadow-md">
             <div className="flex items-center justify-between">
               <SectionHeader
                 title={t.availableColors}
@@ -660,8 +661,8 @@ export default function ProductFormPage() {
                     return (
                       <span
                         key={c}
-                        title={c}
-                        className="w-4 h-4 rounded-full border border-black/15 flex-shrink-0 transition-transform duration-200 hover:scale-125"
+                        title={t.colorNames[c as keyof typeof t.colorNames] ?? c}
+                        className="w-4 h-4 rounded-full border border-black/15 shrink-0 transition-transform duration-200 hover:scale-125"
                         style={{ backgroundColor: opt?.hex ?? c.toLowerCase() }}
                       />
                     );
@@ -672,7 +673,7 @@ export default function ProductFormPage() {
             {errors.colors && (
               <Alert
                 severity="error"
-                sx={{ borderRadius: 0, py: 0.5, fontSize: "0.75rem" }}
+                sx={{ borderRadius: "0.75rem", py: 0.5, fontSize: "0.75rem" }}
               >
                 {errors.colors}
               </Alert>
@@ -680,26 +681,29 @@ export default function ProductFormPage() {
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               {COLORS_OPTIONS.map(({ name, hex }) => {
                 const selected = form.colors.includes(name);
+                const label =
+                  t.colorNames[name as keyof typeof t.colorNames] ?? name;
                 return (
                   <button
                     key={name}
                     type="button"
                     onClick={() => toggleColor(name)}
-                    className={`flex items-center gap-2 px-3 h-9 text-xs font-semibold border transition-all duration-200 ${
+                    title={label}
+                    className={`flex items-center gap-2 px-3 h-10 rounded-xl text-xs font-semibold border transition-all duration-200 ${
                       selected
-                        ? "border-[#1A1A2E] bg-[#1A1A2E] text-white scale-105 shadow-md"
-                        : "border-[#1A1A2E]/15 text-[#1A1A2E]/60 hover:border-[#1A1A2E]/40 hover:text-[#1A1A2E] hover:scale-105"
+                        ? "border-[#1A1A2E] bg-[#1A1A2E] text-white shadow-md"
+                        : "border-[#1A1A2E]/15 text-[#1A1A2E]/60 hover:border-[#1A1A2E]/40 hover:text-[#1A1A2E]"
                     }`}
                   >
                     <span
-                      className={`w-3.5 h-3.5 rounded-full border flex-shrink-0 transition-shadow duration-200 ${
+                      className={`w-4 h-4 rounded-full border shrink-0 transition-shadow duration-200 ${
                         selected
                           ? "border-white/40 shadow-sm"
                           : "border-black/10"
                       }`}
                       style={{ backgroundColor: hex }}
                     />
-                    <span className="truncate">{name}</span>
+                    <span className="truncate">{label}</span>
                   </button>
                 );
               })}
@@ -708,13 +712,13 @@ export default function ProductFormPage() {
 
           {/* API error */}
           {apiError && (
-            <Alert severity="error" sx={{ borderRadius: 0 }}>
+            <Alert severity="error" sx={{ borderRadius: "0.875rem" }}>
               {apiError}
             </Alert>
           )}
 
-          {/* ── Submit ────────────────────────────────────────────────── */}
-          <div className="flex items-center gap-4 pb-4">
+          {/* ── Submit (sticky on desktop for easy access) ───────────────── */}
+          <div className="flex items-center gap-3 pb-4">
             <Button
               type="submit"
               variant="contained"
@@ -722,18 +726,18 @@ export default function ProductFormPage() {
               disabled={saving || saved}
               startIcon={
                 saved ? (
-                  <CheckIcon sx={{ fontSize: 15 }} />
+                  <CheckIcon sx={{ fontSize: 16 }} />
                 ) : saving ? (
                   <CircularProgress
-                    size={13}
+                    size={14}
                     thickness={4}
                     sx={{ color: "inherit" }}
                   />
                 ) : (
-                  <PublishOutlinedIcon sx={{ fontSize: 15 }} />
+                  <PublishOutlinedIcon sx={{ fontSize: 16 }} />
                 )
               }
-              sx={{ borderRadius: 0, minWidth: 160 }}
+              sx={{ borderRadius: "999px", minWidth: 180, px: 3, py: 1.1 }}
             >
               {saved
                 ? isEdit
@@ -749,7 +753,7 @@ export default function ProductFormPage() {
               color="primary"
               onClick={() => navigate("/seller/products")}
               disabled={saving || saved}
-              sx={{ borderRadius: 0 }}
+              sx={{ borderRadius: "999px", px: 3, py: 1.1 }}
             >
               {t.cancel}
             </Button>

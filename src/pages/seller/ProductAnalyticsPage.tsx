@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import SellerLayout from "../../components/seller/SellerLayout";
 import { sellerService } from "../../services/sellerService";
 import { useParams } from "react-router-dom";
 import {
-  Typography,
-  Paper,
   Table,
   TableHead,
   TableRow,
@@ -15,6 +13,9 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
+import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
+import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import { useLang } from "../../context/LangContext";
 
 export default function ProductAnalyticsPage() {
@@ -43,32 +44,60 @@ export default function ProductAnalyticsPage() {
 
   return (
     <SellerLayout>
-      <div className="p-6" dir={isRTL ? "rtl" : "ltr"}>
-        <Typography variant="h5" gutterBottom>
-          {t.title}
-        </Typography>
-        <Paper className="p-4">
-          {loading ? (
-            <Stack spacing={1}>
+      <div className="p-6 sm:p-8 lg:p-10 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+        {/* Header */}
+        <div className="flex items-center gap-3.5 sl-rise">
+          <div className="w-12 h-12 sl-icon-tile-gold flex items-center justify-center shrink-0">
+            <BarChartOutlinedIcon sx={{ fontSize: 24, color: "#C9A84C" }} />
+          </div>
+          <div className={isRTL ? "text-right" : "text-left"}>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1A1A2E]">{t.title}</h1>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="sl-card p-6">
+            <Stack spacing={1.5}>
               {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} variant="rectangular" height={24} />
+                <Skeleton key={i} variant="rounded" height={24} sx={{ borderRadius: "0.5rem" }} />
               ))}
             </Stack>
-          ) : error ? (
-            <div>{error}</div>
-          ) : (
-            <>
-              <Typography variant="subtitle1">{t.totals}</Typography>
-              <div>
-                {t.unitsSold}: {analytics.totals?.unitsSold ?? 0}
+          </div>
+        ) : error ? (
+          <div className="sl-card p-6 text-red-500 text-sm">{error}</div>
+        ) : (
+          <>
+            {/* Totals */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sl-card sl-card-hover p-5 flex items-center gap-4">
+                <div className="w-11 h-11 sl-icon-tile-gold flex items-center justify-center shrink-0">
+                  <ShoppingBagOutlinedIcon sx={{ fontSize: 20, color: "#C9A84C" }} />
+                </div>
+                <div className={isRTL ? "text-right" : "text-left"}>
+                  <p className="sl-eyebrow">{t.unitsSold}</p>
+                  <p className="font-display text-2xl font-bold text-[#1A1A2E] mt-0.5">
+                    {analytics.totals?.unitsSold ?? 0}
+                  </p>
+                </div>
               </div>
-              <div>
-                {t.revenue}: {analytics.totals?.revenue ?? 0}
+              <div className="sl-card sl-card-hover p-5 flex items-center gap-4">
+                <div className="w-11 h-11 sl-icon-tile-gold flex items-center justify-center shrink-0">
+                  <PaymentsOutlinedIcon sx={{ fontSize: 20, color: "#C9A84C" }} />
+                </div>
+                <div className={isRTL ? "text-right" : "text-left"}>
+                  <p className="sl-eyebrow">{t.revenue}</p>
+                  <p className="font-display text-2xl font-bold text-[#1A1A2E] mt-0.5">
+                    {(analytics.totals?.revenue ?? 0).toLocaleString()} {tr.common.dzd}
+                  </p>
+                </div>
               </div>
+            </div>
 
-              <Typography variant="subtitle1" sx={{ mt: 2 }}>
-                {t.bySize}
-              </Typography>
+            {/* By size */}
+            <div className="sl-card overflow-hidden">
+              <div className="px-5 py-4 border-b border-[#1A1A2E]/8 bg-[#FBF9F5]">
+                <span className="sl-eyebrow">{t.bySize}</span>
+              </div>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -93,9 +122,9 @@ export default function ProductAnalyticsPage() {
                   )}
                 </TableBody>
               </Table>
-            </>
-          )}
-        </Paper>
+            </div>
+          </>
+        )}
 
         <Snackbar
           open={!!error}

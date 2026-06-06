@@ -1,4 +1,4 @@
-import {
+﻿import {
   useCallback,
   useEffect,
   useMemo,
@@ -19,7 +19,7 @@ import type { InventoryVariantUpdate } from "../../services/sellerService";
 import { useLang } from "../../context/LangContext";
 import SellerLayout from "../../components/seller/SellerLayout";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type InventoryStats = Awaited<ReturnType<typeof sellerService.getInventoryStats>>;
 type InventoryResponse = Awaited<ReturnType<typeof sellerService.getInventory>>;
@@ -31,7 +31,7 @@ type Filter = "all" | "low" | "out";
 const LOW_THRESHOLD = 5;
 const GOLD = "#C9A84C";
 
-// ─── KPI card ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ KPI card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function KpiCard({
   icon,
   label,
@@ -48,24 +48,24 @@ function KpiCard({
   loading: boolean;
 }) {
   return (
-    <div
-      className="bg-white overflow-hidden border-t-2"
-      style={{ borderTopColor: accent }}
-    >
-      <div className="p-5 space-y-3">
-        <div className="flex items-start justify-between">
-          <div className="w-9 h-9 flex items-center justify-center bg-[#1A1A2E]/4">
-            {icon}
-          </div>
+    <div className="sl-card sl-card-hover p-5 relative overflow-hidden">
+      <span
+        className="absolute inset-x-0 top-0 h-1 rounded-b-full"
+        style={{ background: accent }}
+      />
+      <div className="space-y-3">
+        <div
+          className="w-11 h-11 sl-chip flex items-center justify-center"
+          style={{ background: `${accent}1f` }}
+        >
+          {icon}
         </div>
         <div className="space-y-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#1A1A2E]/45">
-            {label}
-          </p>
+          <p className="sl-eyebrow">{label}</p>
           {loading ? (
-            <div className="h-7 w-16 bg-[#1A1A2E]/8 animate-pulse rounded" />
+            <div className="h-8 w-16 bg-[#1A1A2E]/8 animate-pulse rounded-lg" />
           ) : (
-            <p className="text-2xl font-bold text-[#1A1A2E] tabular-nums">
+            <p className="font-display text-[1.8rem] font-bold text-[#1A1A2E] tabular-nums leading-tight">
               {value.toLocaleString()}
             </p>
           )}
@@ -76,7 +76,7 @@ function KpiCard({
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function InventoryPage() {
   const { tr, isRTL } = useLang();
@@ -103,7 +103,7 @@ export default function InventoryPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
-  // ─── Data ──────────────────────────────────────────────────────────────────
+  // â”€â”€â”€ Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -138,7 +138,7 @@ export default function InventoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
-  // ─── Derived ───────────────────────────────────────────────────────────────
+  // â”€â”€â”€ Derived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const filteredItems = useMemo(() => {
     if (filter === "all") return items;
     return items.filter((p) => {
@@ -157,7 +157,7 @@ export default function InventoryPage() {
     [items, activeId],
   );
 
-  // Effective stock for a given variant — draft overrides the server value.
+  // Effective stock for a given variant â€” draft overrides the server value.
   const effStock = useCallback(
     (v: VariantCell) => (draft[v._id] !== undefined ? draft[v._id] : v.stock),
     [draft],
@@ -170,7 +170,7 @@ export default function InventoryPage() {
     return activeProduct.variants.reduce((sum, v) => sum + effStock(v), 0);
   }, [activeProduct, effStock]);
 
-  // ─── Editing helpers ──────────────────────────────────────────────────────
+  // â”€â”€â”€ Editing helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const setCell = (variantId: string, value: string) => {
     const n = Math.max(0, Math.floor(Number(value) || 0));
     setDraft((d) => ({ ...d, [variantId]: n }));
@@ -238,7 +238,7 @@ export default function InventoryPage() {
     setSetAllValue("");
   };
 
-  // ─── Save ─────────────────────────────────────────────────────────────────
+  // â”€â”€â”€ Save â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const save = async () => {
     if (!activeProduct || !dirty) return;
     setSaving(true);
@@ -275,44 +275,46 @@ export default function InventoryPage() {
     }
   };
 
-  // ─── Render helpers ───────────────────────────────────────────────────────
+  // â”€â”€â”€ Render helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const cellTone = (stock: number) => {
     if (stock === 0) return "border-red-400 bg-red-50/40";
     if (stock <= LOW_THRESHOLD) return "border-amber-400 bg-amber-50/40";
     return "border-[#1A1A2E]/12";
   };
 
-  // ─── UI ───────────────────────────────────────────────────────────────────
+  // â”€â”€â”€ UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
     <SellerLayout>
-      <div className="p-6 md:p-8 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+      <div className="p-6 sm:p-8 lg:p-10 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
         {/* Header */}
-        <div className="flex items-start justify-between flex-wrap gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <WarehouseOutlinedIcon sx={{ fontSize: 22, color: GOLD }} />
-              <h1 className="font-display text-2xl font-bold text-[#1A1A2E]">{t.title}</h1>
+        <div className={`flex items-start justify-between flex-wrap gap-4 sl-rise`}>
+          <div className={`flex items-center gap-3.5`}>
+            <div className="w-12 h-12 sl-icon-tile-gold flex items-center justify-center shrink-0">
+              <WarehouseOutlinedIcon sx={{ fontSize: 24, color: GOLD }} />
             </div>
-            <p className="text-[#1A1A2E]/50 text-sm">{t.subtitle}</p>
+            <div className={isRTL ? "text-right" : "text-left"}>
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1A1A2E]">{t.title}</h1>
+              <p className="text-[#1A1A2E]/50 text-sm mt-0.5">{t.subtitle}</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <div className="relative">
               <SearchOutlinedIcon
-                sx={{ fontSize: 16, color: "#1A1A2E", opacity: 0.4, position: "absolute", insetInlineStart: 10, top: 10 }}
+                sx={{ fontSize: 18, color: "#1A1A2E", opacity: 0.4, position: "absolute", insetInlineStart: 14, top: 12 }}
               />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t.searchPlaceholder}
-                className="h-9 ps-8 pe-3 border border-[#1A1A2E]/15 text-sm w-56 focus:outline-none focus:border-[#C9A84C]"
+                className="h-11 ps-11 pe-4 rounded-full border border-[#1A1A2E]/10 bg-white text-sm w-56 focus:outline-none focus:border-[#C9A84C]/60 focus:ring-2 focus:ring-[#C9A84C]/10 transition-all"
               />
             </div>
             <button
               onClick={() => load()}
-              className="h-9 w-9 inline-flex items-center justify-center border border-[#1A1A2E]/15 text-[#1A1A2E]/60 hover:border-[#1A1A2E]/30"
+              className="h-11 w-11 rounded-full inline-flex items-center justify-center border border-[#1A1A2E]/10 bg-white text-[#1A1A2E]/60 hover:border-[#C9A84C]/50 hover:text-[#C9A84C] transition-colors"
               title="Refresh"
             >
-              <RefreshOutlinedIcon sx={{ fontSize: 16 }} />
+              <RefreshOutlinedIcon sx={{ fontSize: 18 }} />
             </button>
           </div>
         </div>
@@ -359,10 +361,10 @@ export default function InventoryPage() {
             <button
               key={k}
               onClick={() => setFilter(k)}
-              className={`h-7 px-3 text-xs font-semibold border ${
+              className={`h-9 px-4 rounded-full text-xs font-semibold transition-all duration-200 ${
                 filter === k
-                  ? "bg-[#1A1A2E] text-white border-[#1A1A2E]"
-                  : "border-[#1A1A2E]/15 text-[#1A1A2E]/60 hover:border-[#1A1A2E]/30"
+                  ? "sl-nav-active"
+                  : "bg-white border border-[#1A1A2E]/8 text-[#1A1A2E]/55 hover:text-[#1A1A2E] hover:border-[#C9A84C]/40"
               }`}
             >
               {k === "all" ? t.filterAll : k === "low" ? t.filterLow : t.filterOut}
@@ -372,8 +374,8 @@ export default function InventoryPage() {
 
         {/* Two-pane layout */}
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
-          {/* ── Product list pane ─────────────────────────────────────────── */}
-          <div className="bg-white border border-[#1A1A2E]/10 max-h-[70vh] overflow-y-auto">
+          {/* â”€â”€ Product list pane â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          <div className="sl-card max-h-[70vh] overflow-y-auto">
             <div className="px-5 py-3.5 border-b border-[#1A1A2E]/8 bg-[#FAF7F2]">
               <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#1A1A2E]/50">
                 {t.sectionHeader}
@@ -405,20 +407,20 @@ export default function InventoryPage() {
                     <li key={p._id}>
                       <button
                         onClick={() => selectProduct(p._id)}
-                        className={`w-full flex items-center gap-3 p-3 text-start ${
+                        className={`w-full flex items-center gap-3 p-3 text-start transition-colors ${
                           isActive
-                            ? "bg-[#C9A84C]/10 border-l-2 border-l-[#C9A84C]"
-                            : "hover:bg-[#1A1A2E]/3"
+                            ? "bg-[#C9A84C]/10 border-s-[3px] border-s-[#C9A84C]"
+                            : "border-s-[3px] border-s-transparent hover:bg-[#1A1A2E]/[0.03]"
                         }`}
                       >
                         {p.images?.[0]?.url ? (
                           <img
                             src={p.images[0].url}
                             alt=""
-                            className="w-10 h-10 object-cover bg-[#1A1A2E]/5 flex-shrink-0"
+                            className="w-10 h-10 rounded-lg object-cover bg-[#1A1A2E]/5 shrink-0"
                           />
                         ) : (
-                          <div className="w-10 h-10 bg-[#1A1A2E]/5 flex-shrink-0" />
+                          <div className="w-10 h-10 rounded-lg bg-[#1A1A2E]/5 shrink-0" />
                         )}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-[#1A1A2E] truncate">{p.name}</p>
@@ -435,8 +437,8 @@ export default function InventoryPage() {
             )}
           </div>
 
-          {/* ── Matrix pane ───────────────────────────────────────────────── */}
-          <div className="bg-white border border-[#1A1A2E]/10">
+          {/* â”€â”€ Matrix pane â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          <div className="sl-card">
             <div className="px-5 py-3.5 border-b border-[#1A1A2E]/8 bg-[#FAF7F2] flex items-center justify-between gap-3 flex-wrap">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#1A1A2E]/50">
@@ -448,37 +450,37 @@ export default function InventoryPage() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <button
                     onClick={() => setShowSkus((s) => !s)}
-                    className="h-8 px-3 border border-[#1A1A2E]/15 text-[11px] font-semibold text-[#1A1A2E]/60 hover:border-[#1A1A2E]/30"
+                    className="h-8 px-3 rounded-full border border-[#1A1A2E]/12 text-[11px] font-semibold text-[#1A1A2E]/60 hover:border-[#C9A84C]/50 hover:text-[#C9A84C] transition-colors"
                   >
                     {showSkus ? t.hideSkus : t.showSkus}
                   </button>
                   <button
                     onClick={undo}
                     disabled={undoRef.current === null}
-                    className="h-8 px-3 inline-flex items-center gap-1 border border-[#1A1A2E]/15 text-[11px] font-semibold text-[#1A1A2E]/60 hover:border-[#1A1A2E]/30 disabled:opacity-40"
+                    className="h-8 px-3 rounded-full inline-flex items-center gap-1 border border-[#1A1A2E]/12 text-[11px] font-semibold text-[#1A1A2E]/60 hover:border-[#C9A84C]/50 hover:text-[#C9A84C] disabled:opacity-40 transition-colors"
                   >
                     <UndoOutlinedIcon sx={{ fontSize: 14 }} />
                     {t.undo}
                   </button>
                   <button
                     onClick={resetAll}
-                    className="h-8 px-3 border border-[#1A1A2E]/15 text-[11px] font-semibold text-[#1A1A2E]/60 hover:border-[#1A1A2E]/30"
+                    className="h-8 px-3 rounded-full border border-[#1A1A2E]/12 text-[11px] font-semibold text-[#1A1A2E]/60 hover:border-[#C9A84C]/50 hover:text-[#C9A84C] transition-colors"
                   >
                     {t.resetAll}
                   </button>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <span className="text-[11px] text-[#1A1A2E]/50">{t.setAllTo}</span>
                     <input
-                      type="number"
-                      min={0}
+                      type="text"
+                      inputMode="numeric"
                       value={setAllValue}
                       onChange={(e) => setSetAllValue(e.target.value)}
-                      className="h-8 w-16 px-2 border border-[#1A1A2E]/15 text-xs tabular-nums focus:outline-none focus:border-[#C9A84C]"
+                      className="h-8 w-16 px-2 rounded-lg border border-[#1A1A2E]/15 text-xs tabular-nums focus:outline-none focus:border-[#C9A84C]"
                     />
                     <button
                       onClick={setAll}
                       disabled={setAllValue.trim() === ""}
-                      className="h-8 px-2 bg-[#1A1A2E] text-white text-[11px] font-semibold disabled:opacity-40"
+                      className="h-8 px-3 rounded-full bg-[#1A1A2E] text-white text-[11px] font-semibold hover:bg-[#2d2d50] disabled:opacity-40 transition-colors"
                     >
                       {t.apply}
                     </button>
@@ -486,7 +488,7 @@ export default function InventoryPage() {
                   <button
                     onClick={save}
                     disabled={!dirty || saving}
-                    className="h-8 px-3 inline-flex items-center gap-1 gold-gradient text-[#1A1A2E] text-[11px] font-bold disabled:opacity-40"
+                    className="h-8 px-4 rounded-full inline-flex items-center gap-1 gold-gradient text-[#1A1A2E] text-[11px] font-bold disabled:opacity-40 shadow-sm hover:shadow transition-shadow"
                   >
                     <SaveOutlinedIcon sx={{ fontSize: 14 }} />
                     {saving ? t.saving : t.saveChanges}
@@ -529,7 +531,7 @@ export default function InventoryPage() {
                           </th>
                         ))}
                         <th className="text-center text-[10px] uppercase tracking-wide text-[#1A1A2E]/40 font-semibold p-2 w-16">
-                          Σ
+                          Î£
                         </th>
                       </tr>
                     </thead>
@@ -550,7 +552,7 @@ export default function InventoryPage() {
                               if (!v) {
                                 return (
                                   <td key={color} className="p-2 text-center text-[#1A1A2E]/20">
-                                    —
+                                    â€”
                                   </td>
                                 );
                               }
@@ -558,8 +560,8 @@ export default function InventoryPage() {
                               return (
                                 <td key={color} className="p-1 align-top">
                                   <input
-                                    type="number"
-                                    min={0}
+                                    type="text"
+                                    inputMode="numeric"
                                     value={value}
                                     onChange={(e) => setCell(v._id, e.target.value)}
                                     onFocus={(e) => e.currentTarget.select()}
@@ -573,7 +575,7 @@ export default function InventoryPage() {
                                         setSkuDraft((s) => ({ ...s, [v._id]: e.target.value }))
                                       }
                                       placeholder={t.sku}
-                                      className="mt-1 w-full h-7 px-2 border border-[#1A1A2E]/12 text-[11px] focus:outline-none focus:border-[#C9A84C]"
+                                      className="mt-1 w-full h-7 px-2 rounded-lg border border-[#1A1A2E]/12 text-[11px] focus:outline-none focus:border-[#C9A84C]"
                                     />
                                   )}
                                 </td>
@@ -588,7 +590,7 @@ export default function InventoryPage() {
                       {/* Column totals + fill row */}
                       <tr className="border-t border-[#1A1A2E]/12 bg-[#FAF7F2]">
                         <th className="text-start text-[10px] uppercase tracking-wide text-[#1A1A2E]/45 font-semibold p-2">
-                          Σ
+                          Î£
                         </th>
                         {activeProduct.colors.map((color) => {
                           const colTotal = activeProduct.variants
@@ -642,7 +644,7 @@ export default function InventoryPage() {
       {/* Toast */}
       {toast && (
         <div
-          className={`fixed bottom-6 ${isRTL ? "left-6" : "right-6"} z-50 flex items-center gap-2.5 px-4 py-3 shadow-lg text-sm font-medium ${
+          className={`fixed bottom-6 ${isRTL ? "left-6" : "right-6"} z-50 flex items-center gap-2.5 px-5 py-3.5 rounded-2xl shadow-xl text-sm font-medium sl-rise ${
             toast.type === "success" ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
           }`}
         >
@@ -660,11 +662,11 @@ function FillButton({ label, onApply }: { label: string; onApply: (val: string) 
     <div className="flex items-center gap-1.5">
       <span className="flex-1 text-[11px] text-[#1A1A2E]/55">{label}</span>
       <input
-        type="number"
-        min={0}
+        type="text"
+        inputMode="numeric"
         value={val}
         onChange={(e) => setVal(e.target.value)}
-        className="h-7 w-16 px-2 border border-[#1A1A2E]/15 text-[11px] tabular-nums focus:outline-none focus:border-[#C9A84C]"
+        className="h-7 w-16 px-2 rounded-lg border border-[#1A1A2E]/15 text-[11px] tabular-nums focus:outline-none focus:border-[#C9A84C]"
       />
       <button
         onClick={() => {
@@ -672,7 +674,7 @@ function FillButton({ label, onApply }: { label: string; onApply: (val: string) 
           onApply(val);
           setVal("");
         }}
-        className="h-7 px-2 bg-[#1A1A2E] text-white text-[11px] font-semibold"
+        className="h-7 px-3 rounded-full bg-[#1A1A2E] text-white text-[11px] font-semibold hover:bg-[#2d2d50] transition-colors"
       >
         Apply
       </button>

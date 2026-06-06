@@ -535,11 +535,13 @@ export interface Translations {
     };
     layout: {
       portal: string;
+      menu: string;
       dashboard: string;
       myProducts: string;
       orders: string;
       trafficAnalytics: string;
       storeSettings: string;
+      confirmationTeam: string;
       visitStore: string;
       seller: string;
       signOut: string;
@@ -591,6 +593,29 @@ export interface Translations {
       location: string;
       noPhone: string;
       noLocation: string;
+      // ── Redesigned overview ──
+      dashboard: string;
+      gladToSeeYou: string;
+      whatAwaits: string;
+      catalogSize: string;
+      catalogSizeSub: string;
+      confirmedLifetime: string;
+      confirmedLifetimeSub: string;
+      pendingValue: string;
+      pendingValueSub: string;
+      pendingOrders: string;
+      pendingOrdersSub: string;
+      inventoryHealth: string;
+      lowStockItems: string;
+      outOfStock: string;
+      totalProducts: string;
+      browseInventory: string;
+      recentPendingOrders: string;
+      oldestFirst: string;
+      noPendingOrders: string;
+      noPendingDesc: string;
+      item: string;
+      deliveredSub: string;
     };
     form: {
       addNewProduct: string;
@@ -634,6 +659,52 @@ export interface Translations {
       cancel: string;
       failedUpdate: string;
       failedAdd: string;
+      // ── Brand / category / colors (full i18n) ──
+      brand: string;
+      brandPlaceholder: string;
+      brandRequired: string;
+      mainCategoryLabel: string;
+      subCategoryLabel: string;
+      pricePlaceholder: string;
+      pricingDesc: string;
+      imagesHint: string;
+      dragToReorder: string;
+      subCats: {
+        Shirts: string;
+        Pants: string;
+        Dresses: string;
+        Shoes: string;
+        Jackets: string;
+        Hoodies: string;
+        Jeans: string;
+        Shorts: string;
+        "T-Shirts": string;
+        Sweaters: string;
+        Coats: string;
+        Bags: string;
+        Hats: string;
+        Other: string;
+      };
+      colorNames: {
+        Black: string;
+        White: string;
+        Beige: string;
+        Gray: string;
+        Brown: string;
+        Navy: string;
+        Red: string;
+        Burgundy: string;
+        Pink: string;
+        Orange: string;
+        Yellow: string;
+        Green: string;
+        Olive: string;
+        Blue: string;
+        Teal: string;
+        Purple: string;
+        Gold: string;
+        Khaki: string;
+      };
     };
     productsList: {
       title: string;
@@ -771,6 +842,15 @@ export interface Translations {
       filterInactive: string;
       filterNoPromo: string;
       expiresOn: string;
+      // ── Card view ──
+      category: string;
+      youSave: string;
+      daysLeft: string;
+      startsIn: string;
+      noEndDate: string;
+      wasPrice: string;
+      nowPrice: string;
+      ongoing: string;
     };
     ordersList: {
       title: string;
@@ -829,6 +909,7 @@ export interface Translations {
       save: string;
       errorShopName: string;
       errorWilayaCommune: string;
+      cancel: string;
     };
     pendingPage: {
       title: string;
@@ -866,6 +947,12 @@ export interface Translations {
       viewAll: string;
       error: string;
       dzd: string;
+      legendRecent: string;
+      legendEarlier: string;
+      trendVsPrev: string;
+      orderIdLabel: string;
+      locationLabel: string;
+      amountLabel: string;
       statusLabels: {
         pending: string;
         confirmed: string;
@@ -921,6 +1008,31 @@ export interface Translations {
       copyAll: string;
       hint: string;
     };
+    promoModal: {
+      setPromotion: string;
+      promotionActive: string;
+      visibleToCustomers: string;
+      hiddenFromCustomers: string;
+      discount: string;
+      valuePlaceholderPct: string;
+      valuePlaceholderAmt: string;
+      pctCannotExceed: string;
+      dateRange: string;
+      optional: string;
+      clearDates: string;
+      startBeforeEnd: string;
+      removeThisPromo: string;
+      cancel: string;
+      remove: string;
+      removing: string;
+      saving: string;
+      savePromotion: string;
+      savedSuccess: string;
+      removedSuccess: string;
+      failedSave: string;
+      failedRemove: string;
+      valueGreaterThanZero: string;
+    };
     confirmatorsPage: {
       title: string;
       subtitle: string;
@@ -963,6 +1075,56 @@ export interface Translations {
       keep: string;
       removing: string;
       remove: string;
+      overallRate: string;
+      ordersHandled: string;
+      inviteHint: string;
+      noActivity: string;
+    };
+    collectionsPage: {
+      title: string;
+      subtitle: string;
+      newCollection: string;
+      searchPlaceholder: string;
+      loadingLabel: string;
+      collectionCount: string;
+      collectionCountPlural: string;
+      noCollectionsTitle: string;
+      noCollectionsDesc: string;
+      noSearchResults: string;
+      tryDifferentKeyword: string;
+      createFirst: string;
+      products: string;
+      productCount: string;
+      productCountPlural: string;
+      edit: string;
+      deleteLabel: string;
+      deleteTitle: string;
+      deleteDesc: string;
+      cancel: string;
+      deleting: string;
+      confirmDelete: string;
+      modalTitleCreate: string;
+      modalTitleEdit: string;
+      namePlaceholder: string;
+      nameLabel: string;
+      nameRequired: string;
+      descriptionLabel: string;
+      descriptionPlaceholder: string;
+      coverLabel: string;
+      coverOptional: string;
+      clickToUpload: string;
+      productsLabel: string;
+      selectedCount: string;
+      searchProducts: string;
+      noProductsFound: string;
+      saving: string;
+      createCollection: string;
+      saveChanges: string;
+      failedSave: string;
+      failedLoad: string;
+      failedDelete: string;
+      created: string;
+      updated: string;
     };
     orderActions: {
       confirmTitle: string;
@@ -984,6 +1146,29 @@ export interface Translations {
     goHome: string;
     goShop: string;
     hint: string;
+  };
+  legal: {
+    lastUpdated: string;
+    backHome: string;
+    tableOfContents: string;
+    privacy: {
+      badge: string;
+      title: string;
+      subtitle: string;
+      sections: {
+        title: string;
+        body: string;
+      }[];
+    };
+    terms: {
+      badge: string;
+      title: string;
+      subtitle: string;
+      sections: {
+        title: string;
+        body: string;
+      }[];
+    };
   };
 }
 
@@ -1582,12 +1767,14 @@ export const ar: Translations = {
       },
     },
     layout: {
-      portal: "بوابة البائع",
-      dashboard: "لوحة التحكم",
-      myProducts: "منتجاتي",
+      portal: "عمليات فودا",
+      menu: "القائمة",
+      dashboard: "نظرة عامة",
+      myProducts: "المنتجات",
       orders: "الطلبات",
-      trafficAnalytics: "تحليلات حركة المرور",
+      trafficAnalytics: "تحليلات الزيارات",
       storeSettings: "إعدادات المتجر",
+      confirmationTeam: "فريق التأكيد",
       visitStore: "زيارة المتجر",
       seller: "بائع",
       signOut: "تسجيل الخروج",
@@ -1639,6 +1826,29 @@ export const ar: Translations = {
       location: "الموقع:",
       noPhone: "لم يُضَف رقم هاتف",
       noLocation: "لم يُضَف موقع",
+      // ── Redesigned overview ──
+      dashboard: "لوحة المؤكد",
+      gladToSeeYou: "يسعدنا رؤيتك،",
+      whatAwaits: "إليك ما ينتظر اهتمامك اليوم.",
+      catalogSize: "حجم الكتالوج",
+      catalogSizeSub: "منخفض",
+      confirmedLifetime: "المؤكدة (مدى الحياة)",
+      confirmedLifetimeSub: "عبر حسابك",
+      pendingValue: "القيمة المعلقة",
+      pendingValueSub: "إجمالي الطلبات",
+      pendingOrders: "الطلبات المعلقة",
+      pendingOrdersSub: "في انتظار تأكيدك",
+      inventoryHealth: "صحة المخزون",
+      lowStockItems: "منتجات بمخزون منخفض",
+      outOfStock: "نفد المخزون",
+      totalProducts: "إجمالي المنتجات",
+      browseInventory: "تصفح المخزون",
+      recentPendingOrders: "الطلبات المعلقة الأخيرة",
+      oldestFirst: "الأقدم له الأولوية",
+      noPendingOrders: "لا طلبات معلقة",
+      noPendingDesc: "كل الطلبات مؤكدة — عمل رائع!",
+      item: "منتج",
+      deliveredSub: "تم توصيلها",
     },
     form: {
       addNewProduct: "إضافة منتج جديد",
@@ -1683,6 +1893,51 @@ export const ar: Translations = {
       cancel: "إلغاء",
       failedUpdate: "فشل تحديث المنتج.",
       failedAdd: "فشل إضافة المنتج.",
+      brand: "العلامة التجارية *",
+      brandPlaceholder: "مثال: Nike، Zara، علامة محلية…",
+      brandRequired: "العلامة التجارية مطلوبة",
+      mainCategoryLabel: "الفئة الرئيسية",
+      subCategoryLabel: "الفئة الفرعية",
+      pricePlaceholder: "8900",
+      pricingDesc: "حدّد سعر البيع. يُضبط المخزون لكل مقاس ولون من صفحة المخزون.",
+      imagesHint: "أضف حتى 5 صور. الصورة الأولى هي الرئيسية. اسحب لإعادة الترتيب.",
+      dragToReorder: "اسحب لإعادة الترتيب",
+      subCats: {
+        Shirts: "قمصان",
+        Pants: "بناطيل",
+        Dresses: "فساتين",
+        Shoes: "أحذية",
+        Jackets: "جاكيتات",
+        Hoodies: "هوديز",
+        Jeans: "جينز",
+        Shorts: "شورتات",
+        "T-Shirts": "تيشيرتات",
+        Sweaters: "كنزات",
+        Coats: "معاطف",
+        Bags: "حقائب",
+        Hats: "قبعات",
+        Other: "أخرى",
+      },
+      colorNames: {
+        Black: "أسود",
+        White: "أبيض",
+        Beige: "بيج",
+        Gray: "رمادي",
+        Brown: "بني",
+        Navy: "كحلي",
+        Red: "أحمر",
+        Burgundy: "خمري",
+        Pink: "وردي",
+        Orange: "برتقالي",
+        Yellow: "أصفر",
+        Green: "أخضر",
+        Olive: "زيتي",
+        Blue: "أزرق",
+        Teal: "فيروزي",
+        Purple: "بنفسجي",
+        Gold: "ذهبي",
+        Khaki: "كاكي",
+      },
     },
     productsList: {
       title: "منتجاتي",
@@ -1820,6 +2075,14 @@ export const ar: Translations = {
       filterInactive: "موقوفة",
       filterNoPromo: "بدون خصم",
       expiresOn: "تنتهي",
+      category: "الفئة",
+      youSave: "يوفّر العميل",
+      daysLeft: "يوم متبقٍ",
+      startsIn: "تبدأ بعد",
+      noEndDate: "بدون تاريخ انتهاء",
+      wasPrice: "كان",
+      nowPrice: "الآن",
+      ongoing: "مستمر",
     },
     ordersList: {
       title: "الطلبات",
@@ -1878,6 +2141,7 @@ export const ar: Translations = {
       save: "حفظ الإعدادات",
       errorShopName: "اسم المتجر مطلوب (3 أحرف على الأقل).",
       errorWilayaCommune: "يجب إدخال الولاية والبلدية معاً.",
+      cancel: "إلغاء",
     },
     pendingPage: {
       title: "الطلب قيد المراجعة",
@@ -1915,6 +2179,12 @@ export const ar: Translations = {
       viewAll: "عرض الكل",
       error: "تعذر تحميل بيانات الإيرادات",
       dzd: "دج",
+      legendRecent: "أحدث يوم",
+      legendEarlier: "أيام سابقة",
+      trendVsPrev: "مقارنة بالفترة السابقة",
+      orderIdLabel: "رقم الطلب",
+      locationLabel: "الولاية",
+      amountLabel: "المبلغ",
       statusLabels: {
         pending: "قيد الانتظار",
         confirmed: "مؤكد",
@@ -1970,6 +2240,31 @@ export const ar: Translations = {
       copyAll: "نسخ الكل",
       hint: "كل رابط يحمل وسم المنصة لتعرف من أين يأتي الزوار.",
     },
+    promoModal: {
+      setPromotion: "ضبط العرض",
+      promotionActive: "العرض مُفعَّل",
+      visibleToCustomers: "ظاهر للعملاء",
+      hiddenFromCustomers: "مخفي عن العملاء",
+      discount: "الخصم",
+      valuePlaceholderPct: "مثال: 20",
+      valuePlaceholderAmt: "مثال: 500",
+      pctCannotExceed: "لا يمكن أن تتجاوز النسبة 100٪",
+      dateRange: "الفترة الزمنية",
+      optional: "(اختياري)",
+      clearDates: "مسح التواريخ",
+      startBeforeEnd: "يجب أن يكون تاريخ البداية قبل النهاية",
+      removeThisPromo: "إزالة هذا العرض نهائياً؟",
+      cancel: "إلغاء",
+      remove: "إزالة",
+      removing: "جارٍ الإزالة…",
+      saving: "جارٍ الحفظ…",
+      savePromotion: "حفظ العرض",
+      savedSuccess: "تم حفظ العرض بنجاح",
+      removedSuccess: "تمت إزالة العرض",
+      failedSave: "تعذّر حفظ العرض",
+      failedRemove: "تعذّر إزالة العرض",
+      valueGreaterThanZero: "يجب أن تكون قيمة الخصم أكبر من 0",
+    },
     confirmatorsPage: {
       title: "المؤكدون",
       subtitle: "إدارة من يمكنه تأكيد الطلبات وإلغاؤها نيابةً عنك.",
@@ -2012,6 +2307,56 @@ export const ar: Translations = {
       keep: "إبقاء",
       removing: "جارٍ الإزالة…",
       remove: "إزالة",
+      overallRate: "معدل التأكيد الكلي",
+      ordersHandled: "طلب مُعالَج",
+      inviteHint: "سيصلهم بريد إلكتروني يمنحهم صلاحية تأكيد طلباتك وإلغائها.",
+      noActivity: "لا نشاط بعد",
+    },
+    collectionsPage: {
+      title: "المجموعات",
+      subtitle: "صنّف منتجاتك في مجموعات لعرض أفضل في المتجر.",
+      newCollection: "مجموعة جديدة",
+      searchPlaceholder: "ابحث عن مجموعة…",
+      loadingLabel: "جارٍ التحميل…",
+      collectionCount: "مجموعة",
+      collectionCountPlural: "مجموعات",
+      noCollectionsTitle: "لا توجد مجموعات بعد",
+      noCollectionsDesc: "أنشئ مجموعتك الأولى لتنظيم منتجاتك وعرضها بشكل أجمل.",
+      noSearchResults: "لا توجد مجموعات تطابق بحثك",
+      tryDifferentKeyword: "جرّب كلمة مختلفة",
+      createFirst: "إنشاء مجموعة",
+      products: "منتجات",
+      productCount: "منتج",
+      productCountPlural: "منتجات",
+      edit: "تعديل",
+      deleteLabel: "حذف",
+      deleteTitle: "حذف المجموعة",
+      deleteDesc: "هل تريد حذف \"{name}\"؟ لا يمكن التراجع عن هذا.",
+      cancel: "إلغاء",
+      deleting: "جارٍ الحذف…",
+      confirmDelete: "حذف",
+      modalTitleCreate: "مجموعة جديدة",
+      modalTitleEdit: "تعديل المجموعة",
+      namePlaceholder: "مثال: صيف 2025",
+      nameLabel: "اسم المجموعة",
+      nameRequired: "اسم المجموعة مطلوب",
+      descriptionLabel: "الوصف",
+      descriptionPlaceholder: "صف هذه المجموعة…",
+      coverLabel: "صورة الغلاف",
+      coverOptional: "(اختياري)",
+      clickToUpload: "اضغط للرفع",
+      productsLabel: "المنتجات",
+      selectedCount: "مُحدَّد",
+      searchProducts: "ابحث عن منتج…",
+      noProductsFound: "لا توجد منتجات",
+      saving: "جارٍ الحفظ…",
+      createCollection: "إنشاء المجموعة",
+      saveChanges: "حفظ التغييرات",
+      failedSave: "تعذّر حفظ المجموعة",
+      failedLoad: "تعذّر تحميل المجموعات",
+      failedDelete: "تعذّر حذف المجموعة",
+      created: "تم إنشاء المجموعة",
+      updated: "تم تحديث المجموعة",
     },
     orderActions: {
       confirmTitle: "هل تريد تأكيد هذا الطلب؟",
@@ -2033,6 +2378,85 @@ export const ar: Translations = {
     goHome: "العودة للرئيسية",
     goShop: "تصفح المتجر",
     hint: "أو جرّب البحث عن شيء آخر",
+  },
+  legal: {
+    lastUpdated: "آخر تحديث",
+    backHome: "العودة إلى الرئيسية",
+    tableOfContents: "المحتويات",
+    privacy: {
+      badge: "الخصوصية والأمان",
+      title: "سياسة الخصوصية",
+      subtitle: "نحن نأخذ خصوصيتك على محمل الجد. تعرّف على كيفية جمع بياناتك واستخدامها وحمايتها.",
+      sections: [
+        {
+          title: "المعلومات التي نجمعها",
+          body: "نجمع المعلومات التي تقدمها لنا مباشرةً، مثل اسمك وعنوان بريدك الإلكتروني ومعلومات الشحن وبيانات الدفع عند إنشاء حساب أو إتمام عملية شراء. كما نجمع تلقائيًا بيانات الاستخدام مثل عنوان IP ونوع المتصفح وصفحات الزيارات وأنماط التفاعل لتحسين تجربتك.",
+        },
+        {
+          title: "كيف نستخدم معلوماتك",
+          body: "نستخدم بياناتك لمعالجة طلباتك، وإرسال تأكيدات الشراء وتحديثات الشحن، وتقديم دعم العملاء، وتخصيص توصيات المنتجات. لن نبيع بياناتك الشخصية لأطراف ثالثة أبدًا. قد نشارك بيانات مجهولة الهوية مع شركاء تحليليين موثوقين لتحسين خدماتنا.",
+        },
+        {
+          title: "ملفات تعريف الارتباط وتقنيات التتبع",
+          body: "نستخدم ملفات تعريف الارتباط الأساسية للحفاظ على جلسة تسجيل دخولك وسلة التسوق. تُستخدم ملفات تعريف الارتباط الاختيارية (بموافقتك) لأغراض التحليل وتخصيص الإعلانات. يمكنك إدارة تفضيلاتك أو حذف ملفات تعريف الارتباط في أي وقت من إعدادات متصفحك.",
+        },
+        {
+          title: "الأمان وحماية البيانات",
+          body: "نحمي بياناتك باستخدام تشفير TLS لجميع عمليات النقل وتشفير كلمات المرور باستخدام bcrypt. يتم معالجة معلومات الدفع الخاصة بك من خلال بوابات آمنة متوافقة مع PCI-DSS — لا نخزن تفاصيل بطاقتك المصرفية على خوادمنا. نجري مراجعات أمنية دورية واختبارات اختراق.",
+        },
+        {
+          title: "حقوقك",
+          body: "يحق لك الوصول إلى بياناتك الشخصية أو تصحيحها أو حذفها في أي وقت عبر لوحة ملفك الشخصي. كما يمكنك طلب نسخة من بياناتك أو الاعتراض على معالجتها. لتقديم هذه الطلبات، تواصل معنا على support@foda.foo وسنرد خلال 30 يومًا.",
+        },
+        {
+          title: "الاحتفاظ بالبيانات",
+          body: "نحتفظ ببيانات حسابك طالما كان حسابك نشطًا. عند حذف حسابك، يتم إزالة بياناتك الشخصية خلال 30 يومًا، مع الاحتفاظ بسجلات المعاملات المجهولة لأغراض الامتثال القانوني لمدة تصل إلى 5 سنوات.",
+        },
+        {
+          title: "التواصل معنا",
+          body: "إذا كان لديك أي أسئلة حول سياسة الخصوصية أو ممارسات البيانات لدينا، يرجى التواصل مع فريق الخصوصية على support@foda.foo أو مراسلتنا على العنوان: فودة للتجارة الإلكترونية، الجزائر.",
+        },
+      ],
+    },
+    terms: {
+      badge: "الشروط القانونية",
+      title: "شروط الخدمة",
+      subtitle: "يرجى قراءة هذه الشروط بعناية قبل استخدام منصة فودة. باستخدامك لخدماتنا، فإنك توافق على الالتزام بهذه الشروط.",
+      sections: [
+        {
+          title: "قبول الشروط",
+          body: "بالوصول إلى منصة فودة أو استخدامها، فإنك توافق على الالتزام بشروط الخدمة هذه وسياسة الخصوصية الخاصة بنا. إذا كنت لا توافق على أي جزء من هذه الشروط، فلا يحق لك الوصول إلى الخدمة. هذه الشروط سارية على جميع المستخدمين بما فيهم المتسوقون والبائعون.",
+        },
+        {
+          title: "حسابات المستخدمين",
+          body: "يجب أن يكون عمرك 18 عامًا أو أكثر لإنشاء حساب. أنت مسؤول عن الحفاظ على سرية بيانات تسجيل الدخول الخاصة بك وعن جميع الأنشطة التي تجري تحت حسابك. يجب الإبلاغ عن أي استخدام غير مصرح به فورًا. نحتفظ بالحق في إنهاء الحسابات التي تنتهك هذه الشروط.",
+        },
+        {
+          title: "شروط البائعين",
+          body: "يوافق البائعون المسجلون على تقديم معلومات منتجات دقيقة وشحن الطلبات في الوقت المحدد والتعامل مع المرتجعات وفقًا لسياستنا. يحق لفودة تعليق أو إنهاء حسابات البائعين الذين يخالفون معايير الجودة أو يتلقون شكاوى موثقة متكررة. يتم احتجاز المدفوعات لمدة 7 أيام بعد التسليم المؤكد.",
+        },
+        {
+          title: "قائمة المنتجات والمحتوى المحظور",
+          body: "يُحظر إدراج المنتجات المقلدة أو المسروقة أو المقيدة قانونيًا على المنصة. كذلك يُحظر المحتوى المضلل والمواد غير القانونية وأي شيء ينتهك حقوق الملكية الفكرية. نحتفظ بالحق في إزالة القوائم غير الملائمة دون سابق إنذار وتعليق الحسابات المخالفة.",
+        },
+        {
+          title: "المدفوعات والرسوم",
+          body: "جميع الأسعار بالدينار الجزائري وتشمل الضرائب المعمول بها. يتحمل البائعون رسوم خدمة المنصة المحددة في خطة اشتراكهم. نحتفظ بالحق في تعديل هيكل الرسوم مع إشعار مسبق لا يقل عن 30 يومًا. تُعالج المبالغ المستردة وفقًا لسياسة الإرجاع الخاصة بكل منتج.",
+        },
+        {
+          title: "الملكية الفكرية",
+          body: "تخضع جميع محتويات منصة فودة — بما فيها الشعارات والتصاميم والنصوص والرسومات — لحقوق الطبع والنشر الخاصة بشركة فودة. لا يجوز إعادة استخدام أي محتوى لأغراض تجارية دون إذن خطي مسبق. يحتفظ البائعون بحقوق ملكية صور منتجاتهم ومحتوياتهم.",
+        },
+        {
+          title: "حدود المسؤولية",
+          body: "تُقدَّم منصة فودة «كما هي» دون أي ضمانات صريحة أو ضمنية. لا نتحمل المسؤولية عن أي أضرار غير مباشرة أو عرضية أو خاصة ناجمة عن استخدامك للمنصة. لا تتجاوز مسؤوليتنا القصوى في أي حال قيمة آخر معاملة أجريتها على المنصة.",
+        },
+        {
+          title: "تسوية النزاعات",
+          body: "يتفق الطرفان على السعي لحل أي نزاع وديًا خلال 30 يومًا قبل اللجوء إلى أي إجراء قانوني. تخضع هذه الاتفاقية لقانون الجمهورية الجزائرية الديمقراطية الشعبية. يكون للمحاكم الجزائرية المختصة الاختصاص الحصري بأي نزاعات.",
+        },
+      ],
+    },
   },
 };
 
@@ -2631,12 +3055,14 @@ export const en: Translations = {
       },
     },
     layout: {
-      portal: "Seller Portal",
-      dashboard: "Dashboard",
-      myProducts: "My Products",
+      portal: "FODA Operations",
+      menu: "Menu",
+      dashboard: "Overview",
+      myProducts: "Products",
       orders: "Orders",
       trafficAnalytics: "Traffic Analytics",
       storeSettings: "Store Settings",
+      confirmationTeam: "Confirmation Team",
       visitStore: "Visit Store",
       seller: "Seller",
       signOut: "Sign Out",
@@ -2688,6 +3114,29 @@ export const en: Translations = {
       location: "Location:",
       noPhone: "No phone added",
       noLocation: "No location added",
+      // ── Redesigned overview ──
+      dashboard: "Dashboard",
+      gladToSeeYou: "Glad to see you,",
+      whatAwaits: "Here's what awaits your attention today.",
+      catalogSize: "Catalog Size",
+      catalogSizeSub: "low",
+      confirmedLifetime: "Confirmed (lifetime)",
+      confirmedLifetimeSub: "across your account",
+      pendingValue: "Pending Value",
+      pendingValueSub: "total orders",
+      pendingOrders: "Pending Orders",
+      pendingOrdersSub: "awaiting your confirmation",
+      inventoryHealth: "Inventory Health",
+      lowStockItems: "Low stock items",
+      outOfStock: "Out of stock",
+      totalProducts: "Total products",
+      browseInventory: "Browse Inventory",
+      recentPendingOrders: "Recent Pending Orders",
+      oldestFirst: "Oldest first gets priority",
+      noPendingOrders: "No pending orders",
+      noPendingDesc: "All orders are confirmed — great work!",
+      item: "item",
+      deliveredSub: "delivered",
     },
     form: {
       addNewProduct: "Add New Product",
@@ -2732,6 +3181,51 @@ export const en: Translations = {
       cancel: "Cancel",
       failedUpdate: "Failed to update product.",
       failedAdd: "Failed to add product.",
+      brand: "Brand *",
+      brandPlaceholder: "e.g. Nike, Zara, Local Brand…",
+      brandRequired: "Brand is required",
+      mainCategoryLabel: "Main Category",
+      subCategoryLabel: "Sub Category",
+      pricePlaceholder: "8900",
+      pricingDesc: "Set the selling price. Stock per size & color is set on the Inventory page.",
+      imagesHint: "Add up to 5 images. The first is the main photo. Drag to reorder.",
+      dragToReorder: "Drag to reorder",
+      subCats: {
+        Shirts: "Shirts",
+        Pants: "Pants",
+        Dresses: "Dresses",
+        Shoes: "Shoes",
+        Jackets: "Jackets",
+        Hoodies: "Hoodies",
+        Jeans: "Jeans",
+        Shorts: "Shorts",
+        "T-Shirts": "T-Shirts",
+        Sweaters: "Sweaters",
+        Coats: "Coats",
+        Bags: "Bags",
+        Hats: "Hats",
+        Other: "Other",
+      },
+      colorNames: {
+        Black: "Black",
+        White: "White",
+        Beige: "Beige",
+        Gray: "Gray",
+        Brown: "Brown",
+        Navy: "Navy",
+        Red: "Red",
+        Burgundy: "Burgundy",
+        Pink: "Pink",
+        Orange: "Orange",
+        Yellow: "Yellow",
+        Green: "Green",
+        Olive: "Olive",
+        Blue: "Blue",
+        Teal: "Teal",
+        Purple: "Purple",
+        Gold: "Gold",
+        Khaki: "Khaki",
+      },
     },
     productsList: {
       title: "My Products",
@@ -2869,6 +3363,14 @@ export const en: Translations = {
       filterInactive: "Inactive",
       filterNoPromo: "No Promo",
       expiresOn: "Expires",
+      category: "Category",
+      youSave: "Customer saves",
+      daysLeft: "days left",
+      startsIn: "starts in",
+      noEndDate: "No end date",
+      wasPrice: "Was",
+      nowPrice: "Now",
+      ongoing: "Ongoing",
     },
     ordersList: {
       title: "Orders",
@@ -2927,6 +3429,7 @@ export const en: Translations = {
       save: "Save Settings",
       errorShopName: "Shop name is required (at least 3 characters).",
       errorWilayaCommune: "Wilaya and commune must be provided together.",
+      cancel: "Cancel",
     },
     pendingPage: {
       title: "Application Under Review",
@@ -2964,6 +3467,12 @@ export const en: Translations = {
       viewAll: "View all",
       error: "Failed to load revenue data",
       dzd: "DZD",
+      legendRecent: "Most recent",
+      legendEarlier: "Earlier days",
+      trendVsPrev: "vs. previous period",
+      orderIdLabel: "Order",
+      locationLabel: "Location",
+      amountLabel: "Amount",
       statusLabels: {
         pending: "Pending",
         confirmed: "Confirmed",
@@ -3019,6 +3528,31 @@ export const en: Translations = {
       copyAll: "Copy all",
       hint: "Each link carries a platform tag so you can see which channel drives traffic.",
     },
+    promoModal: {
+      setPromotion: "Set Promotion",
+      promotionActive: "Promotion active",
+      visibleToCustomers: "Visible to customers",
+      hiddenFromCustomers: "Hidden from customers",
+      discount: "Discount",
+      valuePlaceholderPct: "e.g. 20",
+      valuePlaceholderAmt: "e.g. 500",
+      pctCannotExceed: "Percentage cannot exceed 100%",
+      dateRange: "Date range",
+      optional: "(optional)",
+      clearDates: "Clear dates",
+      startBeforeEnd: "Start date must be before end date",
+      removeThisPromo: "Remove this promotion permanently?",
+      cancel: "Cancel",
+      remove: "Remove",
+      removing: "Removing…",
+      saving: "Saving…",
+      savePromotion: "Save Promotion",
+      savedSuccess: "Promotion saved successfully",
+      removedSuccess: "Promotion removed",
+      failedSave: "Failed to save promotion",
+      failedRemove: "Failed to remove promotion",
+      valueGreaterThanZero: "Discount value must be greater than 0",
+    },
     confirmatorsPage: {
       title: "Confirmators",
       subtitle: "Manage who can confirm and cancel orders on your behalf.",
@@ -3061,6 +3595,56 @@ export const en: Translations = {
       keep: "Keep",
       removing: "Removing…",
       remove: "Remove",
+      overallRate: "Overall confirm rate",
+      ordersHandled: "orders handled",
+      inviteHint: "They'll receive an email granting them access to confirm and cancel your orders.",
+      noActivity: "No activity yet",
+    },
+    collectionsPage: {
+      title: "Collections",
+      subtitle: "Group your products into curated collections for a better storefront.",
+      newCollection: "New Collection",
+      searchPlaceholder: "Search collections…",
+      loadingLabel: "Loading…",
+      collectionCount: "collection",
+      collectionCountPlural: "collections",
+      noCollectionsTitle: "No collections yet",
+      noCollectionsDesc: "Create your first collection to organise your products beautifully.",
+      noSearchResults: "No collections match your search",
+      tryDifferentKeyword: "Try a different keyword",
+      createFirst: "Create Collection",
+      products: "products",
+      productCount: "product",
+      productCountPlural: "products",
+      edit: "Edit",
+      deleteLabel: "Delete",
+      deleteTitle: "Delete Collection",
+      deleteDesc: "Delete \"{name}\"? This cannot be undone.",
+      cancel: "Cancel",
+      deleting: "Deleting…",
+      confirmDelete: "Delete",
+      modalTitleCreate: "New Collection",
+      modalTitleEdit: "Edit Collection",
+      namePlaceholder: "e.g. Summer 2025",
+      nameLabel: "Collection Name",
+      nameRequired: "Collection name is required",
+      descriptionLabel: "Description",
+      descriptionPlaceholder: "Describe this collection…",
+      coverLabel: "Cover Image",
+      coverOptional: "(optional)",
+      clickToUpload: "Click to upload",
+      productsLabel: "Products",
+      selectedCount: "selected",
+      searchProducts: "Search products…",
+      noProductsFound: "No products found",
+      saving: "Saving…",
+      createCollection: "Create Collection",
+      saveChanges: "Save Changes",
+      failedSave: "Failed to save collection",
+      failedLoad: "Failed to load collections",
+      failedDelete: "Failed to delete collection",
+      created: "Collection created",
+      updated: "Collection updated",
     },
     orderActions: {
       confirmTitle: "Are you sure you want to confirm this order?",
@@ -3082,6 +3666,85 @@ export const en: Translations = {
     goHome: "Back to Home",
     goShop: "Browse the Shop",
     hint: "Or try searching for something else",
+  },
+  legal: {
+    lastUpdated: "Last updated",
+    backHome: "Back to Home",
+    tableOfContents: "Table of Contents",
+    privacy: {
+      badge: "Privacy & Security",
+      title: "Privacy Policy",
+      subtitle: "We take your privacy seriously. Learn how your data is collected, used, and protected on Foda.",
+      sections: [
+        {
+          title: "Information We Collect",
+          body: "We collect information you provide directly, such as your name, email address, shipping details, and payment data when you create an account or complete a purchase. We also automatically collect usage data including IP address, browser type, pages visited, and interaction patterns to improve your experience.",
+        },
+        {
+          title: "How We Use Your Information",
+          body: "We use your data to process orders, send purchase confirmations and shipping updates, provide customer support, and personalise product recommendations. We will never sell your personal data to third parties. We may share anonymised, aggregated data with trusted analytics partners to improve our services.",
+        },
+        {
+          title: "Cookies & Tracking Technologies",
+          body: "We use essential cookies to maintain your login session and shopping cart. Optional cookies (with your consent) are used for analytics and ad personalisation. You can manage your preferences or clear cookies at any time through your browser settings.",
+        },
+        {
+          title: "Security & Data Protection",
+          body: "Your data is protected with TLS encryption for all transmissions and bcrypt password hashing. Your payment information is processed through PCI-DSS compliant secure gateways — we never store your card details on our servers. We conduct regular security audits and penetration testing.",
+        },
+        {
+          title: "Your Rights",
+          body: "You have the right to access, correct, or delete your personal data at any time through your profile dashboard. You may also request a copy of your data or object to its processing. To make these requests, contact us at support@foda.foo and we will respond within 30 days.",
+        },
+        {
+          title: "Data Retention",
+          body: "We retain your account data for as long as your account is active. When you delete your account, your personal data is removed within 30 days, while anonymised transaction records are kept for legal compliance purposes for up to 5 years.",
+        },
+        {
+          title: "Contact Us",
+          body: "If you have any questions about this Privacy Policy or our data practices, please reach out to our Privacy team at support@foda.foo or write to us at: Foda E-Commerce, Algeria.",
+        },
+      ],
+    },
+    terms: {
+      badge: "Legal Terms",
+      title: "Terms of Service",
+      subtitle: "Please read these terms carefully before using the Foda platform. By using our services, you agree to be bound by these terms.",
+      sections: [
+        {
+          title: "Acceptance of Terms",
+          body: "By accessing or using the Foda platform, you agree to be bound by these Terms of Service and our Privacy Policy. If you disagree with any part of these terms, you may not access the service. These terms apply to all users, including shoppers and sellers.",
+        },
+        {
+          title: "User Accounts",
+          body: "You must be at least 18 years old to create an account. You are responsible for maintaining the confidentiality of your login credentials and for all activity that occurs under your account. Unauthorised use must be reported immediately. We reserve the right to terminate accounts that violate these terms.",
+        },
+        {
+          title: "Seller Terms",
+          body: "Registered sellers agree to provide accurate product information, ship orders in a timely manner, and handle returns in accordance with our policy. Foda reserves the right to suspend or terminate seller accounts that fail to meet quality standards or receive repeated documented complaints. Payouts are held for 7 days after confirmed delivery.",
+        },
+        {
+          title: "Prohibited Listings & Content",
+          body: "Counterfeit, stolen, or legally restricted products are prohibited on the platform. Misleading content, illegal materials, and anything that infringes intellectual property rights are also prohibited. We reserve the right to remove non-compliant listings without notice and to suspend violating accounts.",
+        },
+        {
+          title: "Payments & Fees",
+          body: "All prices are in Algerian Dinars (DZD) and include applicable taxes. Sellers are subject to the platform service fee specified in their subscription plan. We reserve the right to adjust our fee structure with a minimum of 30 days' notice. Refunds are processed according to each product's return policy.",
+        },
+        {
+          title: "Intellectual Property",
+          body: "All Foda platform content — including logos, designs, text, and graphics — is protected by copyright belonging to Foda. No content may be reused for commercial purposes without prior written permission. Sellers retain ownership of their product images and listings content.",
+        },
+        {
+          title: "Limitation of Liability",
+          body: "The Foda platform is provided 'as is' without any express or implied warranties. We are not liable for any indirect, incidental, or special damages arising from your use of the platform. Our maximum liability in any case shall not exceed the value of your most recent transaction on the platform.",
+        },
+        {
+          title: "Dispute Resolution",
+          body: "Both parties agree to seek an amicable resolution to any dispute within 30 days before pursuing any legal action. This agreement is governed by the laws of the People's Democratic Republic of Algeria. Competent Algerian courts shall have exclusive jurisdiction over any disputes.",
+        },
+      ],
+    },
   },
 };
 

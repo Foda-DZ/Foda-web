@@ -196,24 +196,24 @@ export default function Footer() {
           </p>
           <div className="flex items-center gap-5">
             <button
+              onClick={() => navigate("/privacy")}
+              className="text-white/35 text-xs hover:text-gold transition-colors duration-200"
+            >
+              {tr.footer.privacy}
+            </button>
+            <button
+              onClick={() => navigate("/terms")}
+              className="text-white/35 text-xs hover:text-gold transition-colors duration-200"
+            >
+              {tr.footer.terms}
+            </button>
+            <button
               onClick={() =>
                 (window.location.href = `mailto:${tr.footer.email}`)
               }
               className="text-white/35 text-xs hover:text-gold transition-colors duration-200"
             >
               {tr.footer.helpLinks[4] ?? "Contact"}
-            </button>
-            <button
-              onClick={() => navigate("/shop")}
-              className="text-white/35 text-xs hover:text-gold transition-colors duration-200"
-            >
-              {tr.nav.shop}
-            </button>
-            <button
-              onClick={() => navigate("/profile")}
-              className="text-white/35 text-xs hover:text-gold transition-colors duration-200"
-            >
-              {tr.nav.myProfile}
             </button>
           </div>
           <div className="flex items-center gap-2">

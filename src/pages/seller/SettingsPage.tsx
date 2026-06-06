@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import DeleteIcon from "@mui/icons-material/Delete";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CheckIcon from "@mui/icons-material/Check";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
@@ -19,11 +19,11 @@ import SellerLayout from "../../components/seller/SellerLayout";
 import type { SvgIconComponent } from "@mui/icons-material";
 
 const inputSx = {
-  "& .MuiOutlinedInput-root": { borderRadius: 0, bgcolor: "#fff" },
+  "& .MuiOutlinedInput-root": { borderRadius: "0.75rem", bgcolor: "#fff" },
 };
 
 const disabledInputSx = {
-  "& .MuiOutlinedInput-root": { borderRadius: 0, bgcolor: "#f5f5f5" },
+  "& .MuiOutlinedInput-root": { borderRadius: "0.75rem", bgcolor: "#f5f5f5" },
 };
 
 // ─── Section Header ──────────────────────────────────────────────────────────
@@ -36,8 +36,8 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center gap-2.5 mb-1">
-      <div className="w-7 h-7 bg-[#C9A84C]/10 flex items-center justify-center">
-        <Icon sx={{ fontSize: 14, color: "#C9A84C" }} />
+      <div className="w-8 h-8 sl-icon-tile-gold flex items-center justify-center">
+        <Icon sx={{ fontSize: 16, color: "#C9A84C" }} />
       </div>
       <h2 className="font-semibold text-[#1A1A2E] text-sm uppercase tracking-widest">
         {title}
@@ -72,7 +72,6 @@ export default function SettingsPage() {
     logoFile: null,
   });
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [apiError, setApiError] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -118,7 +117,6 @@ export default function SettingsPage() {
     setErrors({});
     setApiError("");
     setSaving(true);
-
     try {
       const payload: {
         shopName?: string;
@@ -160,18 +158,23 @@ export default function SettingsPage() {
 
   return (
     <SellerLayout>
-      <div className="p-8 max-w-3xl" dir={isRTL ? "rtl" : "ltr"}>
+      <div className="p-6 sm:p-8 lg:p-10 max-w-3xl" dir={isRTL ? "rtl" : "ltr"}>
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="font-display text-2xl font-bold text-[#1A1A2E]">
-            {t.title}
-          </h1>
-          <p className="text-[#1A1A2E]/50 text-sm mt-0.5">{t.subtitle}</p>
+        <div className="flex items-center gap-3.5 mb-6 sl-rise">
+          <div className="w-12 h-12 sl-icon-tile-gold flex items-center justify-center shrink-0">
+            <StorefrontIcon sx={{ fontSize: 24, color: "#C9A84C" }} />
+          </div>
+          <div className={isRTL ? "text-right" : "text-left"}>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1A1A2E]">
+              {t.title}
+            </h1>
+            <p className="text-[#1A1A2E]/50 text-sm mt-0.5">{t.subtitle}</p>
+          </div>
         </div>
 
         <form onSubmit={handleSave} className="space-y-6">
           {/* ── Store Identity ────────────────────────────────────────────── */}
-          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-5 transition-all duration-300 hover:shadow-sm">
+          <div className="sl-card p-6 space-y-5 transition-shadow duration-300 hover:shadow-md">
             <SectionHeader title={t.storeIdentity} Icon={BadgeOutlinedIcon} />
 
             {/* Logo upload */}
@@ -190,13 +193,13 @@ export default function SettingsPage() {
                   <img
                     src={form.logoPreview}
                     alt={t.storeLogo}
-                    className="w-20 h-20 object-cover border border-[#1A1A2E]/10"
+                    className="w-20 h-20 rounded-2xl object-cover border border-[#1A1A2E]/10"
                   />
-                  <div className="absolute inset-0 bg-[#1A1A2E]/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1">
+                  <div className="absolute inset-0 rounded-2xl bg-[#1A1A2E]/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1">
                     <button
                       type="button"
                       onClick={() => logoInputRef.current?.click()}
-                      className="p-1.5 bg-white/20 hover:bg-white/30 text-white transition-colors"
+                      className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors"
                     >
                       <CloudUploadIcon sx={{ fontSize: 14 }} />
                     </button>
@@ -209,9 +212,9 @@ export default function SettingsPage() {
                           logoFile: null,
                         }))
                       }
-                      className="p-1.5 bg-red-500/80 hover:bg-red-500 text-white transition-colors"
+                      className="p-1.5 rounded-lg bg-red-500/80 hover:bg-red-500 text-white transition-colors"
                     >
-                      <DeleteIcon sx={{ fontSize: 14 }} />
+                      <DeleteOutlineIcon sx={{ fontSize: 14 }} />
                     </button>
                   </div>
                 </div>
@@ -219,7 +222,7 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => logoInputRef.current?.click()}
-                  className="w-20 h-20 border-2 border-dashed border-[#1A1A2E]/15 hover:border-[#C9A84C]/50 hover:bg-[#FAF7F2] flex flex-col items-center justify-center gap-1 transition-all duration-200"
+                  className="w-20 h-20 rounded-2xl border-2 border-dashed border-[#1A1A2E]/15 hover:border-[#C9A84C]/50 hover:bg-[#FAF7F2] flex flex-col items-center justify-center gap-1 transition-all duration-200"
                 >
                   <StorefrontIcon
                     sx={{ fontSize: 20, color: "rgba(26,26,46,0.25)" }}
@@ -250,7 +253,7 @@ export default function SettingsPage() {
           </div>
 
           {/* ── Contact Information ───────────────────────────────────────── */}
-          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
+          <div className="sl-card p-6 space-y-4 transition-shadow duration-300 hover:shadow-md">
             <SectionHeader
               title={t.contactInfo}
               Icon={ContactMailOutlinedIcon}
@@ -261,7 +264,7 @@ export default function SettingsPage() {
                 value={form.phone}
                 onChange={(e) => set("phone", e.target.value)}
                 placeholder={t.phonePlaceholder}
-                type="number"
+                type="tel"
                 fullWidth
                 sx={inputSx}
               />
@@ -287,7 +290,7 @@ export default function SettingsPage() {
           </div>
 
           {/* ── Location ─────────────────────────────────────────────────── */}
-          <div className="bg-white border border-[#1A1A2E]/8 p-6 space-y-4 transition-all duration-300 hover:shadow-sm">
+          <div className="sl-card p-6 space-y-4 transition-shadow duration-300 hover:shadow-md">
             <SectionHeader
               title={t.locationInfo}
               Icon={LocationOnOutlinedIcon}
@@ -315,7 +318,7 @@ export default function SettingsPage() {
             {errors.wilayaCommune && (
               <Alert
                 severity="error"
-                sx={{ borderRadius: 0, py: 0.5, fontSize: "0.75rem" }}
+                sx={{ borderRadius: "0.75rem", py: 0.5, fontSize: "0.75rem" }}
               >
                 {errors.wilayaCommune}
               </Alert>
@@ -327,37 +330,43 @@ export default function SettingsPage() {
 
           {/* API error */}
           {apiError && (
-            <Alert severity="error" sx={{ borderRadius: 0 }}>
+            <Alert severity="error" sx={{ borderRadius: "0.875rem" }}>
               {apiError}
             </Alert>
           )}
 
           {/* Info banner */}
-          <Alert severity="info" sx={{ borderRadius: 0 }}>
+          <Alert severity="info" sx={{ borderRadius: "0.875rem" }}>
             {t.infoBanner}
           </Alert>
 
-          {/* Submit */}
-          <div className="flex items-center gap-4 pb-4">
+          {/* Submit + Cancel */}
+          <div className="flex items-center gap-3 pb-4">
             <Button
               type="submit"
               variant="contained"
               color="primary"
-              disabled={saving || saved}
+              disabled={saving}
               startIcon={
-                saved ? (
+                saving ? (
+                  <CircularProgress size={13} thickness={4} sx={{ color: "inherit" }} />
+                ) : (
                   <CheckIcon sx={{ fontSize: 15 }} />
-                ) : saving ? (
-                  <CircularProgress
-                    size={13}
-                    thickness={4}
-                    sx={{ color: "inherit" }}
-                  />
-                ) : undefined
+                )
               }
-              sx={{ borderRadius: 0, minWidth: 160 }}
+              sx={{ borderRadius: "999px", minWidth: 160, px: 3, py: 1.1 }}
             >
-              {saved ? t.saved : t.save}
+              {t.save}
+            </Button>
+            <Button
+              type="button"
+              variant="outlined"
+              color="primary"
+              onClick={() => navigate("/seller/dashboard")}
+              disabled={saving}
+              sx={{ borderRadius: "999px", px: 3, py: 1.1 }}
+            >
+              {t.cancel}
             </Button>
           </div>
         </form>

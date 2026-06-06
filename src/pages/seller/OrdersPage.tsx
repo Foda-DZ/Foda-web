@@ -1,6 +1,7 @@
-import { useState, Fragment, useEffect, useMemo } from "react";
+﻿import { useState, Fragment, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
+import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -28,7 +29,7 @@ import type {
   ApiOrderCustomer,
 } from "../../types/api";
 
-// ─── Status config (language-independent) ────────────────────────────────────
+// â”€â”€â”€ Status config (language-independent) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const STATUS_STYLE: Record<
   ApiOrderStatus,
   { dot: string; badge: string; ring: string }
@@ -70,7 +71,7 @@ const ALL_STATUSES: ApiOrderStatus[] = [
 
 type SortKey = "newest" | "oldest" | "highest" | "lowest";
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function getCustomerName(customerId: string | ApiOrderCustomer): string {
   if (typeof customerId === "object" && customerId?.fullName)
     return customerId.fullName;
@@ -83,7 +84,7 @@ function getCustomerEmail(customerId: string | ApiOrderCustomer): string {
   return "";
 }
 
-// ─── Status Badge ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Status Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function StatusBadge({
   status,
   label,
@@ -94,7 +95,7 @@ function StatusBadge({
   const cfg = STATUS_STYLE[status];
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${cfg.badge}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${cfg.badge}`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
       {label}
@@ -121,7 +122,7 @@ function OrderActionButtons({
         type="button"
         disabled={disabled}
         onClick={onConfirm}
-        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-all duration-200 border shadow-sm hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600"
+        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition-all duration-200 border shadow-sm hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600"
       >
         <CheckCircleIcon sx={{ fontSize: 14 }} />
         {confirmLabel}
@@ -130,7 +131,7 @@ function OrderActionButtons({
         type="button"
         disabled={disabled}
         onClick={onCancel}
-        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-white text-red-600 border border-red-200 shadow-sm transition-all duration-200 hover:bg-red-50 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-white text-red-600 border border-red-200 shadow-sm transition-all duration-200 hover:bg-red-50 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
       >
         <CancelIcon sx={{ fontSize: 14 }} />
         {cancelLabel}
@@ -139,7 +140,7 @@ function OrderActionButtons({
   );
 }
 
-// ─── Skeleton Row ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Skeleton Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function SkeletonRow() {
   return (
     <tr className="border-b border-[#1A1A2E]/5 animate-pulse">
@@ -152,7 +153,7 @@ function SkeletonRow() {
   );
 }
 
-// ─── Orders Page ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Orders Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function OrdersPage() {
   const { allOrders, loading, updateOrderStatus } = useSellerContext();
   const { tr, lang, isRTL } = useLang();
@@ -268,7 +269,7 @@ export default function OrdersPage() {
       setLabelError(
         err instanceof Error
           ? err.message
-          : isRTL ? "تعذر تحميل ملصق الشحن" : "Failed to download shipping label",
+          : isRTL ? "ØªØ¹Ø°Ø± ØªØ­Ù…ÙŠÙ„ Ù…Ù„ØµÙ‚ Ø§Ù„Ø´Ø­Ù†" : "Failed to download shipping label",
       );
       setTimeout(() => setLabelError(null), 4000);
     } finally {
@@ -303,23 +304,28 @@ export default function OrdersPage() {
 
   return (
     <SellerLayout>
-      <div className="p-8 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
-        {/* ── Header ────────────────────────────────────────────────────── */}
+      <div className="p-6 sm:p-8 lg:p-10 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
+        {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div
-          className={`flex items-center justify-between flex-wrap gap-4 ${isRTL ? "flex-row-reverse" : ""}`}
+          className={`flex items-center justify-between flex-wrap gap-4 sl-rise`}
         >
-          <div>
-            <h1 className="font-display text-2xl font-bold text-[#1A1A2E]">
-              {t.title}
-            </h1>
-            <p className="text-[#1A1A2E]/50 text-sm mt-0.5">
-              {allOrders.length} {t.totalOrders}
-            </p>
+          <div className={`flex items-center gap-3.5`}>
+            <div className="w-12 h-12 sl-icon-tile-gold flex items-center justify-center shrink-0">
+              <ReceiptLongOutlinedIcon sx={{ fontSize: 24, color: "#C9A84C" }} />
+            </div>
+            <div className={isRTL ? "text-right" : "text-left"}>
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1A1A2E]">
+                {t.title}
+              </h1>
+              <p className="text-[#1A1A2E]/50 text-sm mt-0.5">
+                {allOrders.length} {t.totalOrders}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* ── Status filter tabs ─────────────────────────────────────────── */}
-        <div className="flex items-center gap-1 border-b border-[#1A1A2E]/8 overflow-x-auto">
+        {/* â”€â”€ Status filter tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
           {tabs.map(({ key, label }) => {
             const count = tabCount(key);
             const isActive = activeTab === key;
@@ -327,18 +333,18 @@ export default function OrdersPage() {
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
-                className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold whitespace-nowrap transition-all duration-200 border-b-2 -mb-px ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
                   isActive
-                    ? "border-[#C9A84C] text-[#1A1A2E]"
-                    : "border-transparent text-[#1A1A2E]/40 hover:text-[#1A1A2E]/70"
+                    ? "sl-nav-active"
+                    : "bg-white border border-[#1A1A2E]/8 text-[#1A1A2E]/50 hover:text-[#1A1A2E] hover:border-[#C9A84C]/40"
                 }`}
               >
                 {label}
                 {count > 0 && (
                   <span
-                    className={`px-1.5 py-0.5 text-[10px] font-bold ${
+                    className={`min-w-[18px] px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${
                       isActive
-                        ? "bg-[#C9A84C]/15 text-[#C9A84C]"
+                        ? "bg-[#1A1A2E]/15 text-[#1A1A2E]"
                         : "bg-[#1A1A2E]/8 text-[#1A1A2E]/40"
                     }`}
                   >
@@ -350,17 +356,17 @@ export default function OrdersPage() {
           })}
         </div>
 
-        {/* ── Search & Sort ────────────────────────────────────────────── */}
+        {/* â”€â”€ Search & Sort â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <SearchIcon
               sx={{
-                fontSize: 16,
+                fontSize: 18,
                 position: "absolute",
                 top: "50%",
                 transform: "translateY(-50%)",
-                left: lang === "ar" ? undefined : 12,
-                right: lang === "ar" ? 12 : undefined,
+                left: lang === "ar" ? undefined : 14,
+                right: lang === "ar" ? 14 : undefined,
                 color: "rgba(26,26,46,0.3)",
               }}
             />
@@ -369,16 +375,26 @@ export default function OrdersPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t.search}
-              className="w-full h-9 border border-[#1A1A2E]/12 bg-white text-xs text-[#1A1A2E] placeholder:text-[#1A1A2E]/30 focus:outline-none focus:border-[#C9A84C]/50 transition-colors duration-200"
-              style={{ paddingInlineStart: 36, paddingInlineEnd: 12 }}
+              className="w-full h-11 rounded-full border border-[#1A1A2E]/10 bg-white text-sm text-[#1A1A2E] placeholder:text-[#1A1A2E]/30 focus:outline-none focus:border-[#C9A84C]/60 focus:ring-2 focus:ring-[#C9A84C]/10 transition-all duration-200"
+              style={{ paddingInlineStart: 42, paddingInlineEnd: 16 }}
             />
           </div>
-          <div className="flex items-center gap-1.5">
-            <SortIcon sx={{ fontSize: 14, color: "rgba(26,26,46,0.3)" }} />
+          <div className="relative flex items-center">
+            <SortIcon
+              sx={{
+                fontSize: 16,
+                position: "absolute",
+                left: lang === "ar" ? undefined : 14,
+                right: lang === "ar" ? 14 : undefined,
+                color: "rgba(26,26,46,0.35)",
+                pointerEvents: "none",
+              }}
+            />
             <select
               value={sortKey}
               onChange={(e) => setSortKey(e.target.value as SortKey)}
-              className="h-9 border border-[#1A1A2E]/12 bg-white text-xs text-[#1A1A2E]/70 px-3 focus:outline-none focus:border-[#C9A84C]/50 transition-colors duration-200 cursor-pointer"
+              className="h-11 rounded-full border border-[#1A1A2E]/10 bg-white text-sm text-[#1A1A2E]/70 focus:outline-none focus:border-[#C9A84C]/60 transition-colors duration-200 cursor-pointer"
+              style={{ paddingInlineStart: 40, paddingInlineEnd: 16 }}
             >
               {sortOptions.map((o) => (
                 <option key={o.key} value={o.key}>
@@ -389,8 +405,8 @@ export default function OrdersPage() {
           </div>
         </div>
 
-        {/* ── Orders Table ───────────────────────────────────────────────── */}
-        <div className="bg-white border border-[#1A1A2E]/8 overflow-hidden">
+        {/* â”€â”€ Orders Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        <div className="sl-card overflow-hidden">
           {loading ? (
             <table className="w-full text-sm">
               <thead>
@@ -413,9 +429,9 @@ export default function OrdersPage() {
             </table>
           ) : filtered.length === 0 ? (
             <div className="p-16 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-[#C9A84C]/8 flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto mb-4 sl-icon-tile-gold flex items-center justify-center">
                 <ShoppingBagIcon
-                  sx={{ fontSize: 28, color: "rgba(201,168,76,0.4)" }}
+                  sx={{ fontSize: 28, color: "rgba(201,168,76,0.5)" }}
                 />
               </div>
               <p className="font-display font-bold text-[#1A1A2E] text-base mb-1">
@@ -510,7 +526,7 @@ export default function OrdersPage() {
                               )}
                             </div>
                           ) : (
-                            <span className="text-xs text-[#1A1A2E]/30">—</span>
+                            <span className="text-xs text-[#1A1A2E]/30">â€”</span>
                           )}
                         </td>
 
@@ -623,11 +639,11 @@ export default function OrdersPage() {
                                   {order.items.map((item, idx) => (
                                     <div
                                       key={idx}
-                                      className="bg-white border border-[#1A1A2E]/8 p-3 transition-all duration-200 hover:shadow-sm"
+                                      className="bg-white border border-[#1A1A2E]/8 rounded-xl p-3 transition-all duration-200 hover:shadow-sm"
                                     >
                                       <div className="flex items-start gap-3">
                                         {item.image && (
-                                          <div className="w-12 h-14 bg-[#F0EBE3] overflow-hidden flex-shrink-0">
+                                          <div className="w-12 h-14 rounded-lg bg-[#F0EBE3] overflow-hidden flex-shrink-0">
                                             <img
                                               src={item.image}
                                               alt={item.name}
@@ -645,7 +661,7 @@ export default function OrdersPage() {
                                             {item.name}
                                           </p>
                                           <p className="text-[10px] text-[#1A1A2E]/50 mt-1">
-                                            {t.qty} {item.quantity} ×{" "}
+                                            {t.qty} {item.quantity} Ã—{" "}
                                             {item.price.toLocaleString()}{" "}
                                             {tr.common.dzd}
                                           </p>
@@ -691,7 +707,7 @@ export default function OrdersPage() {
                                   <PersonOutlineIcon sx={{ fontSize: 11 }} />{" "}
                                   {t.customerInfo}
                                 </p>
-                                <div className="bg-white border border-[#1A1A2E]/8 p-4 space-y-3">
+                                <div className="bg-white border border-[#1A1A2E]/8 rounded-xl p-4 space-y-3">
                                   {customerName && (
                                     <div className="flex items-center gap-2">
                                       <PersonOutlineIcon
@@ -745,7 +761,7 @@ export default function OrdersPage() {
                                   </span>
                                 </div>
 
-                                {/* Label download — only for confirmed/shipped/delivered orders with a tracking_id */}
+                                {/* Label download â€” only for confirmed/shipped/delivered orders with a tracking_id */}
                                 {order.tracking_id &&
                                   (order.status === "confirmed" ||
                                     order.status === "shipped" ||
@@ -758,12 +774,12 @@ export default function OrdersPage() {
                                       {downloadingLabelId === order._id ? (
                                         <>
                                           <span className="w-3.5 h-3.5 border-2 border-[#C9A84C] border-t-transparent rounded-full animate-spin" />
-                                          {isRTL ? "جارٍ التحميل..." : "Downloading..."}
+                                          {isRTL ? "Ø¬Ø§Ø±Ù Ø§Ù„ØªØ­Ù…ÙŠÙ„..." : "Downloading..."}
                                         </>
                                       ) : (
                                         <>
                                           <FileDownloadOutlinedIcon sx={{ fontSize: 14 }} />
-                                          {isRTL ? "تحميل ملصق الشحن" : "Download Label"}
+                                          {isRTL ? "ØªØ­Ù…ÙŠÙ„ Ù…Ù„ØµÙ‚ Ø§Ù„Ø´Ø­Ù†" : "Download Label"}
                                         </>
                                       )}
                                     </button>
@@ -776,7 +792,7 @@ export default function OrdersPage() {
                                   <LocalShippingIcon sx={{ fontSize: 11 }} />{" "}
                                   {t.shippingDetails}
                                 </p>
-                                <div className="bg-white border border-[#1A1A2E]/8 p-4 space-y-3">
+                                <div className="bg-white border border-[#1A1A2E]/8 rounded-xl p-4 space-y-3">
                                   <div className="flex items-start gap-2">
                                     <LocationOnIcon
                                       sx={{
@@ -829,7 +845,7 @@ export default function OrdersPage() {
                                 </div>
 
                                 {/* Status flow indicator */}
-                                <div className="mt-3 bg-white border border-[#1A1A2E]/8 p-4">
+                                <div className="mt-3 bg-white border border-[#1A1A2E]/8 rounded-xl p-4">
                                   <div className="flex items-center gap-1">
                                     {ALL_STATUSES.filter(
                                       (s) => s !== "cancelled",
@@ -936,16 +952,16 @@ export default function OrdersPage() {
         onClose={() => !updatingId && setActionTarget(null)}
         fullWidth
         maxWidth="xs"
-        PaperProps={{ sx: { borderRadius: 0, p: 2.5 } }}
+        PaperProps={{ sx: { borderRadius: "1.25rem", p: 3 } }}
       >
         <div className="space-y-4">
           <div
-            className={`w-12 h-12 mx-auto flex items-center justify-center ${actionTarget?.nextStatus === "confirmed" ? "bg-emerald-50" : "bg-red-50"}`}
+            className={`w-14 h-14 mx-auto rounded-2xl flex items-center justify-center ${actionTarget?.nextStatus === "confirmed" ? "bg-emerald-50" : "bg-red-50"}`}
           >
             {actionTarget?.nextStatus === "confirmed" ? (
-              <CheckCircleIcon sx={{ fontSize: 20, color: "#16a34a" }} />
+              <CheckCircleIcon sx={{ fontSize: 24, color: "#16a34a" }} />
             ) : (
-              <CancelIcon sx={{ fontSize: 20, color: "#ef4444" }} />
+              <CancelIcon sx={{ fontSize: 24, color: "#ef4444" }} />
             )}
           </div>
 
@@ -959,7 +975,7 @@ export default function OrdersPage() {
           </div>
 
           {actionError && (
-            <div className="text-xs text-red-600 bg-red-50 border border-red-200 px-3 py-2">
+            <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
               {actionError}
             </div>
           )}
@@ -970,7 +986,7 @@ export default function OrdersPage() {
               onClick={() => setActionTarget(null)}
               disabled={!!updatingId}
               fullWidth
-              sx={{ borderRadius: 0 }}
+              sx={{ borderRadius: "999px" }}
             >
               {ta.back}
             </Button>
@@ -986,7 +1002,7 @@ export default function OrdersPage() {
               disabled={!!updatingId || !actionTarget}
               fullWidth
               sx={{
-                borderRadius: 0,
+                borderRadius: "999px",
                 bgcolor:
                   actionTarget?.nextStatus === "confirmed"
                     ? "#16a34a"
@@ -1015,7 +1031,7 @@ export default function OrdersPage() {
         </div>
       </Dialog>
 
-      {/* ── Label download error toast ─────────────────────────────────── */}
+      {/* â”€â”€ Label download error toast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {labelError && (
         <div
           className={`fixed bottom-6 ${isRTL ? "left-6" : "right-6"} z-50 flex items-center gap-2.5 px-4 py-3 shadow-xl text-sm font-medium bg-red-600 text-white`}

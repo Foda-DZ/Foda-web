@@ -40,6 +40,8 @@ import SellerStorefrontPage from "./pages/SellerStorefrontPage";
 import CollectionPage from "./pages/CollectionPage";
 import ProductReviewsPage from "./pages/ProductReviewsPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import TermsPage from "./pages/TermsPage";
 
 // ─── Scroll Restoration ────────────────────────────────────────────────────────
 
@@ -110,6 +112,8 @@ export default function App() {
                     <Route path="wishlist" element={<WishlistPage />} />
                     <Route path="cart" element={<CartPage />} />
                     <Route path="checkout" element={<CheckoutPage />} />
+                    <Route path="privacy" element={<PrivacyPage />} />
+                    <Route path="terms" element={<TermsPage />} />
                     <Route
                       path="profile"
                       element={
