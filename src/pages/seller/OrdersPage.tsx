@@ -18,6 +18,7 @@ import SortIcon from "@mui/icons-material/Sort";
 import StraightenOutlinedIcon from "@mui/icons-material/StraightenOutlined";
 import PaletteOutlinedIcon from "@mui/icons-material/PaletteOutlined";
 import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
+import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import { useSellerContext } from "../../context/SellerContext";
@@ -141,10 +142,11 @@ function OrderActionButtons({
 }
 
 // â”€â”€â”€ Skeleton Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function SkeletonRow() {
+function SkeletonRow({ cols }: { cols: number }) {
+  const widths = [140, 120, 100, 160, 90, 100, 90, 120, 110];
   return (
     <tr className="border-b border-[#1A1A2E]/5 animate-pulse">
-      {[140, 120, 100, 160, 90, 100, 90, 110].map((w, i) => (
+      {widths.slice(0, cols).map((w, i) => (
         <td key={i} className="px-4 py-4">
           <div className="h-3 bg-[#1A1A2E]/8" style={{ width: w }} />
         </td>
@@ -155,7 +157,7 @@ function SkeletonRow() {
 
 // â”€â”€â”€ Orders Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function OrdersPage() {
-  const { allOrders, loading, updateOrderStatus } = useSellerContext();
+  const { allOrders, loading, updateOrderStatus, reload } = useSellerContext();
   const { tr, lang, isRTL } = useLang();
   const t = tr.seller.ordersList;
   const sl = tr.seller.statusLabels;
@@ -291,6 +293,9 @@ export default function OrdersPage() {
     { key: "lowest", label: t.sortLowest },
   ];
 
+  const showLabelCol = activeTab === "confirmed";
+  const showUpdateCol = activeTab === "pending";
+
   const tableHeaders = [
     t.orderId,
     t.customer,
@@ -299,7 +304,8 @@ export default function OrdersPage() {
     t.wilaya,
     t.total,
     t.status,
-    t.updateStatus,
+    ...(showLabelCol ? [t.labelCol] : []),
+    ...(showUpdateCol ? [t.updateStatus] : []),
   ];
 
   return (
@@ -322,6 +328,14 @@ export default function OrdersPage() {
               </p>
             </div>
           </div>
+          <button
+            onClick={reload}
+            disabled={loading}
+            className="h-10 w-10 rounded-full inline-flex items-center justify-center border border-[#1A1A2E]/10 bg-white text-[#1A1A2E]/50 hover:border-[#C9A84C]/50 hover:text-[#C9A84C] disabled:opacity-40 transition-all duration-200"
+            title={isRTL ? "تحديث" : "Refresh"}
+          >
+            <RefreshOutlinedIcon sx={{ fontSize: 18 }} />
+          </button>
         </div>
 
         {/* â”€â”€ Status filter tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
@@ -423,7 +437,7 @@ export default function OrdersPage() {
               </thead>
               <tbody>
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <SkeletonRow key={i} />
+                  <SkeletonRow key={i} cols={tableHeaders.length} />
                 ))}
               </tbody>
             </table>
@@ -573,61 +587,90 @@ export default function OrdersPage() {
                             status={order.status}
                             label={statusLabelMap[order.status]}
                           />
-                        </td>
-
-                        {/* Update status */}
-                        <td
-                          className="px-4 py-3.5"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {order.status === "pending" ? (
-                            <div className="flex flex-col gap-2">
-                              <OrderActionButtons
-                                disabled={isUpdating}
-                                confirmLabel={ta.confirm}
-                                cancelLabel={ta.cancel}
-                                onConfirm={() => {
-                                  setActionError("");
-                                  setActionTarget({
-                                    orderId: order._id,
-                                    nextStatus: "confirmed",
-                                  });
-                                }}
-                                onCancel={() => {
-                                  setActionError("");
-                                  setActionTarget({
-                                    orderId: order._id,
-                                    nextStatus: "cancelled",
-                                  });
-                                }}
-                              />
-                              {isUpdating && (
-                                <span className="text-[10px] font-medium text-[#1A1A2E]/40">
-                                  {ta.updating}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <StatusBadge
-                                status={order.status}
-                                label={statusLabelMap[order.status]}
-                              />
-                              {order.managedBy && (
-                                <span className="inline-flex items-center gap-1 text-[10px] text-[#1A1A2E]/45 bg-[#1A1A2E]/5 px-2 py-0.5">
-                                  <PersonOutlineIcon sx={{ fontSize: 10 }} />
-                                  {order.managedBy}
-                                </span>
-                              )}
-                            </div>
+                          {showLabelCol && order.managedBy && (
+                            <p className="flex items-center gap-1 mt-1.5 text-[10px] text-[#1A1A2E]/45">
+                              <PersonOutlineIcon sx={{ fontSize: 10 }} />
+                              {t.managedBy} {order.managedBy}
+                            </p>
                           )}
                         </td>
+
+                        {/* Label — only on confirmed tab */}
+                        {showLabelCol && (
+                          <td
+                            className="px-4 py-3.5"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {order.tracking_id ? (
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadLabel(order._id)}
+                                disabled={downloadingLabelId === order._id}
+                                title={t.downloadLabel}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border border-[#C9A84C]/40 text-[#C9A84C] bg-[#C9A84C]/5 hover:bg-[#C9A84C]/15 hover:border-[#C9A84C]/70 transition-all duration-200 hover:-translate-y-0.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none whitespace-nowrap"
+                              >
+                                {downloadingLabelId === order._id ? (
+                                  <>
+                                    <span className="w-3 h-3 border-2 border-[#C9A84C] border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                                    {t.downloading}
+                                  </>
+                                ) : (
+                                  <>
+                                    <FileDownloadOutlinedIcon sx={{ fontSize: 13, flexShrink: 0 }} />
+                                    {t.downloadLabel}
+                                  </>
+                                )}
+                              </button>
+                            ) : (
+                              <span className="text-xs text-[#1A1A2E]/25 select-none">—</span>
+                            )}
+                          </td>
+                        )}
+
+                        {/* Update status — only on non-confirmed tabs */}
+                        {showUpdateCol && (
+                          <td
+                            className="px-4 py-3.5"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {order.status === "pending" ? (
+                              <div className="flex flex-col gap-2">
+                                <OrderActionButtons
+                                  disabled={isUpdating}
+                                  confirmLabel={ta.confirm}
+                                  cancelLabel={ta.cancel}
+                                  onConfirm={() => {
+                                    setActionError("");
+                                    setActionTarget({
+                                      orderId: order._id,
+                                      nextStatus: "confirmed",
+                                    });
+                                  }}
+                                  onCancel={() => {
+                                    setActionError("");
+                                    setActionTarget({
+                                      orderId: order._id,
+                                      nextStatus: "cancelled",
+                                    });
+                                  }}
+                                />
+                                {isUpdating && (
+                                  <span className="text-[10px] font-medium text-[#1A1A2E]/40">
+                                    {ta.updating}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-[#1A1A2E]/25 select-none">—</span>
+                            )}
+                          </td>
+                        )}
                       </tr>
 
                       {/* Expanded detail row */}
                       {isExpanded && (
                         <tr className="border-b border-[#1A1A2E]/5 bg-[#FAF7F2]">
-                          <td colSpan={8} className="px-6 pb-5 pt-0">
+                          <td colSpan={tableHeaders.length} className="px-6 pb-5 pt-0">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-[#1A1A2E]/8">
                               {/* Items list */}
                               <div className="md:col-span-1">

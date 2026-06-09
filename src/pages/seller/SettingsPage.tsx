@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -8,6 +8,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import ContactMailOutlinedIcon from "@mui/icons-material/ContactMailOutlined";
 import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
@@ -16,7 +17,15 @@ import { useAuth } from "../../context/AuthContext";
 import { useLang } from "../../context/LangContext";
 import { sellerService } from "../../services/sellerService";
 import SellerLayout from "../../components/seller/SellerLayout";
+import wilayasData from "../../data/wilayas.json";
 import type { SvgIconComponent } from "@mui/icons-material";
+
+const wilayas = wilayasData as Array<{
+  wilayaCode: number;
+  nameFr: string;
+  nameAr: string;
+  communes: Array<{ id: number; nameFr: string; nameAr: string }>;
+}>;
 
 const inputSx = {
   "& .MuiOutlinedInput-root": { borderRadius: "0.75rem", bgcolor: "#fff" },
@@ -39,7 +48,7 @@ function SectionHeader({
       <div className="w-8 h-8 sl-icon-tile-gold flex items-center justify-center">
         <Icon sx={{ fontSize: 16, color: "#C9A84C" }} />
       </div>
-      <h2 className="font-semibold text-[#1A1A2E] text-sm uppercase tracking-widest">
+      <h2 className="font-semibold text-charcoal text-sm uppercase tracking-widest">
         {title}
       </h2>
     </div>
@@ -58,7 +67,7 @@ interface SettingsForm {
 
 export default function SettingsPage() {
   const { user, updateSellerSettings } = useAuth();
-  const { tr, isRTL } = useLang();
+  const { tr, isRTL, lang } = useLang();
   const t = tr.seller.settingsPage;
   const navigate = useNavigate();
 
@@ -71,6 +80,27 @@ export default function SettingsPage() {
     logoPreview: user?.logoUrl || "",
     logoFile: null,
   });
+
+  const wilayaOptions = useMemo(
+    () => wilayas.map((w) => ({
+      value: w.nameFr,
+      label: lang === "ar" ? `${w.nameAr} (${w.nameFr})` : `${String(w.wilayaCode).padStart(2, "0")} - ${w.nameFr}`,
+    })),
+    [lang],
+  );
+
+  const selectedWilayaObj = useMemo(
+    () => wilayas.find((w) => w.nameFr === form.wilaya) ?? null,
+    [form.wilaya],
+  );
+
+  const communeOptions = useMemo(
+    () => (selectedWilayaObj?.communes ?? []).map((c) => ({
+      value: c.nameFr,
+      label: lang === "ar" ? `${c.nameAr} (${c.nameFr})` : c.nameFr,
+    })),
+    [lang, selectedWilayaObj],
+  );
   const [saving, setSaving] = useState(false);
   const [apiError, setApiError] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -165,10 +195,10 @@ export default function SettingsPage() {
             <StorefrontIcon sx={{ fontSize: 24, color: "#C9A84C" }} />
           </div>
           <div className={isRTL ? "text-right" : "text-left"}>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1A1A2E]">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-charcoal">
               {t.title}
             </h1>
-            <p className="text-[#1A1A2E]/50 text-sm mt-0.5">{t.subtitle}</p>
+            <p className="text-charcoal/50 text-sm mt-0.5">{t.subtitle}</p>
           </div>
         </div>
 
@@ -193,9 +223,9 @@ export default function SettingsPage() {
                   <img
                     src={form.logoPreview}
                     alt={t.storeLogo}
-                    className="w-20 h-20 rounded-2xl object-cover border border-[#1A1A2E]/10"
+                    className="w-20 h-20 rounded-2xl object-cover border border-charcoal/10"
                   />
-                  <div className="absolute inset-0 rounded-2xl bg-[#1A1A2E]/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1">
+                  <div className="absolute inset-0 rounded-2xl bg-charcoal/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-1">
                     <button
                       type="button"
                       onClick={() => logoInputRef.current?.click()}
@@ -222,21 +252,21 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => logoInputRef.current?.click()}
-                  className="w-20 h-20 rounded-2xl border-2 border-dashed border-[#1A1A2E]/15 hover:border-[#C9A84C]/50 hover:bg-[#FAF7F2] flex flex-col items-center justify-center gap-1 transition-all duration-200"
+                  className="w-20 h-20 rounded-2xl border-2 border-dashed border-charcoal/15 hover:border-gold/50 hover:bg-[#FAF7F2] flex flex-col items-center justify-center gap-1 transition-all duration-200"
                 >
                   <StorefrontIcon
                     sx={{ fontSize: 20, color: "rgba(26,26,46,0.25)" }}
                   />
-                  <span className="text-[9px] font-semibold text-[#1A1A2E]/40 uppercase">
+                  <span className="text-[9px] font-semibold text-charcoal/40 uppercase">
                     {t.logo}
                   </span>
                 </button>
               )}
               <div>
-                <p className="text-sm font-semibold text-[#1A1A2E]">
+                <p className="text-sm font-semibold text-charcoal">
                   {t.storeLogo}
                 </p>
-                <p className="text-xs text-[#1A1A2E]/40 mt-0.5">{t.logoHint}</p>
+                <p className="text-xs text-charcoal/40 mt-0.5">{t.logoHint}</p>
               </div>
             </div>
 
@@ -281,7 +311,7 @@ export default function SettingsPage() {
                   <LockOutlinedIcon
                     sx={{ fontSize: 10, color: "rgba(26,26,46,0.3)" }}
                   />
-                  <span className="text-[10px] text-[#1A1A2E]/40">
+                  <span className="text-[10px] text-charcoal/40">
                     {t.emailDisabled}
                   </span>
                 </div>
@@ -296,25 +326,83 @@ export default function SettingsPage() {
               Icon={LocationOnOutlinedIcon}
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <TextField
-                label={t.wilaya}
-                value={form.wilaya}
-                onChange={(e) => set("wilaya", e.target.value)}
-                placeholder={t.wilayaPlaceholder}
-                error={!!errors.wilayaCommune}
-                fullWidth
-                sx={inputSx}
-              />
-              <TextField
-                label={t.commune}
-                value={form.commune}
-                onChange={(e) => set("commune", e.target.value)}
-                placeholder={t.communePlaceholder}
-                error={!!errors.wilayaCommune}
-                fullWidth
-                sx={inputSx}
-              />
+              {/* Wilaya dropdown */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold tracking-widest uppercase text-charcoal/50">
+                  {t.wilaya}
+                </label>
+                <div className="relative">
+                  <select
+                    value={form.wilaya}
+                    onChange={(e) => {
+                      set("wilaya", e.target.value);
+                      set("commune", "");
+                    }}
+                    dir={isRTL ? "rtl" : "ltr"}
+                    className={`w-full h-11 ps-3 pe-9 rounded-xl border bg-white text-sm appearance-none cursor-pointer focus:outline-none transition-colors duration-200 ${
+                      errors.wilayaCommune
+                        ? "border-red-400 focus:border-red-400"
+                        : "border-charcoal/15 focus:border-gold"
+                    } ${!form.wilaya ? "text-charcoal/40" : "text-charcoal"}`}
+                  >
+                    <option value="">{t.selectWilaya}</option>
+                    {wilayaOptions.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                  <ExpandMoreIcon
+                    sx={{
+                      fontSize: 18,
+                      color: "rgba(26,26,46,0.35)",
+                      position: "absolute",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      ...(isRTL ? { left: 10 } : { right: 10 }),
+                      pointerEvents: "none",
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Commune dropdown */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold tracking-widest uppercase text-charcoal/50">
+                  {t.commune}
+                </label>
+                <div className="relative">
+                  <select
+                    value={form.commune}
+                    onChange={(e) => set("commune", e.target.value)}
+                    disabled={!form.wilaya}
+                    dir={isRTL ? "rtl" : "ltr"}
+                    className={`w-full h-11 ps-3 pe-9 rounded-xl border bg-white text-sm appearance-none cursor-pointer focus:outline-none transition-colors duration-200 ${
+                      errors.wilayaCommune
+                        ? "border-red-400 focus:border-red-400"
+                        : "border-charcoal/15 focus:border-gold"
+                    } ${!form.commune ? "text-charcoal/40" : "text-charcoal"} ${!form.wilaya ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    <option value="">
+                      {form.wilaya ? t.selectCommune : t.chooseWilayaFirst}
+                    </option>
+                    {communeOptions.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                  <ExpandMoreIcon
+                    sx={{
+                      fontSize: 18,
+                      color: "rgba(26,26,46,0.35)",
+                      position: "absolute",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      ...(isRTL ? { left: 10 } : { right: 10 }),
+                      pointerEvents: "none",
+                    }}
+                  />
+                </div>
+              </div>
             </div>
+
             {errors.wilayaCommune && (
               <Alert
                 severity="error"
@@ -323,7 +411,7 @@ export default function SettingsPage() {
                 {errors.wilayaCommune}
               </Alert>
             )}
-            <p className="text-[10px] text-[#1A1A2E]/40">
+            <p className="text-[10px] text-charcoal/40">
               {t.wilayaCommuneHint}
             </p>
           </div>

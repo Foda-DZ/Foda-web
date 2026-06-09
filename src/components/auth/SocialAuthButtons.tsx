@@ -49,8 +49,7 @@ export default function SocialAuthButtons({
 }: SocialAuthButtonsProps) {
   const { tr } = useLang();
 
-  const handleProvider = (provider: "google" | "facebook") => {
-    // OAuth redirect entrypoint — wired to backend when available.
+  const handleOAuth = (provider: "google" | "facebook") => {
     const base = import.meta.env.VITE_API_BASE_URL ?? "";
     window.location.href = `${base}/auth/${provider}?role=${role}`;
   };
@@ -60,14 +59,14 @@ export default function SocialAuthButtons({
       <div className="grid grid-cols-2 gap-2.5">
         <button
           type="button"
-          onClick={() => handleProvider("google")}
+          onClick={() => handleOAuth("google")}
           className="flex items-center justify-center gap-2 h-11 border border-charcoal/15 bg-white text-charcoal text-xs font-semibold hover:border-charcoal/35 hover:shadow-sm transition-all duration-200"
         >
           <GoogleMark /> Google
         </button>
         <button
           type="button"
-          onClick={() => handleProvider("facebook")}
+          onClick={() => handleOAuth("facebook")}
           className="flex items-center justify-center gap-2 h-11 border border-charcoal/15 bg-white text-charcoal text-xs font-semibold hover:border-charcoal/35 hover:shadow-sm transition-all duration-200"
         >
           <FacebookMark /> Facebook

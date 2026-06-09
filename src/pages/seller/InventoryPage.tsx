@@ -12,8 +12,8 @@ import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import InventoryOutlinedIcon from "@mui/icons-material/InventoryOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
-import UndoOutlinedIcon from "@mui/icons-material/UndoOutlined";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
+import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined";
 import { sellerService } from "../../services/sellerService";
 import type { InventoryVariantUpdate } from "../../services/sellerService";
 import { useLang } from "../../context/LangContext";
@@ -93,11 +93,10 @@ export default function InventoryPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   // Map<variantId, stock> with the *edited* values. Cleared after save.
   const [draft, setDraft] = useState<Record<string, number>>({});
-  // Single-level undo snapshot: the draft as it was before the last batch op
   const undoRef = useRef<Record<string, number> | null>(null);
-  const [showSkus, setShowSkus] = useState(false);
   const [skuDraft, setSkuDraft] = useState<Record<string, string>>({});
-  const [setAllValue, setSetAllValue] = useState("");
+  // Raw string per cell while the seller is actively typing (allows empty / mid-entry values)
+  const [rawInput, setRawInput] = useState<Record<string, string>>({});
 
   // Save state
   const [saving, setSaving] = useState(false);
@@ -163,7 +162,7 @@ export default function InventoryPage() {
     [draft],
   );
 
-  const dirty = Object.keys(draft).length > 0 || Object.keys(skuDraft).length > 0;
+  const dirty = Object.keys(draft).length > 0 || Object.keys(skuDraft).length > 0 || Object.keys(rawInput).length > 0;
 
   const liveTotal = useMemo(() => {
     if (!activeProduct) return 0;
@@ -172,60 +171,19 @@ export default function InventoryPage() {
 
   // â”€â”€â”€ Editing helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const setCell = (variantId: string, value: string) => {
+    setRawInput((r) => ({ ...r, [variantId]: value }));
+  };
+
+  const commitCell = (variantId: string, value: string) => {
     const n = Math.max(0, Math.floor(Number(value) || 0));
+    setRawInput((r) => { const next = { ...r }; delete next[variantId]; return next; });
     setDraft((d) => ({ ...d, [variantId]: n }));
   };
 
-  const setRow = (size: string, value: string) => {
-    if (!activeProduct) return;
-    const n = Math.max(0, Math.floor(Number(value) || 0));
-    undoRef.current = { ...draft };
-    setDraft((d) => {
-      const next = { ...d };
-      for (const v of activeProduct.variants) {
-        if (v.size === size) next[v._id] = n;
-      }
-      return next;
-    });
-  };
-
-  const setColumn = (color: string, value: string) => {
-    if (!activeProduct) return;
-    const n = Math.max(0, Math.floor(Number(value) || 0));
-    undoRef.current = { ...draft };
-    setDraft((d) => {
-      const next = { ...d };
-      for (const v of activeProduct.variants) {
-        if (v.color === color) next[v._id] = n;
-      }
-      return next;
-    });
-  };
-
-  const setAll = () => {
-    if (!activeProduct || setAllValue.trim() === "") return;
-    const n = Math.max(0, Math.floor(Number(setAllValue) || 0));
-    undoRef.current = { ...draft };
-    setDraft(() => {
-      const next: Record<string, number> = {};
-      for (const v of activeProduct.variants) next[v._id] = n;
-      return next;
-    });
-  };
-
-  const resetAll = () => {
-    if (!activeProduct) return;
-    undoRef.current = { ...draft };
-    setDraft(() => {
-      const next: Record<string, number> = {};
-      for (const v of activeProduct.variants) next[v._id] = 0;
-      return next;
-    });
-  };
-
-  const undo = () => {
-    if (undoRef.current === null) return;
-    setDraft(undoRef.current);
+  const cancelEdits = () => {
+    setDraft({});
+    setSkuDraft({});
+    setRawInput({});
     undoRef.current = null;
   };
 
@@ -234,8 +192,8 @@ export default function InventoryPage() {
     setActiveId(id);
     setDraft({});
     setSkuDraft({});
+    setRawInput({});
     undoRef.current = null;
-    setSetAllValue("");
   };
 
   // â”€â”€â”€ Save â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -438,7 +396,7 @@ export default function InventoryPage() {
           </div>
 
           {/* â”€â”€ Matrix pane â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-          <div className="sl-card">
+          <div className="l-card flex flex-col">
             <div className="px-5 py-3.5 border-b border-[#1A1A2E]/8 bg-[#FAF7F2] flex items-center justify-between gap-3 flex-wrap">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#1A1A2E]/50">
@@ -446,52 +404,37 @@ export default function InventoryPage() {
                 </p>
                 <p className="text-[11px] text-[#1A1A2E]/40 mt-0.5">{t.matrixSubtitle}</p>
               </div>
-              {activeProduct && (
-                <div className="flex items-center gap-2 flex-wrap">
+              {activeProduct && dirty && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-amber-600 font-semibold hidden sm:inline">
+                    {t.unsavedChanges}
+                  </span>
                   <button
-                    onClick={() => setShowSkus((s) => !s)}
-                    className="h-8 px-3 rounded-full border border-[#1A1A2E]/12 text-[11px] font-semibold text-[#1A1A2E]/60 hover:border-[#C9A84C]/50 hover:text-[#C9A84C] transition-colors"
+                    type="button"
+                    onClick={cancelEdits}
+                    disabled={saving}
+                    className="h-9 px-4 rounded-full inline-flex items-center gap-1.5 border border-[#1A1A2E]/15 text-xs font-semibold text-[#1A1A2E]/60 bg-white hover:border-[#1A1A2E]/30 hover:text-[#1A1A2E] disabled:opacity-40 transition-all duration-200"
                   >
-                    {showSkus ? t.hideSkus : t.showSkus}
+                    <CloseOutlinedIcon sx={{ fontSize: 14 }} />
+                    {t.cancel}
                   </button>
                   <button
-                    onClick={undo}
-                    disabled={undoRef.current === null}
-                    className="h-8 px-3 rounded-full inline-flex items-center gap-1 border border-[#1A1A2E]/12 text-[11px] font-semibold text-[#1A1A2E]/60 hover:border-[#C9A84C]/50 hover:text-[#C9A84C] disabled:opacity-40 transition-colors"
-                  >
-                    <UndoOutlinedIcon sx={{ fontSize: 14 }} />
-                    {t.undo}
-                  </button>
-                  <button
-                    onClick={resetAll}
-                    className="h-8 px-3 rounded-full border border-[#1A1A2E]/12 text-[11px] font-semibold text-[#1A1A2E]/60 hover:border-[#C9A84C]/50 hover:text-[#C9A84C] transition-colors"
-                  >
-                    {t.resetAll}
-                  </button>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] text-[#1A1A2E]/50">{t.setAllTo}</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={setAllValue}
-                      onChange={(e) => setSetAllValue(e.target.value)}
-                      className="h-8 w-16 px-2 rounded-lg border border-[#1A1A2E]/15 text-xs tabular-nums focus:outline-none focus:border-[#C9A84C]"
-                    />
-                    <button
-                      onClick={setAll}
-                      disabled={setAllValue.trim() === ""}
-                      className="h-8 px-3 rounded-full bg-[#1A1A2E] text-white text-[11px] font-semibold hover:bg-[#2d2d50] disabled:opacity-40 transition-colors"
-                    >
-                      {t.apply}
-                    </button>
-                  </div>
-                  <button
+                    type="button"
                     onClick={save}
-                    disabled={!dirty || saving}
-                    className="h-8 px-4 rounded-full inline-flex items-center gap-1 gold-gradient text-[#1A1A2E] text-[11px] font-bold disabled:opacity-40 shadow-sm hover:shadow transition-shadow"
+                    disabled={saving}
+                    className="h-9 px-5 rounded-full inline-flex items-center gap-1.5 gold-gradient text-[#1A1A2E] text-xs font-bold shadow-sm hover:shadow-md disabled:opacity-50 transition-all duration-200"
                   >
-                    <SaveOutlinedIcon sx={{ fontSize: 14 }} />
-                    {saving ? t.saving : t.saveChanges}
+                    {saving ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-[#1A1A2E]/40 border-t-[#1A1A2E] rounded-full animate-spin" />
+                        {t.saving}
+                      </>
+                    ) : (
+                      <>
+                        <SaveOutlinedIcon sx={{ fontSize: 14 }} />
+                        {t.saveChanges}
+                      </>
+                    )}
                   </button>
                 </div>
               )}
@@ -556,28 +499,19 @@ export default function InventoryPage() {
                                   </td>
                                 );
                               }
-                              const value = effStock(v);
+                              const committed = effStock(v);
+                              const displayValue = rawInput[v._id] !== undefined ? rawInput[v._id] : committed;
                               return (
                                 <td key={color} className="p-1 align-top">
                                   <input
                                     type="text"
                                     inputMode="numeric"
-                                    value={value}
+                                    value={displayValue}
                                     onChange={(e) => setCell(v._id, e.target.value)}
                                     onFocus={(e) => e.currentTarget.select()}
-                                    className={`w-full h-9 px-2 text-center tabular-nums border-2 text-sm font-semibold focus:outline-none focus:border-[#C9A84C] ${cellTone(value)}`}
+                                    onBlur={(e) => commitCell(v._id, e.target.value)}
+                                    className={`w-full h-9 px-2 text-center tabular-nums border-2 text-sm font-semibold focus:outline-none focus:border-[#C9A84C] ${cellTone(committed)}`}
                                   />
-                                  {showSkus && (
-                                    <input
-                                      type="text"
-                                      value={skuDraft[v._id] ?? v.sku ?? ""}
-                                      onChange={(e) =>
-                                        setSkuDraft((s) => ({ ...s, [v._id]: e.target.value }))
-                                      }
-                                      placeholder={t.sku}
-                                      className="mt-1 w-full h-7 px-2 rounded-lg border border-[#1A1A2E]/12 text-[11px] focus:outline-none focus:border-[#C9A84C]"
-                                    />
-                                  )}
                                 </td>
                               );
                             })}
@@ -613,30 +547,9 @@ export default function InventoryPage() {
                   </table>
                 </div>
 
-                {/* Row / column fill helpers */}
-                <details className="text-xs">
-                  <summary className="cursor-pointer text-[#1A1A2E]/55 select-none">
-                    Bulk fill rows or columns
-                  </summary>
-                  <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {activeProduct.sizes.map((s) => (
-                      <FillButton
-                        key={`r-${s}`}
-                        label={`Fill row ${s}`}
-                        onApply={(val) => setRow(s, val)}
-                      />
-                    ))}
-                    {activeProduct.colors.map((c) => (
-                      <FillButton
-                        key={`c-${c}`}
-                        label={`Fill column ${c}`}
-                        onApply={(val) => setColumn(c, val)}
-                      />
-                    ))}
-                  </div>
-                </details>
               </div>
             )}
+
           </div>
         </div>
       </div>
@@ -655,29 +568,3 @@ export default function InventoryPage() {
   );
 }
 
-// Small helper for "Fill row M to N" / "Fill column Black to N" actions.
-function FillButton({ label, onApply }: { label: string; onApply: (val: string) => void }) {
-  const [val, setVal] = useState("");
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="flex-1 text-[11px] text-[#1A1A2E]/55">{label}</span>
-      <input
-        type="text"
-        inputMode="numeric"
-        value={val}
-        onChange={(e) => setVal(e.target.value)}
-        className="h-7 w-16 px-2 rounded-lg border border-[#1A1A2E]/15 text-[11px] tabular-nums focus:outline-none focus:border-[#C9A84C]"
-      />
-      <button
-        onClick={() => {
-          if (val.trim() === "") return;
-          onApply(val);
-          setVal("");
-        }}
-        className="h-7 px-3 rounded-full bg-[#1A1A2E] text-white text-[11px] font-semibold hover:bg-[#2d2d50] transition-colors"
-      >
-        Apply
-      </button>
-    </div>
-  );
-}

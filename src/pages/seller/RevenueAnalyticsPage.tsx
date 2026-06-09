@@ -12,9 +12,11 @@ import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
 import SellerLayout from "../../components/seller/SellerLayout";
 import { sellerService } from "../../services/sellerService";
 import { useLang } from "../../context/LangContext";
+import { useSellerContext } from "../../context/SellerContext";
 
 type Analytics = Awaited<ReturnType<typeof sellerService.getRevenueAnalytics>>;
 
@@ -237,22 +239,52 @@ export default function RevenueAnalyticsPage() {
   const { tr, isRTL } = useLang();
   const t = tr.seller.revenueAnalyticsPage;
   const navigate = useNavigate();
+  const { allOrders, reload: reloadOrders } = useSellerContext();
 
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
+  const fetchAnalytics = (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     setError(null);
     sellerService
       .getRevenueAnalytics()
-      .then((data) => { if (!cancelled) setAnalytics(data); })
-      .catch((err) => { if (!cancelled) setError(err?.message || t.error); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [t.error]);
+      .then((data) => setAnalytics(data))
+      .catch((err) => setError(err?.message || t.error))
+      .finally(() => { setLoading(false); setRefreshing(false); });
+  };
+
+  useEffect(() => { fetchAnalytics(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleRefresh = () => { fetchAnalytics(true); reloadOrders(); };
+
+  // Compute live KPI stats from allOrders as the source of truth
+  const liveStats = useMemo(() => {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const delivered = allOrders.filter((o) => o.status === "delivered");
+    const pending   = allOrders.filter((o) => o.status === "pending");
+    const confirmed = allOrders.filter((o) => o.status === "confirmed");
+    const shipped   = allOrders.filter((o) => o.status === "shipped");
+    const thisMonth = allOrders.filter((o) => new Date(o.createdAt) >= monthStart);
+
+    const sum = (orders: typeof allOrders) =>
+      orders.reduce((s, o) => s + o.totalAmount, 0);
+
+    // "Available" = delivered revenue (paid out)
+    // "Pending"   = pending + confirmed + shipped (in-flight)
+    const inFlight = [...pending, ...confirmed, ...shipped];
+
+    return {
+      totalRevenue:  { value: sum(allOrders.filter(o => o.status !== "cancelled")), count: allOrders.filter(o => o.status !== "cancelled").length },
+      pendingRevenue:{ value: sum(inFlight),  count: inFlight.length },
+      available:     { value: sum(delivered), count: delivered.length },
+      thisMonth:     { value: sum(thisMonth), count: thisMonth.length },
+    };
+  }, [allOrders]);
 
   const trend = useMemo(() => {
     const daily = analytics?.daily ?? [];
@@ -269,32 +301,32 @@ export default function RevenueAnalyticsPage() {
       icon: <AccountBalanceWalletOutlinedIcon sx={{ fontSize: 20, color: "#1A1A2E" }} />,
       label: t.totalRevenue,
       desc: t.totalRevenueDesc,
-      value: analytics?.totalRevenue?.value ?? 0,
-      count: analytics?.totalRevenue?.count ?? 0,
+      value: liveStats.totalRevenue.value,
+      count: liveStats.totalRevenue.count,
       accent: "#1A1A2E",
     },
     {
       icon: <HourglassEmptyOutlinedIcon sx={{ fontSize: 20, color: "#F59E0B" }} />,
       label: t.pendingRevenue,
       desc: t.pendingRevenueDesc,
-      value: analytics?.pendingRevenue?.value ?? 0,
-      count: analytics?.pendingRevenue?.count ?? 0,
+      value: liveStats.pendingRevenue.value,
+      count: liveStats.pendingRevenue.count,
       accent: "#F59E0B",
     },
     {
       icon: <CheckCircleOutlinedIcon sx={{ fontSize: 20, color: "#10B981" }} />,
       label: t.available,
       desc: t.availableDesc,
-      value: analytics?.available?.value ?? 0,
-      count: analytics?.available?.count ?? 0,
+      value: liveStats.available.value,
+      count: liveStats.available.count,
       accent: "#10B981",
     },
     {
       icon: <CalendarMonthOutlinedIcon sx={{ fontSize: 20, color: "#C9A84C" }} />,
       label: t.thisMonth,
       desc: t.thisMonthDesc,
-      value: analytics?.thisMonth?.value ?? 0,
-      count: analytics?.thisMonth?.count ?? 0,
+      value: liveStats.thisMonth.value,
+      count: liveStats.thisMonth.count,
       accent: "#C9A84C",
     },
   ];
@@ -312,7 +344,7 @@ export default function RevenueAnalyticsPage() {
       <div className="p-6 sm:p-8 lg:p-10 space-y-6" dir={isRTL ? "rtl" : "ltr"}>
 
         {/* Header */}
-        <div className="flex items-start justify-between flex-wrap gap-4 sl-rise">
+        <div className="flex items-center justify-between flex-wrap gap-4 sl-rise">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 sl-icon-tile-gold flex items-center justify-center shrink-0">
               <TrendingUpOutlinedIcon sx={{ fontSize: 24, color: "#C9A84C" }} />
@@ -324,6 +356,16 @@ export default function RevenueAnalyticsPage() {
               <p className="text-[#1A1A2E]/50 text-sm mt-0.5">{t.subtitle}</p>
             </div>
           </div>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing || loading}
+            className="h-10 w-10 rounded-full inline-flex items-center justify-center border border-[#1A1A2E]/10 bg-white text-[#1A1A2E]/50 hover:border-[#C9A84C]/50 hover:text-[#C9A84C] disabled:opacity-40 transition-all duration-200"
+            title={isRTL ? "تحديث" : "Refresh"}
+          >
+            <RefreshOutlinedIcon
+              sx={{ fontSize: 18, ...(refreshing && { animation: "spin 1s linear infinite" }) }}
+            />
+          </button>
         </div>
 
         {/* Error banner */}
@@ -347,7 +389,7 @@ export default function RevenueAnalyticsPage() {
               ordersLabel={t.orders}
               dzd={t.dzd}
               accent={k.accent}
-              loading={loading}
+              loading={false}
               isRTL={isRTL}
             />
           ))}

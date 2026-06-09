@@ -42,6 +42,7 @@ import ProductReviewsPage from "./pages/ProductReviewsPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
+import AuthCallbackPage from "./pages/AuthCallbackPage";
 
 // ─── Scroll Restoration ────────────────────────────────────────────────────────
 
@@ -100,6 +101,9 @@ export default function App() {
             <CartProvider>
               <WishlistProvider>
                 <Routes>
+                  {/* ── OAuth redirect landing (standalone, no layout) ── */}
+                  <Route path="auth/callback" element={<AuthCallbackPage />} />
+
                   {/* ── Buyer routes (with buyer Navbar/Footer layout) ── */}
                   <Route element={<Layout />}>
                     <Route index element={<HomeOrSellerRedirect />} />

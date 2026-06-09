@@ -14,6 +14,21 @@ import { setStoredToken, removeStoredToken, getStoredToken } from "../lib/api";
 import type { ApiAuthResponse } from "../types/api";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+/** Raw user object the backend embeds in the OAuth callback fragment. */
+export interface OAuthSessionUser {
+  id: string;
+  email: string;
+  // customer
+  fullName?: string;
+  phoneNumber?: string | null;
+  imageUrl?: { url: string } | null;
+  // seller
+  shopName?: string;
+  phone?: number | null;
+  logoUrl?: string | null;
+  isActive?: boolean;
+}
+
 interface AuthContextValue {
   user: SessionUser | null;
   authReady: boolean;
@@ -46,6 +61,12 @@ interface AuthContextValue {
     password: string;
     role: UserRole;
   }) => Promise<SessionUser>;
+  completeOAuthLogin: (params: {
+    accessToken: string;
+    role: UserRole;
+    isNew: boolean;
+    user: OAuthSessionUser;
+  }) => SessionUser;
   verifyEmail: (params: {
     email: string;
     verificationCode: number;
@@ -299,6 +320,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  // ── Complete OAuth Login (Google) ──────────────────────────────────────────
+  // Called by the /auth/callback page after the backend redirect. Mirrors the
+  // session-establishing logic of login()/verifyEmail() but consumes the
+  // pre-built user payload from the URL fragment instead of an API call.
+  const completeOAuthLogin = useCallback(
+    (params: {
+      accessToken: string;
+      role: UserRole;
+      isNew: boolean;
+      user: OAuthSessionUser;
+    }): SessionUser => {
+      setStoredToken(params.accessToken);
+
+      const u = params.user;
+      let session: SessionUser =
+        params.role === "seller"
+          ? {
+              id: u.id,
+              fullName: u.shopName ?? u.email,
+              email: u.email,
+              role: "seller",
+              isActive: u.isActive ?? true,
+              shopName: u.shopName,
+              phone: u.phone ?? null,
+              logoUrl: u.logoUrl ?? null,
+            }
+          : {
+              id: u.id,
+              fullName: u.fullName ?? u.email,
+              email: u.email,
+              role: "customer",
+              isActive: true,
+            };
+
+      session = applySellerSetup(session);
+
+      // New sellers still need to finish onboarding (delivery/address setup).
+      if (session.role === "seller" && !getSellerSetupRecord(session.id)) {
+        saveSellerSetupRecord(session.id, { status: "pending" });
+        session = { ...session, sellerSetupStatus: "pending" };
+      }
+
+      saveSession(session);
+      setUser(session);
+      setAuthModal(null);
+
+      // A brand-new customer gets a server-side cart, same as email signup.
+      if (params.isNew && session.role === "customer") {
+        cartService.createCart().catch(() => {});
+      }
+
+      return session;
+    },
+    [],
+  );
+
   // ── Verify Email ───────────────────────────────────────────────────────────
   const verifyEmail = useCallback(
     async (params: {
@@ -431,6 +508,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         registerCustomer,
         registerSeller,
         login,
+        completeOAuthLogin,
         verifyEmail,
         logout,
         updateProfile,

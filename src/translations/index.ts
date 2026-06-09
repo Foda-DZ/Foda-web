@@ -796,6 +796,7 @@ export interface Translations {
       filterOut: string;
       selectAProduct: string;
       noProductsForFilter: string;
+      cancel: string;
     };
     productAnalyticsPage: {
       title: string;
@@ -884,6 +885,11 @@ export interface Translations {
       sortOldest: string;
       sortHighest: string;
       sortLowest: string;
+      labelCol: string;
+      downloadLabel: string;
+      downloading: string;
+      noLabel: string;
+      managedBy: string;
     };
     settingsPage: {
       title: string;
@@ -901,9 +907,10 @@ export interface Translations {
       emailDisabled: string;
       locationInfo: string;
       wilaya: string;
-      wilayaPlaceholder: string;
+      selectWilaya: string;
       commune: string;
-      communePlaceholder: string;
+      selectCommune: string;
+      chooseWilayaFirst: string;
       wilayaCommuneHint: string;
       infoBanner: string;
       saved: string;
@@ -2030,6 +2037,7 @@ export const ar: Translations = {
       filterOut: "نفد",
       selectAProduct: "اختر منتجاً للبدء",
       noProductsForFilter: "لا توجد منتجات تطابق هذا الفلتر.",
+      cancel: "إلغاء",
     },
     productAnalyticsPage: {
       title: "تحليلات المنتج",
@@ -2117,6 +2125,11 @@ export const ar: Translations = {
       sortOldest: "الأقدم أولاً",
       sortHighest: "الأعلى سعراً",
       sortLowest: "الأقل سعراً",
+      labelCol: "ملصق الشحن",
+      downloadLabel: "تحميل الملصق",
+      downloading: "جارٍ التحميل...",
+      noLabel: "—",
+      managedBy: "بواسطة",
     },
     settingsPage: {
       title: "إعدادات المتجر",
@@ -2134,9 +2147,10 @@ export const ar: Translations = {
       emailDisabled: "لا يمكن تغيير البريد الإلكتروني.",
       locationInfo: "الموقع",
       wilaya: "الولاية",
-      wilayaPlaceholder: "الجزائر",
+      selectWilaya: "اختر الولاية",
       commune: "البلدية",
-      communePlaceholder: "باب الوادي",
+      selectCommune: "اختر البلدية",
+      chooseWilayaFirst: "اختر الولاية أولاً",
       wilayaCommuneHint: "يجب إدخال الولاية والبلدية معاً.",
       infoBanner: "تأكد من صحة المعلومات قبل الحفظ. اسم المتجر يجب أن يكون فريداً.",
       saved: "تم حفظ الإعدادات!",
@@ -3319,6 +3333,7 @@ export const en: Translations = {
       filterOut: "Out",
       selectAProduct: "Select a product to start",
       noProductsForFilter: "No products match this filter.",
+      cancel: "Cancel",
     },
     productAnalyticsPage: {
       title: "Product Analytics",
@@ -3406,6 +3421,11 @@ export const en: Translations = {
       sortOldest: "Oldest first",
       sortHighest: "Highest amount",
       sortLowest: "Lowest amount",
+      labelCol: "Shipping Label",
+      downloadLabel: "Download Label",
+      downloading: "Downloading...",
+      noLabel: "—",
+      managedBy: "by",
     },
     settingsPage: {
       title: "Store Settings",
@@ -3423,9 +3443,10 @@ export const en: Translations = {
       emailDisabled: "Email cannot be changed.",
       locationInfo: "Location",
       wilaya: "Wilaya",
-      wilayaPlaceholder: "Algiers",
+      selectWilaya: "Select a wilaya",
       commune: "Commune",
-      communePlaceholder: "Bab El Oued",
+      selectCommune: "Select a commune",
+      chooseWilayaFirst: "Choose a wilaya first",
       wilayaCommuneHint: "Wilaya and commune must be provided together.",
       infoBanner: "Make sure your info is correct before saving. Shop name must be unique.",
       saved: "Settings Saved!",
