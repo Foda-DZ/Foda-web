@@ -144,7 +144,7 @@ export default function Footer() {
             </div>
 
             {/* Social media */}
-            <div className="mt-8">
+            {/* <div className="mt-8">
               <p className="text-white/35 text-[10px] font-semibold tracking-widest uppercase mb-3">
                 {tr.footer.social.followUs}
               </p>
@@ -163,7 +163,7 @@ export default function Footer() {
                   </a>
                 ))}
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Links */}
@@ -296,7 +296,7 @@ export default function Footer() {
                   </a>
                 ))}
               </div>
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 {["Visa", "MC", "Baridimob", "CIB"].map((p) => (
                   <span
                     key={p}
@@ -305,7 +305,7 @@ export default function Footer() {
                     {p}
                   </span>
                 ))}
-              </div>
+              </div> */}
             </div>
 
           </div>

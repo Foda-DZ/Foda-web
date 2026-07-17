@@ -141,7 +141,7 @@ export default function ProductPage() {
     if (!id) return;
     const allowed = ["instagram", "tiktok", "whatsapp", "facebook"];
     const raw = new URLSearchParams(location.search).get("src");
-    const source = raw && allowed.includes(raw.toLowerCase()) ? raw.toLowerCase() : "direct";
+    const source = raw && allowed.includes(raw.toLowerCase()) ? raw.toLowerCase() : "foda";
     let visitorId = localStorage.getItem("foda_vid") || "";
     if (!visitorId) {
       visitorId = typeof crypto !== "undefined" && "randomUUID" in crypto

@@ -141,8 +141,7 @@ export type TrafficSource =
   | "tiktok"
   | "whatsapp"
   | "facebook"
-  | "direct"
-  | "other";
+  | "foda";
 
 export interface TrafficSourceCount {
   source: TrafficSource;
@@ -390,4 +389,6 @@ export interface ApiSellerProfile {
   productCount: number;
   followers: number;
   isFollowing: boolean;
+  rating: number;
+  ratingCount: number;
 }

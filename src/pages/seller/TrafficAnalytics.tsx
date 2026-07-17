@@ -28,8 +28,7 @@ const SOURCE_COLOR: Record<TrafficSource, string> = {
   tiktok:    "#1A1A2E",
   whatsapp:  "#25D366",
   facebook:  "#1877F2",
-  direct:    "#C9A84C",
-  other:     "#94A3B8",
+  foda:    "#C9A84C",
 };
 
 // ── Visits trend bar chart — RTL-aware, hover tooltips ─────────────────────────

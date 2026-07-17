@@ -121,126 +121,6 @@ export interface MetaOAuthCompleteResponse {
   metaAds: MetaAdsSafeInfo;
 }
 
-// ─── TikTok Ads ───────────────────────────────────────────────────────────────
-export type TikTokDatePreset = "today" | "yesterday" | "last_7d" | "last_30d";
-
-export interface TikTokRangeFilter {
-  datePreset?: TikTokDatePreset;
-  startDate?: string;
-  endDate?: string;
-}
-
-export interface TikTokKpis {
-  datePreset?: string;
-  impressions: number;
-  clicks: number;
-  spend: number;
-  conversions: number;
-  ctr: number;
-  cpc: number;
-  cpm: number;
-  conversionRate: number;
-  currency: string;
-}
-
-export interface TikTokCampaign {
-  campaignId: string;
-  name: string;
-  status: string;
-  operationStatus?: string;
-  objectiveType?: string;
-  budget?: number;
-  budgetMode?: string;
-  productId?: string | null;
-  metrics?: { impressions: number; clicks: number; spend: number; conversions: number } | null;
-}
-
-export interface TikTokAdsSafeInfo {
-  isConnected: boolean;
-  advertiserId: string | null;
-  advertiserName: string | null;
-  businessCenterId: string | null;
-  currency: string | null;
-  connectedAt: string | null;
-  lastSyncedAt: string | null;
-  tokenExpiresAt: string | null;
-  connectionError: string | null;
-  monthlyBudgetCap: number | null;
-  trackingKey: string | null;
-  scope: string[] | null;
-  insights: TikTokKpis | null;
-  campaigns: TikTokCampaign[];
-}
-
-export interface TikTokAdvertiser {
-  id: string;
-  name: string;
-  currency: string | null;
-}
-
-export interface TikTokDashboardResponse {
-  sellerId: string;
-  shopName: string;
-  email: string;
-  dateRange: { datePreset?: string; startDate?: string; endDate?: string };
-  kpis: TikTokKpis | null;
-  campaigns: TikTokCampaign[];
-  tracking: { trackingKey: string | null };
-  tiktokAds: TikTokAdsSafeInfo;
-  stale?: boolean;
-}
-
-export interface TikTokOAuthStartResponse {
-  authUrl: string;
-  state: string;
-  expiresInSeconds: number;
-}
-
-export interface TikTokOAuthCompleteResponse {
-  sellerId: string;
-  shopName: string;
-  selectedAdvertiser: TikTokAdvertiser | null;
-  availableAdvertisers: TikTokAdvertiser[];
-  tiktokAds: TikTokAdsSafeInfo;
-}
-
-export interface TikTokAuditLogItem {
-  _id: string;
-  sellerId: string;
-  action: string;
-  targetId?: string | null;
-  actor: "seller" | "system" | "tiktok";
-  outcome: "success" | "failure";
-  errorMessage?: string | null;
-  meta?: Record<string, unknown> | null;
-  createdAt: string;
-}
-
-export interface TikTokEventItem {
-  _id: string;
-  sellerId: string;
-  eventName: string;
-  eventId?: string | null;
-  eventTime: string;
-  forwardStatus: "stored" | "forwarded" | "failed";
-  forwardError?: string | null;
-  createdAt: string;
-}
-
-export interface TikTokStatusResponse {
-  sellerId: string;
-  isConnected: boolean;
-  advertiserId: string | null;
-  advertiserName: string | null;
-  hasAccessToken: boolean;
-  tokenExpiresAt: string | null;
-  connectionError: string | null;
-  monthlyBudgetCap: number | null;
-  lastSyncedAt: string | null;
-  issues: string[];
-  isFullyConfigured: boolean;
-  health: { apiSuccessRate: number; avgResponseMs: number; lastError: string | null; lastErrorAt: string | null; totalCalls: number };
-}
 
 export interface AddProductPayload {
   name: string;
@@ -284,7 +164,7 @@ export const sellerService = {
     const form = new FormData();
     form.append("name", payload.name);
     form.append("brand", payload.brand);
-    form.append("price", Number(payload.price));
+    form.append("price", payload.price as any);
     form.append("mainCategory", payload.mainCategory);
     form.append("subCategory", payload.subCategory);
     if (payload.description) form.append("description", payload.description);
@@ -421,75 +301,6 @@ export const sellerService = {
       })
       .then((r) => r.data),
 
-  // ─── TikTok Ads ─────────────────────────────────────────────────────────────
-  startTikTokAdsOAuth: () =>
-    api
-      .get<{ message: string } & TikTokOAuthStartResponse>("/seller/tiktok-ads/oauth/start")
-      .then((r) => ({ authUrl: r.data.authUrl, state: r.data.state, expiresInSeconds: r.data.expiresInSeconds })),
-
-  completeTikTokAdsOAuth: (params: { auth_code: string; state: string }) =>
-    api
-      .get<{ message: string } & TikTokOAuthCompleteResponse>("/seller/tiktok-ads/oauth/callback", { params })
-      .then((r) => ({
-        sellerId: r.data.sellerId,
-        shopName: r.data.shopName,
-        selectedAdvertiser: r.data.selectedAdvertiser,
-        availableAdvertisers: r.data.availableAdvertisers,
-        tiktokAds: r.data.tiktokAds,
-      })),
-
-  getTikTokAdvertisers: () =>
-    api
-      .get<{ advertisers: TikTokAdvertiser[]; currentAdvertiserId: string | null }>("/seller/tiktok-ads/advertisers")
-      .then((r) => r.data),
-
-  configureTikTokAdvertiser: (advertiserId: string) =>
-    api
-      .post<{ message: string; tiktokAds: TikTokAdsSafeInfo }>("/seller/tiktok-ads/configure-advertiser", { advertiserId })
-      .then((r) => r.data.tiktokAds),
-
-  disconnectTikTokAds: () =>
-    api
-      .delete<{ message: string; tiktokAds: TikTokAdsSafeInfo }>("/seller/tiktok-ads")
-      .then((r) => r.data.tiktokAds),
-
-  getTikTokAdsDashboard: (params?: TikTokRangeFilter) =>
-    api
-      .get<{ dashboard: TikTokDashboardResponse }>("/seller/tiktok-ads", { params })
-      .then((r) => r.data.dashboard),
-
-  syncTikTokAds: (payload?: TikTokRangeFilter) =>
-    api
-      .post<{ message: string; dashboard: TikTokDashboardResponse }>("/seller/tiktok-ads/sync", payload ?? {})
-      .then((r) => r.data.dashboard),
-
-  setTikTokCampaignStatus: (campaignId: string, action: "pause" | "resume") =>
-    api
-      .post<{ message: string; campaign: TikTokCampaign | null }>(`/seller/tiktok-ads/campaigns/${campaignId}/status`, { action })
-      .then((r) => r.data.campaign),
-
-  deleteTikTokCampaign: (campaignId: string) =>
-    api
-      .delete<{ message: string; deleted: boolean }>(`/seller/tiktok-ads/campaigns/${campaignId}`)
-      .then((r) => r.data),
-
-  setTikTokBudgetCap: (monthlyBudgetCap: number | null) =>
-    api
-      .put<{ message: string; tiktokAds: TikTokAdsSafeInfo }>("/seller/tiktok-ads/budget", { monthlyBudgetCap })
-      .then((r) => r.data.tiktokAds),
-
-  getTikTokAuditLogs: (params?: { limit?: number; action?: string }) =>
-    api
-      .get<{ count: number; logs: TikTokAuditLogItem[] }>("/seller/tiktok-ads/audit", { params })
-      .then((r) => r.data.logs),
-
-  getTikTokAdsStatus: () =>
-    api.get<TikTokStatusResponse>("/seller/tiktok-ads/status").then((r) => r.data),
-
-  getTikTokAdsEvents: (params?: TikTokRangeFilter) =>
-    api
-      .get<{ sellerId: string; count: number; events: TikTokEventItem[] }>("/seller/tiktok-ads/events", { params })
-      .then((r) => r.data.events),
 
   // Traffic Analytics
   getTrafficOverview: (params?: TrafficRangeParams) =>

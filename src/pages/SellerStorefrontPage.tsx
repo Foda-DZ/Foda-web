@@ -1,25 +1,37 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Navigate } from "react-router-dom";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import StarIcon from "@mui/icons-material/Star";
+import StarHalfIcon from "@mui/icons-material/StarHalf";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
 import Footer from "../components/Footer";
 import ProductCard from "../components/ui/ProductCard";
 import { storefrontService } from "../services/storefrontService";
 import { apiProductToProduct } from "../lib/mappers";
+import { useAuth } from "../context/AuthContext";
 import type { ApiSellerProfile } from "../types/api";
 import type { Product } from "../types";
 
 export default function SellerStorefrontPage() {
   const { sellerId } = useParams<{ sellerId: string }>();
   const navigate = useNavigate();
+  const { user, openLogin } = useAuth();
+  const isCustomer = user?.role === "customer";
+  const textDir = document.documentElement.dir;
 
   const [profile, setProfile] = useState<ApiSellerProfile | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followLoading, setFollowLoading] = useState(false);
 
   if (!sellerId) return <Navigate to="/" replace />;
 
@@ -28,6 +40,8 @@ export default function SellerStorefrontPage() {
     setError("");
     setProfile(null);
     setProducts([]);
+    setIsFollowing(false);
+    setFollowersCount(0);
 
     Promise.allSettled([
       storefrontService.getSellerProfile(sellerId),
@@ -35,6 +49,8 @@ export default function SellerStorefrontPage() {
     ]).then(([profileResult, productsResult]) => {
       if (profileResult.status === "fulfilled") {
         setProfile(profileResult.value);
+        setIsFollowing(profileResult.value.isFollowing);
+        setFollowersCount(profileResult.value.followers);
       } else {
         setError("Could not load seller information.");
       }
@@ -45,6 +61,45 @@ export default function SellerStorefrontPage() {
     });
   }, [sellerId]);
 
+  const handleFollowToggle = async () => {
+    if (!sellerId || !profile || followLoading) return;
+    if (!isCustomer) {
+      openLogin();
+      return;
+    }
+
+    const wasFollowing = isFollowing;
+    setFollowLoading(true);
+    setIsFollowing(!wasFollowing);
+    setFollowersCount((count) =>
+      wasFollowing ? Math.max(0, count - 1) : count + 1,
+    );
+
+    try {
+      const result = wasFollowing
+        ? await storefrontService.unfollowSeller(sellerId)
+        : await storefrontService.followSeller(sellerId);
+
+      setFollowersCount(result.followers);
+      setProfile((current) =>
+        current
+          ? {
+              ...current,
+              followers: result.followers,
+              isFollowing: !wasFollowing,
+            }
+          : current,
+      );
+    } catch {
+      setIsFollowing(wasFollowing);
+      setFollowersCount((count) =>
+        wasFollowing ? count + 1 : Math.max(0, count - 1),
+      );
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
   const memberYear = profile?.memberSince
     ? new Date(profile.memberSince).getFullYear()
     : null;
@@ -52,6 +107,19 @@ export default function SellerStorefrontPage() {
   const initials = profile?.shopName
     ? profile.shopName.slice(0, 2).toUpperCase()
     : "??";
+
+  function StarRating({ value }: { value: number }) {
+    return (
+      <span className="inline-flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map((n) => {
+          const filled = value >= n;
+          const half = !filled && value >= n - 0.5;
+          const Icon = filled ? StarIcon : half ? StarHalfIcon : StarBorderIcon;
+          return <Icon key={n} sx={{ fontSize: 11, color: "#C9A84C" }} />;
+        })}
+      </span>
+    );
+  }
 
   // ── Loading state ────────────────────────────────────────────────────────────
   if (loading) {
@@ -97,7 +165,9 @@ export default function SellerStorefrontPage() {
       <>
         <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-24 pb-20 flex flex-col items-center gap-5 text-center">
           <div className="w-16 h-16 rounded-full bg-[#1A1A2E]/6 flex items-center justify-center">
-            <Inventory2OutlinedIcon sx={{ fontSize: 28, color: "#1A1A2E", opacity: 0.25 }} />
+            <Inventory2OutlinedIcon
+              sx={{ fontSize: 28, color: "#1A1A2E", opacity: 0.25 }}
+            />
           </div>
           <p className="text-[#1A1A2E]/50 text-base max-w-sm">{error}</p>
           <button
@@ -159,19 +229,23 @@ export default function SellerStorefrontPage() {
                 <h1 className="font-display text-2xl lg:text-3xl font-bold text-white leading-none">
                   {profile?.shopName}
                 </h1>
-                {profile?.isVerified && (
+                {/* {profile?.isVerified && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#C9A84C]/15 border border-[#C9A84C]/25 text-[#C9A84C] text-[10px] font-bold tracking-wider uppercase">
                     <VerifiedIcon sx={{ fontSize: 10 }} />
                     Verified
                   </span>
-                )}
+                )} */}
               </div>
 
               {/* Stats row */}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-white/45">
                 <span className="flex items-center gap-1.5">
-                  <Inventory2OutlinedIcon sx={{ fontSize: 13, color: "#C9A84C" }} />
-                  <span className="text-white/70 font-medium">{profile?.productCount ?? 0}</span>
+                  <Inventory2OutlinedIcon
+                    sx={{ fontSize: 13, color: "#C9A84C" }}
+                  />
+                  <span className="text-white/70 font-medium">
+                    {profile?.productCount ?? 0}
+                  </span>
                   &nbsp;products
                 </span>
                 {profile?.address && (
@@ -182,10 +256,56 @@ export default function SellerStorefrontPage() {
                 )}
                 {memberYear && (
                   <span className="flex items-center gap-1.5">
-                    <CalendarTodayOutlinedIcon sx={{ fontSize: 12, color: "#C9A84C" }} />
+                    <CalendarTodayOutlinedIcon
+                      sx={{ fontSize: 12, color: "#C9A84C" }}
+                    />
                     Since {memberYear}
                   </span>
                 )}
+                {profile && profile.ratingCount > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    <StarRating value={profile.rating} />
+                    <span className="text-white/70 font-semibold">
+                      {profile.rating.toFixed(1)}
+                    </span>
+                    <span className="text-white/35">
+                      ({profile.ratingCount})
+                    </span>
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 pt-1.5">
+                <button
+                  onClick={handleFollowToggle}
+                  disabled={followLoading || !profile}
+                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[12px] font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+                    isFollowing
+                      ? "border-[#C9A84C]/35 bg-[#C9A84C]/15 text-[#C9A84C] hover:bg-[#C9A84C]/20"
+                      : "border-white/10 bg-white/5 text-white hover:border-[#C9A84C]/30 hover:bg-[#C9A84C]/10 hover:text-[#C9A84C]"
+                  }`}
+                >
+                  {followLoading ? (
+                    <span className="h-3.5 w-3.5 rounded-full border border-current border-r-transparent animate-spin" />
+                  ) : isFollowing ? (
+                    <CheckCircleOutlinedIcon sx={{ fontSize: 15 }} />
+                  ) : (
+                    <AddCircleOutlineIcon sx={{ fontSize: 15 }} />
+                  )}
+                  <span>{isFollowing ? "Following" : "Follow store"}</span>
+                  {/* <span
+                    className={`text-[11px] font-bold ${isFollowing ? "text-[#C9A84C]/80" : "text-white/55"}`}
+                  >
+                    {followersCount.toLocaleString()}
+                  </span> */}
+                </button>
+
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-medium text-white/55">
+                  <span className="font-semibold text-white/80">
+                    {followersCount.toLocaleString()}
+                  </span>
+                  Followers
+                </span>
               </div>
             </div>
           </div>
@@ -209,9 +329,13 @@ export default function SellerStorefrontPage() {
         {products.length === 0 ? (
           <div className="py-24 flex flex-col items-center gap-4 text-center">
             <div className="w-14 h-14 rounded-full bg-[#1A1A2E]/5 flex items-center justify-center">
-              <Inventory2OutlinedIcon sx={{ fontSize: 24, color: "#1A1A2E", opacity: 0.2 }} />
+              <Inventory2OutlinedIcon
+                sx={{ fontSize: 24, color: "#1A1A2E", opacity: 0.2 }}
+              />
             </div>
-            <p className="text-[#1A1A2E]/40 text-sm">This seller has no products yet.</p>
+            <p className="text-[#1A1A2E]/40 text-sm">
+              This seller has no products yet.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-5">

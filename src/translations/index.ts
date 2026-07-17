@@ -1004,8 +1004,7 @@ export interface Translations {
         tiktok: string;
         whatsapp: string;
         facebook: string;
-        direct: string;
-        other: string;
+        foda: string;
       };
     };
     trackedLinks: {
@@ -2244,8 +2243,7 @@ export const ar: Translations = {
         tiktok: "تيك توك",
         whatsapp: "واتساب",
         facebook: "فيسبوك",
-        direct: "مباشر",
-        other: "أخرى",
+        foda: "Foda",
       },
     },
     trackedLinks: {
@@ -3540,8 +3538,7 @@ export const en: Translations = {
         tiktok: "TikTok",
         whatsapp: "WhatsApp",
         facebook: "Facebook",
-        direct: "Direct",
-        other: "Other",
+        foda: "Foda",
       },
     },
     trackedLinks: {

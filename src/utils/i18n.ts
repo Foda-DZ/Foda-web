@@ -130,8 +130,7 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
         'traffic.bySource.source': 'Source',
         'traffic.source.meta': 'Meta',
         'traffic.source.whatsapp': 'WhatsApp',
-        'traffic.source.direct': 'Direct',
-        'traffic.source.other': 'Other',
+        'traffic.source.foda': 'Foda',
 
         // Traffic by Device
         'traffic.byDevice.title': '🖥️ Device Distribution',
@@ -354,8 +353,7 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
         'traffic.bySource.source': 'المصدر',
         'traffic.source.meta': 'Meta',
         'traffic.source.whatsapp': 'WhatsApp',
-        'traffic.source.direct': 'مباشر',
-        'traffic.source.other': 'آخر',
+        'traffic.source.foda': 'Foda',
 
         // Traffic by Device
         'traffic.byDevice.title': '🖥️ توزيع الأجهزة',

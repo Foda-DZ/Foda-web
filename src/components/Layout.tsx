@@ -1,7 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import AuthModal from "./AuthModal";
-import ScrollToTopButton from "./ScrollToTopButton";
 
 export default function Layout() {
   return (
@@ -14,9 +13,6 @@ export default function Layout() {
 
       {/* Page content */}
       <Outlet />
-
-      {/* Scroll to top */}
-      <ScrollToTopButton />
     </div>
   );
 }
