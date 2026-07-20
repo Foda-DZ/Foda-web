@@ -13,7 +13,7 @@ export const COLOR_HEX: Record<string, string> = {
 export const SUB_CATEGORIES = [
   "Shirts", "Pants", "Dresses", "Shoes", "Jackets",
   "Hoodies", "Jeans", "Shorts", "T-Shirts", "Sweaters",
-  "Coats", "Bags", "Hats", "Other",
+  "Coats", "Bags", "Hats", "Sunglasses", "Watches", "Other",
 ] as const;
 
 export type SubCategory = typeof SUB_CATEGORIES[number];

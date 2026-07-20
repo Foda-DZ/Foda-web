@@ -1,20 +1,25 @@
 import { useState } from "react";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import { useNavigate } from "react-router-dom";
 import { useWishlist } from "../../context/WishlistContext";
 import { useAuth } from "../../context/AuthContext";
+import { useLang } from "../../context/LangContext";
 import type { Product } from "../../types";
 
 interface ProductCardProps {
   product: Product;
   delay?: number;
+  /** Show a "Trending" badge (for the analytics-driven trending section). */
+  trending?: boolean;
 }
 
-export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
+export default function ProductCard({ product, delay = 0, trending = false }: ProductCardProps) {
   const navigate = useNavigate();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user, openLogin } = useAuth();
+  const { tr } = useLang();
   const isCustomer = user?.role === "customer";
   const [hovered, setHovered] = useState(false);
   const [wishlistAnimating, setWishlistAnimating] = useState(false);
@@ -22,14 +27,41 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
   const hasSecondImage = product.images.length > 1;
   const isOutOfStock = !product.inStock || product.totalStock === 0;
   const isLowStock = !isOutOfStock && product.totalStock <= 5;
-  const hasDiscount =
-    product.originalPrice && product.originalPrice > product.price;
-  const discountPercent = hasDiscount
-    ? Math.round(
-        ((product.originalPrice! - product.price) / product.originalPrice!) *
-          100,
-      )
-    : 0;
+
+  // A "deal" is either an active promotion or a static original-price markdown.
+  // Promotion takes priority. We resolve everything into a single shape:
+  //   dealPrice      → what the customer pays now
+  //   referencePrice → the original ("reference") price, shown struck through
+  //   dealPercent    → the discount percentage
+  const promo =
+    product.promotion?.active && (product.promotion.value ?? 0) > 0
+      ? product.promotion
+      : null;
+
+  let dealPrice: number | null = null;
+  let referencePrice: number | null = null;
+  let dealPercent = 0;
+
+  if (promo) {
+    dealPrice =
+      promo.type === "percentage"
+        ? product.price * (1 - promo.value! / 100)
+        : Math.max(0, product.price - promo.value!);
+    referencePrice = product.price;
+    dealPercent =
+      promo.type === "percentage"
+        ? Math.round(promo.value!)
+        : Math.round((promo.value! / product.price) * 100);
+  } else if (product.originalPrice && product.originalPrice > product.price) {
+    dealPrice = product.price;
+    referencePrice = product.originalPrice;
+    dealPercent = Math.round(
+      ((product.originalPrice - product.price) / product.originalPrice) * 100,
+    );
+  }
+
+  const hasDeal = dealPrice !== null && referencePrice !== null;
+  const displayPrice = hasDeal ? dealPrice! : product.price;
 
   function handleWishlist(e: React.MouseEvent) {
     e.stopPropagation();
@@ -38,7 +70,7 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
       return;
     }
     setWishlistAnimating(true);
-    setTimeout(() => setWishlistAnimating(false), 300);
+    setTimeout(() => setWishlistAnimating(false), 450);
     if (liked) removeFromWishlist(product.id);
     else addToWishlist(product);
   }
@@ -84,12 +116,13 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
 
         {/* Badges — top left */}
         <div className="absolute top-3 left-3 flex flex-col gap-1 z-10">
-          {hasDiscount && (
-            <span className="text-white bg-red-500 text-[10px] font-bold tracking-wide px-2.5 py-1 rounded-full shadow-sm">
-              -{discountPercent}%
+          {trending && (
+            <span className="flex items-center gap-1 text-charcoal gold-gradient text-[10px] font-bold tracking-wide px-2.5 py-1 rounded-full shadow-sm">
+              <LocalFireDepartmentIcon sx={{ fontSize: 12 }} />
+              {tr.products.trendingBadge}
             </span>
           )}
-          {product.isNew && (
+          {product.isNew && !hasDeal && (
             <span className="text-white bg-[#1A1A2E] text-[10px] font-bold tracking-wide px-2.5 py-1 rounded-full shadow-sm">
               NEW
             </span>
@@ -106,21 +139,32 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
           )}
         </div>
 
+        {/* Deal badge — bottom left (promo or static discount) */}
+        {hasDeal && (
+          <span className="absolute bottom-3 left-3 z-10 text-white bg-red-500 text-[10px] font-bold tracking-wide px-2.5 py-1 rounded-md shadow-sm">
+            {tr.products.deal}
+          </span>
+        )}
+
         {/* Wishlist button — top right */}
         <button
           onClick={handleWishlist}
-          className={`absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full backdrop-blur-sm border transition-all duration-200 ${
+          className={`group/heart absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full backdrop-blur-sm border transition-all duration-300 ease-out hover:scale-115 active:scale-90 ${
             liked
-              ? "bg-red-50/90 border-red-200 shadow-md"
-              : "bg-white/80 border-white/60 shadow-sm hover:bg-white hover:shadow-md"
-          } ${wishlistAnimating ? "scale-125" : "scale-100"}`}
+              ? "bg-red-50/90 border-red-200 shadow-md shadow-red-200/50"
+              : "bg-white/80 border-white/60 shadow-sm hover:bg-white hover:border-red-200 hover:shadow-md hover:shadow-red-200/40"
+          } ${wishlistAnimating ? "animate-heart-pop" : ""}`}
           aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
         >
           {liked ? (
-            <FavoriteIcon sx={{ fontSize: 16, color: "#ef4444" }} />
+            <FavoriteIcon
+              sx={{ fontSize: 16, color: "#ef4444" }}
+              className="transition-transform duration-300 group-hover/heart:scale-110"
+            />
           ) : (
             <FavoriteBorderIcon
               sx={{ fontSize: 16, color: "rgba(26,26,46,0.6)" }}
+              className="transition-all duration-300 group-hover/heart:scale-110 group-hover/heart:text-[#ef4444]"
             />
           )}
         </button>
@@ -141,18 +185,24 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
           {product.name}
         </p>
 
-        {/* Price row */}
-        <div className="flex items-baseline gap-2 mt-1.5">
-          <span className="text-[15px] font-bold text-[#1A1A2E]">
-            {product.price.toLocaleString()}
-            <span className="text-[11px] font-normal text-[#1A1A2E]/40 ml-1">
+        {/* Price */}
+        <div className="mt-1.5">
+          <span className={`text-[15px] font-bold ${hasDeal ? "text-red-500" : "text-[#1A1A2E]"}`}>
+            {Math.round(displayPrice).toLocaleString()}
+            <span className={`text-[11px] font-normal ml-1 ${hasDeal ? "text-red-500/60" : "text-[#1A1A2E]/40"}`}>
               DZD
             </span>
           </span>
-          {hasDiscount && (
-            <span className="text-[12px] font-medium text-[#1A1A2E]/30 line-through">
-              {product.originalPrice!.toLocaleString()}
-            </span>
+
+          {/* Reference price line — shown only on deals */}
+          {hasDeal && (
+            <p className="text-[11px] text-[#1A1A2E]/40 mt-0.5">
+              {tr.products.referencePrice}:{" "}
+              <span className="line-through">
+                {referencePrice!.toLocaleString()}
+              </span>{" "}
+              <span className="text-red-500 font-semibold">-{dealPercent}%</span>
+            </p>
           )}
         </div>
       </div>

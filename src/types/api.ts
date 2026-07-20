@@ -51,6 +51,8 @@ export type ApiSubCategory =
   | "Coats"
   | "Bags"
   | "Hats"
+  | "Sunglasses"
+  | "Watches"
   | "Other";
 
 export interface ApiPromotion {

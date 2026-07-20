@@ -36,6 +36,8 @@ const SUB_CAT_AR: Record<string, string> = {
   Coats: "معاطف",
   Bags: "حقائب",
   Hats: "قبعات",
+  Sunglasses: "نظارات شمسية",
+  Watches: "ساعات",
   Other: "أخرى",
 };
 

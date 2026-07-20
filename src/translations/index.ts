@@ -90,6 +90,58 @@ export interface Translations {
     quickView: string;
     viewAndAdd: string;
     viewAll: string;
+    promo: string;
+    trendingBadge: string;
+    deal: string;
+    referencePrice: string;
+  };
+  newArrivalsSection: {
+    eyebrow: string;
+    titleLine1: string;
+    titleLine2: string;
+    subtitle: string;
+    featuredTag: string;
+    justLanded: string;
+    viewProduct: string;
+    exploreAll: string;
+    empty: string;
+  };
+  genderShowcase: {
+    men: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      cta: string;
+    };
+    women: {
+      eyebrow: string;
+      title: string;
+      subtitle: string;
+      cta: string;
+    };
+    pieces: string;
+    shopThe: string;
+    empty: string;
+  };
+  home: {
+    heroTitle: string;
+    heroSubtitle: string;
+    heroCta: string;
+    heroCtaSecondary: string;
+    shopByCategory: string;
+    seeAll: string;
+    newArrivals: string;
+    forHim: string;
+    forHer: string;
+    bestOffers: string;
+    trending: string;
+    collectionsTitle: string;
+    discoverNow: string;
+    promoTitle: string;
+    promoSubtitle: string;
+    promoCta: string;
+    appPromoTitle: string;
+    appPromoSubtitle: string;
   };
   brandStory: {
     ourStory: string;
@@ -684,6 +736,8 @@ export interface Translations {
         Coats: string;
         Bags: string;
         Hats: string;
+        Sunglasses: string;
+        Watches: string;
         Other: string;
       };
       colorNames: {
@@ -734,6 +788,8 @@ export interface Translations {
       deleteBtn: string;
       cancel: string;
       failedDelete: string;
+      refresh: string;
+      refreshing: string;
     };
     inventoryPage: {
       title: string;
@@ -853,6 +909,8 @@ export interface Translations {
       wasPrice: string;
       nowPrice: string;
       ongoing: string;
+      refresh: string;
+      refreshing: string;
     };
     ordersList: {
       title: string;
@@ -1269,6 +1327,58 @@ export const ar: Translations = {
     quickView: "معاينة سريعة",
     viewAndAdd: "عرض وإضافة للسلة",
     viewAll: "عرض كل {count} منتج",
+    promo: "عرض",
+    trendingBadge: "رائج",
+    deal: "تخفيض",
+    referencePrice: "السعر المرجعي",
+  },
+  newArrivalsSection: {
+    eyebrow: "وصل حديثاً",
+    titleLine1: "أحدث",
+    titleLine2: "الإضافات",
+    subtitle: "قِطع جديدة تماماً من أفضل المصممين في الجزائر — كن أول من يقتنيها.",
+    featuredTag: "الأحدث وصولاً",
+    justLanded: "وصل للتو",
+    viewProduct: "عرض المنتج",
+    exploreAll: "اكتشف كل الجديد",
+    empty: "لا توجد إضافات جديدة بعد. تحقق قريباً.",
+  },
+  genderShowcase: {
+    men: {
+      eyebrow: "أزياء الرجال",
+      title: "أناقة الرجل العصري",
+      subtitle: "قِطع مصمّمة بعناية للرجل الذي يعرف قيمة التفاصيل — من الكلاسيكي إلى الجريء.",
+      cta: "تسوّق مجموعة الرجال",
+    },
+    women: {
+      eyebrow: "أزياء النساء",
+      title: "أناقة تُلهم",
+      subtitle: "تصاميم راقية تحتفي بأناقتك — قطع مختارة من أفضل مصممي الجزائر.",
+      cta: "تسوّق مجموعة النساء",
+    },
+    pieces: "قطعة",
+    shopThe: "تسوّق",
+    empty: "لا توجد منتجات في هذه الفئة بعد.",
+  },
+  home: {
+    heroTitle: "أناقة تبدأ من هنا",
+    heroSubtitle: "اكتشف أحدث صيحات الموضة من أفضل المصممين في الجزائر.",
+    heroCta: "تسوّق الآن",
+    heroCtaSecondary: "وصل حديثاً",
+    shopByCategory: "تسوّق حسب الفئة",
+    seeAll: "عرض الكل",
+    newArrivals: "وصل حديثاً",
+    forHim: "له",
+    forHer: "لها",
+    bestOffers: "أفضل عروضنا — بأسعار مخفّضة لك",
+    trending: "الأكثر رواجاً",
+    collectionsTitle: "مجموعاتنا",
+    discoverNow: "اكتشف الآن",
+    promoTitle: "توصيل سريع في كل الجزائر",
+    promoSubtitle: "استلم طلبك خلال 48 ساعة مع الدفع عند الاستلام.",
+    promoCta: "ابدأ التسوّق",
+    appPromoTitle: "هل جرّبت تطبيقنا؟",
+    appPromoSubtitle: "استمتع بتجربة تسوّق أسرع وأبسط وأكثر تخصيصاً.",
   },
   brandStory: {
     ourStory: "منصتنا",
@@ -1344,7 +1454,7 @@ export const ar: Translations = {
     terms: "شروط الخدمة",
     cookies: "سياسة ملفات تعريف الارتباط",
     app: { title: "حمّل تطبيق Foda", subtitle: "تسوّق بسهولة من هاتفك", scanText: "امسح الرمز للتحميل" },
-    social: { followUs: "تابعنا", instagram: "إنستغرام", facebook: "فيسبوك", tiktok: "تيك توك" },
+    social: { followUs: "يمكنك أيضاً أن تجدنا على", instagram: "إنستغرام", facebook: "فيسبوك", tiktok: "تيك توك" },
   },
   cart: {
     title: "سلة التسوق",
@@ -1924,6 +2034,8 @@ export const ar: Translations = {
         Coats: "معاطف",
         Bags: "حقائب",
         Hats: "قبعات",
+        Sunglasses: "نظارات شمسية",
+        Watches: "ساعات",
         Other: "أخرى",
       },
       colorNames: {
@@ -1974,6 +2086,8 @@ export const ar: Translations = {
       deleteBtn: "حذف",
       cancel: "إلغاء",
       failedDelete: "فشل حذف المنتج.",
+      refresh: "تحديث",
+      refreshing: "جارٍ التحديث…",
     },
     inventoryPage: {
       title: "المخزون",
@@ -2092,6 +2206,8 @@ export const ar: Translations = {
       wasPrice: "كان",
       nowPrice: "الآن",
       ongoing: "مستمر",
+      refresh: "تحديث",
+      refreshing: "جارٍ التحديث…",
     },
     ordersList: {
       title: "الطلبات",
@@ -2564,6 +2680,58 @@ export const en: Translations = {
     quickView: "Quick View",
     viewAndAdd: "View & Add to Cart",
     viewAll: "View All {count} Products",
+    promo: "Promo",
+    trendingBadge: "Trending",
+    deal: "Deal",
+    referencePrice: "Reference price",
+  },
+  newArrivalsSection: {
+    eyebrow: "New Arrivals",
+    titleLine1: "Just",
+    titleLine2: "Landed",
+    subtitle: "Brand-new pieces from Algeria's finest designers — be the first to own them.",
+    featuredTag: "Latest Drop",
+    justLanded: "Just In",
+    viewProduct: "View Product",
+    exploreAll: "Explore All New",
+    empty: "No new arrivals just yet. Check back soon.",
+  },
+  genderShowcase: {
+    men: {
+      eyebrow: "Men's Edit",
+      title: "Sharp. Effortless.",
+      subtitle: "Considered pieces for the man who values the details — from timeless staples to bold statements.",
+      cta: "Shop Men's Collection",
+    },
+    women: {
+      eyebrow: "Women's Edit",
+      title: "Elegance, Redefined.",
+      subtitle: "Refined designs that celebrate your style — handpicked from Algeria's finest designers.",
+      cta: "Shop Women's Collection",
+    },
+    pieces: "pieces",
+    shopThe: "Shop the",
+    empty: "No products in this category just yet.",
+  },
+  home: {
+    heroTitle: "Style starts here",
+    heroSubtitle: "Discover the latest fashion from Algeria's finest designers.",
+    heroCta: "Shop now",
+    heroCtaSecondary: "New arrivals",
+    shopByCategory: "Shop by category",
+    seeAll: "See all",
+    newArrivals: "New arrivals",
+    forHim: "For him",
+    forHer: "For her",
+    bestOffers: "Our best offers — Reduced for you",
+    trending: "Trending now",
+    collectionsTitle: "Our collections",
+    discoverNow: "Discover now",
+    promoTitle: "Fast delivery across Algeria",
+    promoSubtitle: "Get your order within 48 hours with cash on delivery.",
+    promoCta: "Start shopping",
+    appPromoTitle: "Tried our app yet?",
+    appPromoSubtitle: "Enjoy a faster, simpler and more personalised shopping experience.",
   },
   brandStory: {
     ourStory: "Our Platform",
@@ -2639,7 +2807,7 @@ export const en: Translations = {
     terms: "Terms of Service",
     cookies: "Cookie Policy",
     app: { title: "Get the Foda App", subtitle: "Shop effortlessly from your phone", scanText: "Scan to download" },
-    social: { followUs: "Follow Us", instagram: "Instagram", facebook: "Facebook", tiktok: "TikTok" },
+    social: { followUs: "You can also find us on", instagram: "Instagram", facebook: "Facebook", tiktok: "TikTok" },
   },
   cart: {
     title: "Your Cart",
@@ -3219,6 +3387,8 @@ export const en: Translations = {
         Coats: "Coats",
         Bags: "Bags",
         Hats: "Hats",
+        Sunglasses: "Sunglasses",
+        Watches: "Watches",
         Other: "Other",
       },
       colorNames: {
@@ -3269,6 +3439,8 @@ export const en: Translations = {
       deleteBtn: "Delete",
       cancel: "Cancel",
       failedDelete: "Failed to delete product.",
+      refresh: "Refresh",
+      refreshing: "Refreshing…",
     },
     inventoryPage: {
       title: "Inventory",
@@ -3387,6 +3559,8 @@ export const en: Translations = {
       wasPrice: "Was",
       nowPrice: "Now",
       ongoing: "Ongoing",
+      refresh: "Refresh",
+      refreshing: "Refreshing…",
     },
     ordersList: {
       title: "Orders",

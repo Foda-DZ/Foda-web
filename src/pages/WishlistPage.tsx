@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import DeleteIcon from "@mui/icons-material/Delete";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import CloseIcon from "@mui/icons-material/Close";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import IconButton from "@mui/material/IconButton";
 import Footer from "../components/Footer";
 import { useWishlist } from "../context/WishlistContext";
 import { useCart } from "../context/CartContext";
@@ -190,6 +187,22 @@ export default function WishlistPage() {
     );
   }
 
+  if (!loading && items.length === 0) {
+    return (
+      <div className="min-h-screen bg-cream">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-32 py-20">
+          <AuthRequiredEmptyState
+            icon={<FavoriteBorderIcon sx={{ fontSize: 38, color: "#C9A84C" }} />}
+            title={tr.wishlist.emptyTitle}
+            subtitle={tr.wishlist.emptySub}
+            ctaLabel={tr.cartPage.continueShopping}
+            onCta={() => navigate("/shop")}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-cream">
       {/* Header */}
@@ -234,156 +247,133 @@ export default function WishlistPage() {
             </div>
             <p className="text-sm text-charcoal/50">{tr.wishlist.loading}</p>
           </div>
-        ) : items.length === 0 ? (
-          /* ── Empty state ── */
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-white/50 backdrop-blur-sm border border-charcoal/10 rounded-2xl">
-            <div className="w-20 h-20 bg-gold/10 rounded-full flex items-center justify-center mb-6">
-              <FavoriteBorderIcon sx={{ fontSize: 42, color: "#C9A84C" }} />
-            </div>
-            <h2 className="font-display text-2xl font-bold text-charcoal mb-2">
-              {tr.wishlist.emptyTitle}
-            </h2>
-            <p className="text-charcoal/50 text-sm mb-8 max-w-sm">
-              {tr.wishlist.emptySub}
-            </p>
-            <button
-              onClick={() => navigate("/shop")}
-              className="btn-gold flex items-center gap-2 group"
-            >
-              {tr.nav.shop}
-              <ArrowForwardIcon
-                sx={{ fontSize: 16 }}
-                className="transition-transform duration-300 group-hover:translate-x-1"
-              />
-            </button>
-          </div>
         ) : (
-          /* ── Wishlist items - styled like CartPage ── */
-          <div className="space-y-4">
+          /* ── Wishlist items — modern product-card grid ── */
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {items.map((product) => {
               const hasDiscount =
                 product.originalPrice && product.originalPrice > product.price;
+              const discountPercent = hasDiscount
+                ? Math.round(
+                    ((product.originalPrice! - product.price) /
+                      product.originalPrice!) *
+                      100,
+                  )
+                : 0;
+              const outOfStock = !product.inStock || product.totalStock === 0;
+              const lowStock = !outOfStock && product.totalStock <= 5;
+
               return (
                 <div
                   key={product.id}
-                  className="bg-white border border-charcoal/8 p-4 sm:p-5 flex gap-4 sm:gap-5 rounded-xl"
+                  className="group relative flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300"
                 >
                   {/* Image */}
-                  <Link
-                    to={`/products/${product.id}`}
-                    className="w-24 h-28 sm:w-28 sm:h-32 flex-shrink-0 overflow-hidden bg-cream rounded-lg"
-                  >
-                    <img
-                      src={product.images[0]}
-                      alt={product.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    />
-                  </Link>
+                  <div className="relative overflow-hidden bg-[#F4F2EF] aspect-[3/4]">
+                    <Link to={`/products/${product.id}`} className="absolute inset-0">
+                      <img
+                        src={product.images[0]}
+                        alt={product.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </Link>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0 flex flex-col">
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="min-w-0">
-                        <p className="text-gold text-[10px] uppercase tracking-widest">
-                          {product.category}
-                        </p>
-                        <Link
-                          to={`/products/${product.id}`}
-                          className="text-charcoal font-semibold text-sm leading-tight hover:text-gold transition-colors truncate block"
-                        >
-                          {product.name}
-                        </Link>
-                        {/* Colors available */}
-                        {product.colors.length > 0 && (
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <span className="text-charcoal/50 text-xs">
-                              Colors:
-                            </span>
-                            <div className="flex items-center gap-1">
-                              {product.colors.slice(0, 4).map((color, idx) => (
-                                <span
-                                  key={idx}
-                                  className="w-3 h-3 rounded-full border border-black/10"
-                                  style={{ backgroundColor: colorToHex(color) }}
-                                  title={color}
-                                />
-                              ))}
-                              {product.colors.length > 4 && (
-                                <span className="text-[9px] text-charcoal/40">
-                                  +{product.colors.length - 4}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                        {/* Sizes available */}
-                        {product.sizes.length > 0 && (
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <span className="text-charcoal/50 text-xs">
-                              Sizes:
-                            </span>
-                            <span className="text-charcoal/50 text-xs">
-                              {product.sizes.slice(0, 4).join(", ")}
-                              {product.sizes.length > 4 &&
-                                ` +${product.sizes.length - 4}`}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      <IconButton
-                        onClick={() => removeFromWishlist(product.id)}
-                        size="small"
-                        sx={{
-                          borderRadius: 0,
-                          color: "rgba(26,26,46,0.3)",
-                          "&:hover": {
-                            color: "#ef4444",
-                            bgcolor: "transparent",
-                          },
-                          flexShrink: 0,
-                        }}
-                      >
-                        <DeleteIcon sx={{ fontSize: 16 }} />
-                      </IconButton>
-                    </div>
+                    {/* Soft gradient overlay for legibility */}
+                    <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
 
-                    <div className="flex items-center justify-between mt-auto pt-3">
-                      {/* Price */}
-                      <div className="flex items-baseline gap-2">
-                        <span className="font-bold text-charcoal">
-                          {product.price.toLocaleString()}{" "}
-                          <span className="text-[10px] font-normal text-charcoal/50">
-                            {tr.common.dzd}
-                          </span>
+                    {/* Status badges — top left */}
+                    <div className="absolute top-3 left-3 flex flex-col gap-1 z-10">
+                      {outOfStock && (
+                        <span className="text-white bg-black/50 text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-full backdrop-blur-sm">
+                          {tr.shop.soldOut}
                         </span>
-                        {hasDiscount && (
-                          <span className="text-sm text-charcoal/30 line-through">
-                            {product.originalPrice!.toLocaleString()}
+                      )}
+                      {lowStock && (
+                        <span className="text-white bg-orange-500 text-[10px] font-semibold tracking-wide px-2.5 py-1 rounded-full shadow-sm">
+                          {product.totalStock} left
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Discount badge — bottom left */}
+                    {hasDiscount && (
+                      <span className="absolute bottom-3 left-3 z-10 text-white bg-red-500 text-[10px] font-bold tracking-wide px-2.5 py-1 rounded-md shadow-sm">
+                        -{discountPercent}%
+                      </span>
+                    )}
+
+                    {/* Remove from wishlist — top right */}
+                    <button
+                      onClick={() => removeFromWishlist(product.id)}
+                      aria-label="Remove from wishlist"
+                      className="absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full backdrop-blur-sm border border-white/60 bg-white/80 shadow-sm hover:bg-red-50/90 hover:border-red-200 hover:shadow-md hover:shadow-red-200/40 transition-all duration-300 ease-out hover:scale-110 active:scale-90"
+                    >
+                      <DeleteOutlineIcon
+                        sx={{ fontSize: 17, color: "rgba(26,26,46,0.6)" }}
+                        className="group-hover:text-[#ef4444]"
+                      />
+                    </button>
+                  </div>
+
+                  {/* Card body */}
+                  <div className="p-3.5 flex flex-col gap-1 flex-1">
+                    <Link to={`/products/${product.id}`}>
+                      <p className="text-[11px] font-semibold tracking-widest uppercase text-[#1A1A2E]/45 truncate">
+                        {product.brand || product.category}
+                      </p>
+                      <p className="text-[13px] font-semibold text-[#1A1A2E] leading-snug line-clamp-2 hover:text-[#C9A84C] transition-colors duration-200 min-h-[2.4em]">
+                        {product.name}
+                      </p>
+                    </Link>
+
+                    {/* Colors */}
+                    {product.colors.length > 0 && (
+                      <div className="flex items-center gap-1 mt-0.5">
+                        {product.colors.slice(0, 5).map((color, idx) => (
+                          <span
+                            key={idx}
+                            className="w-3 h-3 rounded-full border border-black/10"
+                            style={{ backgroundColor: colorToHex(color) }}
+                            title={color}
+                          />
+                        ))}
+                        {product.colors.length > 5 && (
+                          <span className="text-[9px] text-charcoal/40">
+                            +{product.colors.length - 5}
                           </span>
                         )}
                       </div>
+                    )}
 
-                      {/* Move to Cart Button */}
-                      <button
-                        onClick={() => handleMoveToCart(product)}
-                        disabled={product.stock === 0}
-                        className="flex items-center gap-1.5 btn-dark py-2 px-4 text-xs font-semibold tracking-wider disabled:opacity-40 disabled:cursor-not-allowed"
+                    {/* Price */}
+                    <div className="mt-1">
+                      <span
+                        className={`text-[15px] font-bold ${hasDiscount ? "text-red-500" : "text-[#1A1A2E]"}`}
                       >
-                        <ShoppingBagIcon sx={{ fontSize: 14 }} />
-                        {tr.wishlist.moveToCart}
-                      </button>
+                        {product.price.toLocaleString()}
+                        <span
+                          className={`text-[11px] font-normal ml-1 ${hasDiscount ? "text-red-500/60" : "text-[#1A1A2E]/40"}`}
+                        >
+                          {tr.common.dzd}
+                        </span>
+                      </span>
+                      {hasDiscount && (
+                        <span className="text-[11px] text-charcoal/40 line-through ml-2">
+                          {product.originalPrice!.toLocaleString()}
+                        </span>
+                      )}
                     </div>
 
-                    {product.stock === 0 && (
-                      <p className="text-xs text-red-500 mt-2">
-                        {tr.shop.soldOut}
-                      </p>
-                    )}
-                    {product.stock > 0 && product.stock <= 5 && (
-                      <p className="text-xs text-orange-500 mt-2">
-                        {product.stock} left
-                      </p>
-                    )}
+                    {/* Move to Cart */}
+                    <button
+                      onClick={() => handleMoveToCart(product)}
+                      disabled={outOfStock}
+                      className="mt-2.5 w-full flex items-center justify-center gap-1.5 btn-dark py-2.5 text-xs font-semibold tracking-wider rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <ShoppingBagIcon sx={{ fontSize: 14 }} />
+                      {tr.wishlist.moveToCart}
+                    </button>
                   </div>
                 </div>
               );

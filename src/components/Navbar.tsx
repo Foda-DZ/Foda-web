@@ -75,7 +75,6 @@ function MobileIconBtn({
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [authPopupOpen, setAuthPopupOpen] = useState(false);
@@ -83,12 +82,24 @@ export default function Navbar() {
   const accountRef = useRef<HTMLDivElement>(null);
   const authPopupRef = useRef<HTMLDivElement>(null);
   const authCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const navRef = useRef<HTMLElement>(null);
-  const [navHeight, setNavHeight] = useState(0);
   const { totalItems } = useCart();
   const { user, openLogin, openRegister, logout } = useAuth();
   const { tr } = useLang();
   const { totalItems: wishlistCount } = useWishlist();
+
+  /* ── Mobile promo bar: rotate through the 3 perks ────────────── */
+  const promoItems = [
+    { key: "shipping", Icon: LocalShippingOutlinedIcon, label: tr.nav.promoBar.shipping },
+    { key: "returns", Icon: AutorenewIcon, label: tr.nav.promoBar.returns },
+    { key: "support", Icon: HeadsetMicOutlinedIcon, label: tr.nav.promoBar.support },
+  ];
+  const [promoIndex, setPromoIndex] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setPromoIndex((i) => (i + 1) % promoItems.length);
+    }, 2800);
+    return () => clearInterval(id);
+  }, [promoItems.length]);
 
   /* ── Category links only ─────────────────────────────────────── */
   const navLinks = [
@@ -113,28 +124,6 @@ export default function Navbar() {
 
   const scheduleCloseAuthPopup = useCallback(() => {
     authCloseTimer.current = setTimeout(() => setAuthPopupOpen(false), 200);
-  }, []);
-
-  // Keep the navbar fixed; only toggle the shadow after scrolling
-  useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY;
-      setScrolled(y > 10);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  // Measure nav height for spacer (fixed nav is out of flow)
-  useEffect(() => {
-    const el = navRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([entry]) => {
-      setNavHeight(entry.contentRect.height);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
   }, []);
 
   // Close account dropdown on outside click
@@ -175,28 +164,44 @@ export default function Navbar() {
 
   return (
     <>
-      {/* ── Main navbar (fixed) ────────────────────────────────────── */}
-      <nav
-        ref={navRef}
-        className={`fixed top-0 inset-x-0 z-50 bg-white transition-shadow duration-300 ${
-          scrolled ? "shadow-md shadow-black/5" : ""
-        }`}
-      >
+      {/* ── Main navbar (static, scrolls with the page) ─────────────── */}
+      <nav className="relative z-50 bg-white">
+
         {/* ── Promo bar ──────────────────────────────────────────── */}
         <div className="gold-gradient py-2 px-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-center gap-6 sm:gap-10">
-            <span className="flex items-center gap-1.5 text-[#1A1A2E] text-[11px] sm:text-xs font-semibold tracking-wide">
-              <LocalShippingOutlinedIcon sx={{ fontSize: 14 }} />
-              {tr.nav.promoBar.shipping}
-            </span>
-            <span className="hidden sm:flex items-center gap-1.5 text-[#1A1A2E] text-[11px] sm:text-xs font-semibold tracking-wide">
-              <AutorenewIcon sx={{ fontSize: 14 }} />
-              {tr.nav.promoBar.returns}
-            </span>
-            <span className="hidden md:flex items-center gap-1.5 text-[#1A1A2E] text-[11px] sm:text-xs font-semibold tracking-wide">
-              <HeadsetMicOutlinedIcon sx={{ fontSize: 14 }} />
-              {tr.nav.promoBar.support}
-            </span>
+          <div className="max-w-7xl mx-auto">
+            {/* Mobile: auto-rotating single-item carousel so all 3 perks surface */}
+            <div className="sm:hidden relative h-4 overflow-hidden">
+              {promoItems.map((item, i) => (
+                <span
+                  key={item.key}
+                  className={`absolute inset-0 flex items-center justify-center gap-1.5 text-[#1A1A2E] text-[11px] font-semibold tracking-wide transition-all duration-500 ease-out ${
+                    i === promoIndex
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-1.5 pointer-events-none"
+                  }`}
+                >
+                  <item.Icon sx={{ fontSize: 14 }} />
+                  {item.label}
+                </span>
+              ))}
+            </div>
+
+            {/* Desktop / tablet: all three shown at once */}
+            <div className="hidden sm:flex items-center justify-center gap-6 sm:gap-10">
+              <span className="flex items-center gap-1.5 text-[#1A1A2E] text-xs font-semibold tracking-wide">
+                <LocalShippingOutlinedIcon sx={{ fontSize: 14 }} />
+                {tr.nav.promoBar.shipping}
+              </span>
+              <span className="flex items-center gap-1.5 text-[#1A1A2E] text-xs font-semibold tracking-wide">
+                <AutorenewIcon sx={{ fontSize: 14 }} />
+                {tr.nav.promoBar.returns}
+              </span>
+              <span className="flex items-center gap-1.5 text-[#1A1A2E] text-xs font-semibold tracking-wide">
+                <HeadsetMicOutlinedIcon sx={{ fontSize: 14 }} />
+                {tr.nav.promoBar.support}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -444,9 +449,6 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-
-      {/* Spacer to offset fixed navbar */}
-      <div style={{ height: navHeight }} />
 
       {/* ── Mobile drawer backdrop ───────────────────────────────── */}
       <div

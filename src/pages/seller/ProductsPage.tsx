@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import WarningIcon from "@mui/icons-material/Warning";
@@ -591,7 +592,7 @@ function TrackedLinksModal({ product, onClose }: { product: Product; onClose: ()
 
 // â”€â”€â”€ Products Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function ProductsPage() {
-  const { sellerProducts, deleteProduct } = useSellerContext();
+  const { sellerProducts, deleteProduct, reload, loading } = useSellerContext();
   const { tr, isRTL } = useLang();
   const t = tr.seller.productsList;
   const navigate = useNavigate();
@@ -660,15 +661,38 @@ export default function ProductsPage() {
               </p>
             </div>
           </div>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => navigate("/seller/products/new")}
-            startIcon={<AddIcon sx={{ fontSize: 15 }} />}
-            sx={{ borderRadius: "999px", px: 2.5 }}
-          >
-            {t.addProduct}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={reload}
+              disabled={loading}
+              startIcon={
+                <RefreshIcon
+                  sx={{
+                    fontSize: 15,
+                    animation: loading ? "spin 0.8s linear infinite" : "none",
+                    "@keyframes spin": {
+                      from: { transform: "rotate(0deg)" },
+                      to: { transform: "rotate(360deg)" },
+                    },
+                  }}
+                />
+              }
+              sx={{ borderRadius: "999px", px: 2.5 }}
+            >
+              {loading ? t.refreshing : t.refresh}
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => navigate("/seller/products/new")}
+              startIcon={<AddIcon sx={{ fontSize: 15 }} />}
+              sx={{ borderRadius: "999px", px: 2.5 }}
+            >
+              {t.addProduct}
+            </Button>
+          </div>
         </div>
 
         {/* Product list */}

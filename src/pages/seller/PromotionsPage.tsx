@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState, useCallback } from "react";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
@@ -325,14 +326,34 @@ export default function PromotionsPage() {
             </div>
           </div>
 
-          {!loading && activeCount > 0 && (
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200">
-              <CheckCircleOutlinedIcon sx={{ fontSize: 14, color: "#059669" }} />
-              <span className="text-xs font-semibold text-emerald-700">
-                {activeCount} {activeCount > 1 ? t.activePlural : t.activeSingle}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {!loading && activeCount > 0 && (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200">
+                <CheckCircleOutlinedIcon sx={{ fontSize: 14, color: "#059669" }} />
+                <span className="text-xs font-semibold text-emerald-700">
+                  {activeCount} {activeCount > 1 ? t.activePlural : t.activeSingle}
+                </span>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={load}
+              disabled={loading}
+              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full border border-[#1A1A2E]/12 bg-white text-[#1A1A2E]/60 text-xs font-semibold hover:border-[#C9A84C]/50 hover:text-[#C9A84C] transition-colors disabled:opacity-50"
+            >
+              <RefreshIcon
+                sx={{
+                  fontSize: 15,
+                  animation: loading ? "sl-spin 0.8s linear infinite" : "none",
+                  "@keyframes sl-spin": {
+                    from: { transform: "rotate(0deg)" },
+                    to: { transform: "rotate(360deg)" },
+                  },
+                }}
+              />
+              {loading ? t.refreshing : t.refresh}
+            </button>
+          </div>
         </div>
 
         {/* â”€â”€ Summary strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}

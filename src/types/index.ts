@@ -31,6 +31,7 @@ export interface Product {
   inStock: boolean;
   description: string;
   isNew: boolean;
+  createdAt?: string;
   sellerId?: string;
   sellerName?: string;
   rating?: number;

@@ -55,6 +55,34 @@ function getCachedReviews(key: string): ApiProductReviewsResponse | null {
   return null;
 }
 
+// Shared fetcher for the curated section endpoints. Uses the same cache +
+// in-flight dedup maps as getAll, keyed by the request path (incl. limit).
+function fetchSection(path: string, limit?: number): Promise<ApiProduct[]> {
+  const key = limit ? `${path}?limit=${limit}` : path;
+
+  const cached = getCached(key);
+  if (cached) return Promise.resolve(cached);
+
+  const pending = inflight.get(key);
+  if (pending) return pending;
+
+  const request = api
+    .get<{ products: ApiProduct[] }>(path, { params: limit ? { limit } : undefined })
+    .then((r) => {
+      const data = r.data.products;
+      cache.set(key, { data, ts: Date.now() });
+      inflight.delete(key);
+      return data;
+    })
+    .catch((err) => {
+      inflight.delete(key);
+      throw err;
+    });
+
+  inflight.set(key, request);
+  return request;
+}
+
 export const productsService = {
   getAll: (params?: GetProductsParams): Promise<ApiProduct[]> => {
     const key = cacheKey(params);
@@ -83,6 +111,17 @@ export const productsService = {
     inflight.set(key, request);
     return request;
   },
+
+  // Curated home-page sections. Each hits its own endpoint but shares the same
+  // cache + in-flight dedup infra (keyed by path) as getAll.
+  getNewArrivals: (limit?: number): Promise<ApiProduct[]> =>
+    fetchSection("/products/new-arrivals", limit),
+
+  getTrending: (limit?: number): Promise<ApiProduct[]> =>
+    fetchSection("/products/trending", limit),
+
+  getBestOffers: (limit?: number): Promise<ApiProduct[]> =>
+    fetchSection("/products/best-offers", limit),
 
   getById: (id: string) =>
     api

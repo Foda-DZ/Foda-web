@@ -255,7 +255,12 @@ function ProgressBar({ duration, active }: { duration: number; active: boolean }
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export default function FeaturedCollections() {
+/**
+ * `startIndex` seeds which collection is shown first — lets the section appear
+ * multiple times on a page while each instance opens on a different collection.
+ * It is clamped against the loaded collection count.
+ */
+export default function FeaturedCollections({ startIndex = 0 }: { startIndex?: number } = {}) {
   const navigate = useNavigate();
   const { isRTL } = useLang();
   const [collections, setCollections] = useState<Collection[]>([]);
@@ -269,10 +274,15 @@ export default function FeaturedCollections() {
   useEffect(() => {
     collectionsService
       .getFeatured()
-      .then(setCollections)
+      .then((data) => {
+        setCollections(data);
+        if (data.length > 0) {
+          setActive(((startIndex % data.length) + data.length) % data.length);
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [startIndex]);
 
   const goTo = useCallback(
     (idx: number, dir: "next" | "prev" = "next") => {

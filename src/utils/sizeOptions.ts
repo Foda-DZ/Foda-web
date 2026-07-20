@@ -45,6 +45,8 @@ const SHOE_CATEGORIES = new Set([
 const ONE_SIZE_CATEGORIES = new Set([
     "Bags",
     "Hats",
+    "Sunglasses",
+    "Watches",
     "Accessories",
 ]);
 
@@ -94,4 +96,13 @@ export const isNumericSizes = (subCategory: string): boolean => {
  */
 export const isOneSizeOnly = (subCategory: string): boolean => {
     return ONE_SIZE_CATEGORIES.has(subCategory);
+};
+
+/**
+ * Whether a main category requires a size selection at all.
+ * Accessories (sunglasses, hats, watches, bags, other) don't need sizes.
+ * @param mainCategory - Product main category
+ */
+export const isSizeRequiredForCategory = (mainCategory: string): boolean => {
+    return mainCategory !== "Accessories";
 };

@@ -21,7 +21,11 @@ import IconButton from "@mui/material/IconButton";
 import { useSellerContext } from "../../context/SellerContext";
 import { useLang } from "../../context/LangContext";
 import SellerLayout from "../../components/seller/SellerLayout";
-import { getSizesByCategory, isNumericSizes } from "../../utils/sizeOptions";
+import {
+  getSizesByCategory,
+  isNumericSizes,
+  isSizeRequiredForCategory,
+} from "../../utils/sizeOptions";
 import type { SvgIconComponent } from "@mui/icons-material";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -216,21 +220,28 @@ export default function ProductFormPage() {
     { value: "Other", label: t.catOther },
   ];
 
-  const subCategoryKeys = [
-    "Shirts", "Pants", "Dresses", "Shoes", "Jackets", "Hoodies", "Jeans",
-    "Shorts", "T-Shirts", "Sweaters", "Coats", "Bags", "Hats", "Other",
-  ] as const;
-  const subCategories = subCategoryKeys.map((value) => ({
-    value,
-    label: t.subCats[value],
-  }));
-
   const [form, setForm] = useState<FormState>(defaultForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [apiError, setApiError] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+
+  const clothingSubCategoryKeys = [
+    "Shirts", "Pants", "Dresses", "Shoes", "Jackets", "Hoodies", "Jeans",
+    "Shorts", "T-Shirts", "Sweaters", "Coats", "Bags", "Hats", "Other",
+  ] as const;
+  const accessoriesSubCategoryKeys = [
+    "Sunglasses", "Hats", "Watches", "Bags", "Other",
+  ] as const;
+  const isAccessories = form.mainCategory === "Accessories";
+  const subCategoryKeys = isAccessories
+    ? accessoriesSubCategoryKeys
+    : clothingSubCategoryKeys;
+  const subCategories = subCategoryKeys.map((value) => ({
+    value,
+    label: t.subCats[value],
+  }));
 
   // Pre-fill form when editing
   useEffect(() => {
@@ -296,6 +307,9 @@ export default function ProductFormPage() {
     [form.subCategory],
   );
 
+  // Accessories (sunglasses, watches, hats, bags, other) don't need a size
+  const sizeRequired = isSizeRequiredForCategory(form.mainCategory);
+
   // Validate that selected sizes match available sizes for the category
   useEffect(() => {
     const validSizes = form.sizes.filter((size) =>
@@ -306,6 +320,13 @@ export default function ProductFormPage() {
     }
   }, [form.subCategory, availableSizes]);
 
+  // Reset sub-category when it no longer belongs to the selected main category
+  useEffect(() => {
+    if (!(subCategoryKeys as readonly string[]).includes(form.subCategory)) {
+      set("subCategory", subCategoryKeys[0]);
+    }
+  }, [form.mainCategory]);
+
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
     if (!form.name.trim()) e.name = t.required;
@@ -313,7 +334,7 @@ export default function ProductFormPage() {
     const priceNum = parseFloat(form.price);
     if (!form.price.trim() || Number.isNaN(priceNum) || priceNum <= 0)
       e.price = t.validPrice;
-    if (!form.sizes.length) e.sizes = t.selectSize;
+    if (sizeRequired && !form.sizes.length) e.sizes = t.selectSize;
     if (!form.colors.length) e.colors = t.selectColor;
     if (!form.imageFiles[0] && !(isEdit && form.imagePreviews[0]))
       e.images = t.imageRequired;
@@ -333,6 +354,9 @@ export default function ProductFormPage() {
 
     try {
       const priceNum = parseFloat(form.price);
+      // Accessories don't expose a size picker — the backend still models
+      // variants as (size × color), so default to a single "One Size" row.
+      const sizes = sizeRequired ? form.sizes : ["One Size"];
       if (isEdit && id) {
         await updateProduct(id, {
           name: form.name.trim(),
@@ -341,7 +365,7 @@ export default function ProductFormPage() {
           mainCategory: form.mainCategory,
           subCategory: form.subCategory,
           description: form.description.trim() || undefined,
-          sizes: form.sizes,
+          sizes,
           colors: form.colors,
         });
       } else {
@@ -352,7 +376,7 @@ export default function ProductFormPage() {
           mainCategory: form.mainCategory,
           subCategory: form.subCategory,
           description: form.description.trim() || undefined,
-          sizes: form.sizes,
+          sizes,
           colors: form.colors,
           images: form.imageFiles.filter((f): f is File => f !== null),
         });
@@ -591,7 +615,8 @@ export default function ProductFormPage() {
             </div>
           </div>
 
-          {/* ── Sizes ─────────────────────────────────────────────────── */}
+          {/* ── Sizes (not applicable to Accessories) ────────────────────── */}
+          {sizeRequired && (
           <div className="sl-card p-6 space-y-4 sl-rise transition-shadow duration-300 hover:shadow-md">
             <div className="flex items-center justify-between">
               <SectionHeader
@@ -646,6 +671,7 @@ export default function ProductFormPage() {
               })}
             </div>
           </div>
+          )}
 
           {/* ── Colors ────────────────────────────────────────────────── */}
           <div className="sl-card p-6 space-y-4 sl-rise transition-shadow duration-300 hover:shadow-md">

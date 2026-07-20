@@ -3,7 +3,6 @@ import {
   Phone,
   Mail,
   ArrowRight,
-  Smartphone,
   Sparkles,
 } from "lucide-react";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
@@ -117,20 +116,20 @@ export default function Footer() {
               <img
                 src={fodaLogo}
                 alt="FODA"
-                className="h-20 w-auto object-contain filter-[invert(1)_hue-rotate(180deg)]"
+                className="h-10 w-auto object-contain filter-[invert(1)_hue-rotate(180deg)]"
               />
             </div>
             <p className="text-white/50 font-light leading-relaxed mb-8 max-w-sm text-sm">
               {tr.footer.tagline}
             </p>
-            <div className="space-y-3 mb-8">
+            {/* <div className="space-y-3 mb-8">
               {contactItems.map(({ Icon, text }, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <Icon size={15} className="text-gold mt-0.5 shrink-0" />
                   <span className="text-white/45 text-sm">{text}</span>
                 </div>
               ))}
-            </div>
+            </div> */}
             <div className="flex flex-wrap gap-2">
               {quickActions.map((qa) => (
                 <button
@@ -212,7 +211,9 @@ export default function Footer() {
         </div>
 
         {/* ── Bottom Bar ─────────────────────────────────────────────── */}
-        <div className="border-t border-white/8 py-6">
+        {/* Extra bottom padding clears the fixed "back to top" button so it
+            never overlaps the social icons row. */}
+        <div className="border-t border-white/8 pt-6 pb-20 lg:pb-24">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
 
             {/* LEFT — legal links + copyright */}

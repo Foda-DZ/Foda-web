@@ -43,6 +43,7 @@ export function apiProductToProduct(p: ApiProduct): Product {
     inStock: typeof p.inStock === "boolean" ? p.inStock : totalStock > 0,
     description: p.description ?? "",
     isNew: new Date(p.createdAt).getTime() > sevenDaysAgo,
+    createdAt: p.createdAt,
     sellerId: p.sellerId,
     sellerName: (p as Record<string, unknown>).sellerName as string | undefined,
     rating: (p as Record<string, unknown>).rating as number | undefined,
